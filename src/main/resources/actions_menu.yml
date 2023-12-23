@@ -1,0 +1,17 @@
+#  A DeluxeMenus actions configuration guide
+#=========================================================
+menu_title: 'Actions Menu'
+open_command: actionsmenu
+size: 9
+# as always, only cool people can open this menu :)
+open_requirement:
+  requirements:
+    permission:
+      type: has permission
+      permission: deluxemenus.admin
+      deny_commands:
+        - '[message] &cYou don''t have permission to do that!'
+items:
+  'diamond_block':
+    material: DIAMOND_BLOCK
+    slot: 0

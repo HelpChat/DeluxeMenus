@@ -1,0 +1,241 @@
+#
+# Requirements tutorial menu v1.0
+# authors: clip
+#
+# contributor: Andre_601
+#
+# In this tutorial you will learn all about menu requirements
+# Requirements allow you to restrict actions or even an entire menu to specific players.
+#
+# You can read more about requirements here:
+#   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/requirements
+#
+menu_title: 'Requirements Menu'
+open_command: requirementsmenu
+size: 9
+#
+# as always, only cool people can open this menu :)
+#
+open_requirement:
+  requirements:
+    permission:
+      #
+      # "has permission" checks if a player has the required permission
+      #
+      # Read more:
+      #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/requirements#has-permission
+      #
+      type: has permission
+      permission: deluxemenus.shop
+      deny_commands:
+        - '[message] &cYou don''t have permission to do that!'
+items:
+  #
+  # Example 1: Shop Item
+  #
+  # This is a gold block, which allows you to buy or sell gold blocks for money.
+  #
+  'gold_block':
+    material: GOLD_BLOCK
+    slot: 0
+    lore:
+      - '&7Buy/Sell GOLD_BLOCK'
+      - ''
+      - '&7- Left-click: &bBuy 1 &7for &a$100'
+      - '&7- Right-click: &bSell 1 &7for &a$50'
+      - '&7- Shift-left-click: &bBuy 64 &7for &a6,400'
+      - '&7- Shift-right-click: &bSell 64 &7for &a$3,200'
+    #
+    # Requirement(s) when left-clicking an item.
+    #
+    left_click_requirement:
+      requirements:
+        #
+        # "has money" checks if the player has enough money. Requires Vault.
+        # "amount" defines how much the player needs to at least have.
+        #
+        # Read more:
+        #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/requirements#has-money
+        #
+        has_money:
+          type: has money
+          amount: 100
+      deny_commands:
+        - '[message] &cYou don''t have enough money for this!'
+    #
+    # Command(s) to execute when left-clicking the item.
+    # Those commands won't be executed when the above requirements aren't met.
+    #
+    # Read more:
+    #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/item#shift-left-middle-right-click-commands
+    #
+    left_click_commands:
+      - '[console] give %player_name% GOLD_BLOCK 1'
+      - '[takemoney] 100'
+      - '[message] &aYou bought 1 &6GOLD_BLOCK &afor $100'
+    #
+    # Requirement(s) for right-clicking an item.
+    #
+    right_click_requirement:
+      requirements:
+        #
+        # "has item" checks if the player has the specified item in their inventory.
+        # Except for "material" and "amount" are all other values optional and will default to a specific value.
+        # We check for if the player has 1 gold block.
+        #
+        # Read more:
+        #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/requirements#has-item
+        #
+        has_item:
+          type: has item
+          material: 'GOLD_BLOCK'
+          amount: 1
+      deny_commands:
+        - '[message] &cYou don''t have enough &6GOLD_BLOCK &cto sell! Required: 1'
+    #
+    # Command(s) to execute when right-clicking the item.
+    # Those commands won't be executed when the above requirements aren't met.
+    #
+    # Read more:
+    #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/item#shift-left-middle-right-click-commands
+    # 
+    right_click_commands:
+      - '[console] clear %player_name% GOLD_BLOCK 1'
+      - '[givemoney] 50'
+      - '[message] &aYou sold 1 &6GOLD_BLOCK &afor $50'
+    #
+    # Requirement(s) when left-clicking an item while holding shift on the keyboard.
+    #
+    shift_left_click_requirement:
+      requirements:
+        #
+        # "has money" checks if the player has enough money. Requires Vault.
+        # "amount" defines how much the player needs to at least have.
+        #
+        # Read more:
+        #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/requirements#has-money
+        #
+        has_money:
+          type: has money
+          amount: 6400
+      deny_commands:
+        - '[message] &cYou don''t have enough money for this!'
+    #
+    # Command(s) to execute when left-clicking the item while holding shift.
+    # Those commands won't be executed when the above requirements aren't met.
+    #
+    # Read more:
+    #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/item#shift-left-middle-right-click-commands
+    # 
+    shift_left_click_commands:
+      - '[console] give %player_name% GOLD_BLOCK 64'
+      - '[takemoney] 6400'
+      - '[message] &aYou bought 64 &6GOLD_BLOCK &afor $6400'
+    #
+    # Requirement(s) when right-clicking an item while holding shift on the keyboard.
+    #
+    shift_right_click_requirement:
+      requirements:
+        #
+        # "has item" checks if the player has the specified item in their inventory.
+        # Except for "material" are all other values optional and will default to a specific value
+        # which is either nothing (name) or 1 (amount).
+        # We check for if the player has 64 gold blocks.
+        #
+        # Read more:
+        #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/requirements#has-item
+        #
+        has_item:
+          type: has item
+          material: GOLD_BLOCK
+          amount: 64
+      deny_commands:
+        - '[message] &cYou don''t have enough &6GOLD_BLOCK &cto sell! Required: 64'
+    #
+    # Command(s) to execute when right-clicking the item while holding shift.
+    # Those commands won't be executed when the above requirements aren't met.
+    #
+    # Read more:
+    #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/item#shift-left-middle-right-click-commands
+    # 
+    shift_right_click_commands:
+      - '[console] clear %player_name% GOLD_BLOCK 64'
+      - '[givemoney] 3200'
+      - '[message] &aYou sold 64 &6GOLD_BLOCK &afor $3200'
+  #
+  # Example 2: Free diamonds!
+  #
+  # This is a diamond, which will only be visible for people, that don't have the permission deluxemenus.free_diamonds.cooldown
+  # When you click the item will you get a diamond and a permission is set (using LuckPerms) temporary (acts as cooldown) before
+  # refreshing the GUI to update the displayed item.
+  #
+  'free_diamonds':
+    material: DIAMOND
+    slot: 1
+    lore:
+      - '&aFREE DIAMOND! [1/day]'
+      - ''
+      - '&7Click to get 1 free &bdiamond&7!'
+    #
+    # "priority" is used in case you have multiple items on the same slot.
+    # A lower number equals a higher priority.
+    #
+    priority: 0
+    #
+    # view_requirement makes it possible to only display the item when the requirements are met.
+    # When the requirements aren't met and a item with lower priority occupies the same slot, will it be displayed instead.
+    #
+    # Read more:
+    #   https://wiki.helpch.at/clips-plugins/deluxemenus/options-and-configurations/item#view-requirement
+    #
+    view_requirement:
+      requirements:
+        has_not_perm:
+          #
+          # "!has permission" checks if the player does NOT have the specified permission.
+          #
+          type: "!has permission"
+          permission: deluxemenus.free_diamonds.cooldown
+    #
+    # We give the item, set the permission with it expiring in 1 day and refresh the GUI to update the item.
+    #
+    left_click_commands:
+      - '[console] give %player_name% DIAMOND 1'
+      - '[console] lp user %player_name% permission settemp deluxemenus.free_diamonds.cooldown true 1d'
+      - '[refresh]'
+    #
+    # We give the item, set the permission with it expiring in 1 day and refresh the GUI to update the item.
+    #
+    right_click_commands:
+      - '[console] give %player_name% DIAMOND 1'
+      - '[console] lp user %player_name% permission settemp deluxemenus.free_diamonds.cooldown true 1d'
+      - '[refresh]'
+  #
+  # Example 3: Placeholder item
+  #
+  # This is a stone, that will be displayed as long as the player has the permission deluxemenus.free_diamonds.cooldown
+  #
+  'free_diamonds_cooldown':
+    material: STONE
+    slot: 1
+    lore:
+      - '&aFREE DIAMOND! [1/day]'
+      - ''
+      - '&cYou''re currently on cooldown. Click to refresh.'
+    #
+    # Higher number equals lower priority, meaning this item will only be displayed once the view_requirement of the
+    # above isn't met anymore.
+    #
+    priority: 1
+    #
+    # We refresh the GUI to update the item, if the view_requirement no longer matches.
+    #
+    left_click_commands:
+      - '[refresh]'
+    #
+    # We refresh the GUI to update the item, if the view_requirement no longer matches.
+    #
+    right_click_commands:
+      - '[refresh]'
+    
+  

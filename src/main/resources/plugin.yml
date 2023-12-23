@@ -1,0 +1,36 @@
+api-version: 1.13
+name: DeluxeMenus
+main: com.extendedclip.deluxemenus.DeluxeMenus
+version: ${version}
+authors: [ extended_clip, Glare ]
+softdepend: [ PlaceholderAPI, Vault, HeadDatabase, ItemsAdder, Oraxen ]
+description: All in one inventory menu system
+commands:
+  deluxemenus:
+    description: DeluxeMenus main commands
+    aliases: [ dm, deluxemenu, dmenu ]
+permissions:
+  deluxemenus.admin:
+    description: admin commands
+    default: op
+  deluxemenus.open:
+    description: open a menu with /dm open <menu>
+    default: op
+  deluxemenus.open.others:
+    description: open a menu with /dm open <menu> <player>
+    default: op
+  deluxemenus.open.bypass:
+    description: attempt to open a menu for a viewer skipping view requirement checking for the player
+    default: op
+  deluxemenus.menu.*:
+    description: permission for all menus
+    default: op
+  deluxemenus.openrequirement.bypass.*:
+    description: Allows the viewer to bypass all menu open requirements
+    default: op
+  deluxemenus.placeholdersfor:
+    description: permission to parse menu placeholders with /dm open <menu> p:<player>
+    default: op
+  deluxemenus.placeholdersfor.exempt:
+    description: exempt from placeholders being parsed when targeted with /dm open <menu p:<player> for players with this permission
+    default: op

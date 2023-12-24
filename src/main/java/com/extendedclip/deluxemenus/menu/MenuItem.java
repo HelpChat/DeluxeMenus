@@ -275,9 +275,7 @@ public class MenuItem implements Cloneable {
         if (customModelData != null && VersionHelper.IS_CUSTOM_MODEL_DATA) {
             try {
                 final int modelData = Integer.parseInt(holder.setPlaceholders(customModelData));
-                if (modelData > 0) {
-                    itemMeta.setCustomModelData(modelData);
-                }
+                itemMeta.setCustomModelData(modelData);
             } catch (final Exception ignored) {
             }
         }

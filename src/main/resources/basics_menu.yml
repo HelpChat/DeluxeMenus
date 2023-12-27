@@ -15,6 +15,7 @@
 #   - <command2>
 #
 open_command: basicsmenu
+register_command: true
 
 # Size
 #
@@ -28,7 +29,7 @@ size: 9
 # This is the title of the menu. You can change it with your custom name
 # Color codes and placeholders are supported
 #
-menu_title: 'Basics Menu'
+menu_title: '&8Basics Menu'
 
 # Open requirement
 #
@@ -48,7 +49,8 @@ open_requirement:
       type: has permission
       permission: deluxemenus.admin
       deny_commands:
-        - '[message] &cYou don''t have permission to do that!'
+      - '[sound] BLOCK_NOTE_BLOCK_BASS'
+      - '[message] &6&lDeluxe&emenus &8» &7You don''t have permission to open this menu.'
 
 # Item section. This is where you can start add items into menu, and add functions into each items that you did.
 # For depth explanation on the functions, you can check on the note given from config.yml
@@ -60,8 +62,6 @@ items:
   'teststone':
     #We will start to create a STONE item,
     material: STONE
-    # with a Block data set to 1, so that you can change stone type from STONE to GRANITE. More information about the block data can be checked through each items from Minecraft Wikipedia
-    data: 1
     # Slots that you want to put the item. Starts from 0
     slot: 0
     # Here we will name this item. You can change this at anytime. PlaceholderAPI & Color codes supported
@@ -69,9 +69,15 @@ items:
     # This is the lore setting. Reference of this same with display_name.
     # You can create multiple lines of lore like this
     lore:
-      - "&aTest1"
-      - "&cTest2"
-      - "&eTest3"
+    - "&aTest1"
+    - "&cTest2"
+    - "&eTest3"
+    # This is the action section.
+    # You can add multiple actions to be executed when the player clicks on the material
+    click_commands: 
+    - '[message] &6&lDeluxe&emenus &8» &7You almost broke the special stone!'
+    - '[sound] BLOCK_STONE_BREAK'
+    - '[close]'
 
 
 # ==============================================================
@@ -83,7 +89,7 @@ items:
 # PER ITEM PERMISSION AND PRIORITY INFO:
 #
 # Per item permissions and priorities are optional.
-# High priority = 1, Lowest priority = 2147483647.
+# High priority = 0, Lowest priority = 2147483647.
 # This allows you to show different items for a specific menu slot depending on the highest priority
 # item permission a player has. This makes your menus very dynamic :)
 #

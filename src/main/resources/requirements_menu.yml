@@ -12,6 +12,7 @@
 #
 menu_title: 'Requirements Menu'
 open_command: requirementsmenu
+register_command: true
 size: 9
 #
 # as always, only cool people can open this menu :)
@@ -28,7 +29,8 @@ open_requirement:
       type: has permission
       permission: deluxemenus.shop
       deny_commands:
-        - '[message] &cYou don''t have permission to do that!'
+      - '[sound] BLOCK_NOTE_BLOCK_BASS'
+      - '[message] &6&lDeluxe&emenus &8» &7You don''t have permission to open this menu.'
 items:
   #
   # Example 1: Shop Item
@@ -61,7 +63,7 @@ items:
           type: has money
           amount: 100
       deny_commands:
-        - '[message] &cYou don''t have enough money for this!'
+        - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough money for this!'
     #
     # Command(s) to execute when left-clicking the item.
     # Those commands won't be executed when the above requirements aren't met.
@@ -72,7 +74,7 @@ items:
     left_click_commands:
       - '[console] give %player_name% GOLD_BLOCK 1'
       - '[takemoney] 100'
-      - '[message] &aYou bought 1 &6GOLD_BLOCK &afor $100'
+      - '[message] &6&lDeluxe&emenus &8» &7You bought 1 &6GOLD_BLOCK &7for $100'
     #
     # Requirement(s) for right-clicking an item.
     #
@@ -91,7 +93,7 @@ items:
           material: 'GOLD_BLOCK'
           amount: 1
       deny_commands:
-        - '[message] &cYou don''t have enough &6GOLD_BLOCK &cto sell! Required: 1'
+        - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough &6GOLD_BLOCK &7to sell! Required: 1'
     #
     # Command(s) to execute when right-clicking the item.
     # Those commands won't be executed when the above requirements aren't met.
@@ -102,7 +104,7 @@ items:
     right_click_commands:
       - '[console] clear %player_name% GOLD_BLOCK 1'
       - '[givemoney] 50'
-      - '[message] &aYou sold 1 &6GOLD_BLOCK &afor $50'
+      - '[message] &6&lDeluxe&emenus &8» &7You sold 1 &6GOLD_BLOCK &7for $50'
     #
     # Requirement(s) when left-clicking an item while holding shift on the keyboard.
     #
@@ -119,7 +121,7 @@ items:
           type: has money
           amount: 6400
       deny_commands:
-        - '[message] &cYou don''t have enough money for this!'
+        - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough money for this!'
     #
     # Command(s) to execute when left-clicking the item while holding shift.
     # Those commands won't be executed when the above requirements aren't met.
@@ -130,7 +132,7 @@ items:
     shift_left_click_commands:
       - '[console] give %player_name% GOLD_BLOCK 64'
       - '[takemoney] 6400'
-      - '[message] &aYou bought 64 &6GOLD_BLOCK &afor $6400'
+      - '[message] &6&lDeluxe&emenus &8» &7You bought 64 &6GOLD_BLOCK &7for $6400'
     #
     # Requirement(s) when right-clicking an item while holding shift on the keyboard.
     #
@@ -150,7 +152,7 @@ items:
           material: GOLD_BLOCK
           amount: 64
       deny_commands:
-        - '[message] &cYou don''t have enough &6GOLD_BLOCK &cto sell! Required: 64'
+        - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough &6GOLD_BLOCK &7to sell! Required: 64'
     #
     # Command(s) to execute when right-clicking the item while holding shift.
     # Those commands won't be executed when the above requirements aren't met.
@@ -161,7 +163,7 @@ items:
     shift_right_click_commands:
       - '[console] clear %player_name% GOLD_BLOCK 64'
       - '[givemoney] 3200'
-      - '[message] &aYou sold 64 &6GOLD_BLOCK &afor $3200'
+      - '[message] &6&lDeluxe&emenus &8» &7You sold 64 &6GOLD_BLOCK &7for $3200'
   #
   # Example 2: Free diamonds!
   #
@@ -199,17 +201,10 @@ items:
     #
     # We give the item, set the permission with it expiring in 1 day and refresh the GUI to update the item.
     #
-    left_click_commands:
-      - '[console] give %player_name% DIAMOND 1'
-      - '[console] lp user %player_name% permission settemp deluxemenus.free_diamonds.cooldown true 1d'
-      - '[refresh]'
-    #
-    # We give the item, set the permission with it expiring in 1 day and refresh the GUI to update the item.
-    #
-    right_click_commands:
-      - '[console] give %player_name% DIAMOND 1'
-      - '[console] lp user %player_name% permission settemp deluxemenus.free_diamonds.cooldown true 1d'
-      - '[refresh]'
+    click_commands:
+    - '[console] give %player_name% DIAMOND 1'
+    - '[console] lp user %player_name% permission settemp deluxemenus.free_diamonds.cooldown true 1d'
+    - '[refresh]'
   #
   # Example 3: Placeholder item
   #
@@ -230,12 +225,7 @@ items:
     #
     # We refresh the GUI to update the item, if the view_requirement no longer matches.
     #
-    left_click_commands:
-      - '[refresh]'
-    #
-    # We refresh the GUI to update the item, if the view_requirement no longer matches.
-    #
-    right_click_commands:
-      - '[refresh]'
+    click_commands:
+    - '[refresh]'
     
   

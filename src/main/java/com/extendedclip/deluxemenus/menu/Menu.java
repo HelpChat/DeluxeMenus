@@ -68,12 +68,13 @@ public class Menu extends Command {
   }
 
   public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size) {
+      int size, List<String> args) {
     super(menuName);
     this.menuName = menuName;
     this.menuTitle = StringUtils.color(menuTitle);
     this.items = items;
     this.size = size;
+    this.args = args;
     menus.put(this.menuName, this);
   }
 
@@ -525,6 +526,10 @@ public class Menu extends Command {
 
   public ClickHandler getCloseHandler() {
     return closeHandler;
+  }
+
+  public List<String> getArgs() {
+    return args;
   }
 
   public void setCloseHandler(ClickHandler closeHandler) {

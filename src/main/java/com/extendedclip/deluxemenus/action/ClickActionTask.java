@@ -11,6 +11,8 @@ import com.extendedclip.deluxemenus.utils.VersionHelper;
 
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.HashMap;
+import java.util.List;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.Adventure;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -110,8 +112,8 @@ public class ClickActionTask extends BukkitRunnable {
 
       case OPEN_GUI_MENU:
       case OPEN_MENU:
-        String[] parts = executable.split(" ");
-        String menuName = parts[0];
+        String[] partsArgs = executable.split(" ");
+        String menuName = partsArgs[0];
         final Menu menuToOpen = Menu.getMenu(menuName);
         if (menuToOpen == null) {
           DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + menuName);
@@ -124,9 +126,9 @@ public class ClickActionTask extends BukkitRunnable {
           argMap.putAll(holder.getTypedArgs());
         }
 
-        List<String> expectedArgKeys = menuToOpen.args;
+        List<String> expectedArgKeys = menuToOpen.getArgs();
         for (int i = 0; i < expectedArgKeys.size(); i++) {
-          String value = (i + 1 < parts.length) ? parts[i + 1] : "";
+          String value = (i + 1 < partsArgs.length) ? partsArgs[i + 1] : "";
           argMap.put(expectedArgKeys.get(i), value);
         }
 

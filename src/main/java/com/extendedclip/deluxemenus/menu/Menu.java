@@ -535,6 +535,10 @@ public class Menu extends Command {
     return registersCommand;
   }
 
+  public List<String> getArgs() {
+    return args;
+  }
+
   public String getArgUsageMessage() {
     return argUsageMessage;
   }

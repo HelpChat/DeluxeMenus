@@ -8,9 +8,13 @@ import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.kyori.adventure.Adventure;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -108,18 +112,85 @@ public class ClickActionTask extends BukkitRunnable {
 
       case OPEN_GUI_MENU:
       case OPEN_MENU:
-        final Menu menuToOpen = Menu.getMenu(executable);
-        if (menuToOpen == null) {
+        final String[] executableParts = executable.split(" ", 2);
+
+        if (executableParts.length == 0) {
           DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + executable);
           break;
         }
 
-        if (holder == null) {
-          menuToOpen.openMenu(player);
+        final String menuName = executableParts[0];
+
+        final Menu menuToOpen = Menu.getMenu(menuName);
+
+        if (menuToOpen == null) {
+          DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + menuName);
           break;
         }
 
-        menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+        final List<String> argNames = menuToOpen.getArgs();
+
+        if (argNames == null || argNames.isEmpty()) {
+          if (holder == null) {
+            menuToOpen.openMenu(player);
+            break;
+          }
+
+          menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+          break;
+        }
+
+        String[] argValues = null;
+        if (executableParts.length > 1) {
+          argValues = executableParts[1].split("\\s+");
+        }
+
+        if (argValues == null || argValues.length == 0) {
+          if (holder == null) {
+            menuToOpen.openMenu(player);
+            break;
+          }
+
+          menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+          break;
+        }
+
+        if (argValues.length < argNames.size()) {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "Not enough arguments given for menu " + menuName + " when opening using the [openguimenu] or [openmenu] action!"
+            );
+          break;
+        }
+
+        final Map<String, String> argsMap = new HashMap<>();
+        if (holder != null && holder.getTypedArgs() != null) {
+          argsMap.putAll(holder.getTypedArgs());
+        }
+
+        for (int index = 0; index < argNames.size(); index++) {
+          final String argName = argNames.get(index);
+
+          if (argValues.length <= index) {
+            break;
+          }
+
+          if (argNames.size() == index + 1) {
+            final String lastArgValue = String.join(" ", Arrays.asList(argValues).subList(index, argValues.length));
+            argsMap.put(argName, lastArgValue);
+            break;
+          }
+
+          argsMap.put(argName, argValues[index]);
+        }
+
+        if (holder == null) {
+          menuToOpen.openMenu(player, argsMap, null);
+          break;
+        }
+
+        menuToOpen.openMenu(player, argsMap, holder.getPlaceholderPlayer());
         break;
 
       case CONNECT:

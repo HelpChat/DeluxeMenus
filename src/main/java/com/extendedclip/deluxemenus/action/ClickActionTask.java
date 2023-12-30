@@ -130,7 +130,20 @@ public class ClickActionTask extends BukkitRunnable {
 
         final List<String> argNames = menuToOpen.getArgs();
 
+        String[] argValues = null;
+        if (executableParts.length > 1) {
+          argValues = executableParts[1].split("\\s+");
+        }
+
         if (argNames == null || argNames.isEmpty()) {
+          if (argValues != null && argValues.length > 0) {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "Arguments given for menu " + menuName + " that does not support arguments when opening using the [openguimenu] or [openmenu] action!"
+            );
+          }
+
           if (holder == null) {
             menuToOpen.openMenu(player);
             break;
@@ -138,11 +151,6 @@ public class ClickActionTask extends BukkitRunnable {
 
           menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
           break;
-        }
-
-        String[] argValues = null;
-        if (executableParts.length > 1) {
-          argValues = executableParts[1].split("\\s+");
         }
 
         if (argValues == null || argValues.length == 0) {

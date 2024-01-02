@@ -613,21 +613,22 @@ public class DeluxeMenusConfig {
       return;
     }
 
+    List<String> args = null;
+    if (c.contains(pre + "args")) {
+      if (c.isList(pre + "args")) {
+        args = c.getStringList(pre + "args");
+      }
+      if (c.isString(pre + "args")) {
+        args = Collections.singletonList(c.getString(pre + "args"));
+      }
+    }
+
     Menu menu;
 
     if (openCommands.isEmpty()) {
-      menu = new Menu(key, title, items, size);
+      menu = new Menu(key, title, items, size, args);
     } else {
       boolean registerCommand = c.getBoolean(pre + "register_command", false);
-      List<String> args = null;
-      if (c.contains(pre + "args")) {
-        if (c.isList(pre + "args")) {
-          args = c.getStringList(pre + "args");
-        }
-        if (c.isString(pre + "args")) {
-          args = Collections.singletonList(c.getString(pre + "args"));
-        }
-      }
       menu = new Menu(key, title, items, size, openCommands, registerCommand, args);
       menu.setArgUsageMessage(c.getString(pre + "args_usage_message", null));
     }

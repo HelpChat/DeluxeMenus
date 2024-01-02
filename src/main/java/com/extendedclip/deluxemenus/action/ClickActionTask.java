@@ -8,7 +8,11 @@ import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+
+import java.util.Map;
 import java.util.logging.Level;
+import java.util.HashMap;
+import java.util.List;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.Adventure;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -108,19 +112,29 @@ public class ClickActionTask extends BukkitRunnable {
 
       case OPEN_GUI_MENU:
       case OPEN_MENU:
-        final Menu menuToOpen = Menu.getMenu(executable);
+        String[] partsArgs = executable.split(" ");
+        String menuName = partsArgs[0];
+        final Menu menuToOpen = Menu.getMenu(menuName);
         if (menuToOpen == null) {
-          DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + executable);
+          DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + menuName);
           break;
         }
 
-        if (holder == null) {
-          menuToOpen.openMenu(player);
-          break;
+        Map<String, String> argMap = new HashMap<>();
+
+        if (holder != null && holder.getTypedArgs() != null) {
+          argMap.putAll(holder.getTypedArgs());
         }
 
-        menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+        List<String> expectedArgKeys = menuToOpen.getArgs();
+        for (int i = 0; i < expectedArgKeys.size(); i++) {
+          String value = (i + 1 < partsArgs.length) ? partsArgs[i + 1] : "";
+          argMap.put(expectedArgKeys.get(i), value);
+        }
+
+        menuToOpen.openMenu(player, argMap, holder != null ? holder.getPlaceholderPlayer() : null);
         break;
+
 
       case CONNECT:
         DeluxeMenus.getInstance().connect(player, executable);

@@ -81,7 +81,6 @@ public class MenuItem implements Cloneable {
     private boolean hidePotionEffects;
     private boolean hideUnbreakable;
 
-    private String lowercaseConfigMaterial;
     private boolean displayNameHasPlaceholders;
     private boolean loreHasPlaceholders;
 
@@ -128,13 +127,16 @@ public class MenuItem implements Cloneable {
         ItemStack itemStack = null;
         int amount = 1;
 
-        if (isPlaceholderMaterial(lowercaseConfigMaterial)) {
-            configMaterial = holder.setPlaceholders(configMaterial.substring(PLACEHOLDER_PREFIX.length()));
-            lowercaseConfigMaterial = configMaterial.toLowerCase(Locale.ENGLISH);
+        String stringMaterial = configMaterial;
+        String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
+
+        if (isPlaceholderMaterial(lowercaseStringMaterial)) {
+            stringMaterial = holder.setPlaceholders(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
+            lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
 
-        if (isPlayerItem(lowercaseConfigMaterial)) {
-            final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseConfigMaterial).apply(viewer.getInventory());
+        if (isPlayerItem(lowercaseStringMaterial)) {
+            final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseStringMaterial).apply(viewer.getInventory());
 
             // Some of the methods are marked as @NotNull, and in theory that means they return an item with material STONE
             if (playerItem == null) {
@@ -147,24 +149,24 @@ public class MenuItem implements Cloneable {
 
         final int temporaryAmount = amount;
 
-        if (isHeadItem(lowercaseConfigMaterial)) {
-            itemStack = getItemFromHook(headType.getHookName(), holder.setPlaceholders(configMaterial.substring(headType.getPrefix().length())))
+        if (isHeadItem(lowercaseStringMaterial)) {
+            itemStack = getItemFromHook(headType.getHookName(), holder.setPlaceholders(stringMaterial.substring(headType.getPrefix().length())))
                     .orElseGet(() -> DeluxeMenus.getInstance().getHead().clone());
-        } else if (isItemsAdderItem(lowercaseConfigMaterial)) {
-            itemStack = getItemFromHook("itemsadder", holder.setPlaceholders(configMaterial.substring(ITEMSADDER_PREFIX.length())))
+        } else if (isItemsAdderItem(lowercaseStringMaterial)) {
+            itemStack = getItemFromHook("itemsadder", holder.setPlaceholders(stringMaterial.substring(ITEMSADDER_PREFIX.length())))
                     .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (isOraxenItem(lowercaseConfigMaterial)) {
-            itemStack = getItemFromHook("oraxen", holder.setPlaceholders(configMaterial.substring(ORAXEN_PREFIX.length())))
+        } else if (isOraxenItem(lowercaseStringMaterial)) {
+            itemStack = getItemFromHook("oraxen", holder.setPlaceholders(stringMaterial.substring(ORAXEN_PREFIX.length())))
                     .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (isWaterBottle(lowercaseConfigMaterial)) {
+        } else if (isWaterBottle(lowercaseStringMaterial)) {
             itemStack = createWaterBottle(amount);
         } else if (itemStack == null) {
-            final Material material = Material.getMaterial(configMaterial.toUpperCase(Locale.ROOT));
+            final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
                 DeluxeMenus.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
-                        "Material: " + configMaterial + " is not valid! Setting to Stone."
+                        "Material: " + stringMaterial + " is not valid! Setting to Stone."
                 );
                 itemStack = new ItemStack(Material.STONE, amount);
             } else {
@@ -578,7 +580,6 @@ public class MenuItem implements Cloneable {
 
     public void setConfigMaterial(@NotNull final String configMaterial) {
         this.configMaterial = configMaterial;
-        this.lowercaseConfigMaterial = configMaterial.toLowerCase(Locale.ROOT);
     }
 
     public short getConfigData() {

@@ -587,74 +587,12 @@ public class DeluxeMenusConfig {
         }
       }
     } else {
-      switch (type) {
-        case BEACON:
-        case COMPOSTER:
-          DeluxeMenus.debug(
+      size = type.getDefaultSize();
+      DeluxeMenus.debug(
               DebugLevel.LOWEST,
               Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 1"
-          );
-          size = 1;
-          break;
-        case ENCHANTING:
-        case STONECUTTER:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 2"
-          );
-          size = 2;
-          break;
-        case CARTOGRAPHY:
-        case GRINDSTONE:
-        case BLAST_FURNACE:
-        case FURNACE:
-        case SMOKER:
-        case SMITHING:
-        case ANVIL:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 3"
-          );
-          size = 3;
-          break;
-        case LOOM:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 4"
-          );
-          size = 4;
-          break;
-        case BREWING:
-        case HOPPER:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 5"
-          );
-          size = 5;
-          break;
-        case DISPENSER:
-        case DROPPER:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 9"
-          );
-          size = 9;
-          break;
-        case WORKBENCH:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 10"
-          );
-          size = 10;
-          break;
-      }
+              "TYPE IS: " + type + ". Setting size to:" + type.getDefaultSize()
+      );
     }
 
     RequirementList orl = null;

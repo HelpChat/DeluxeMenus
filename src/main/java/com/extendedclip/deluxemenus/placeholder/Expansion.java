@@ -100,7 +100,9 @@ public class Expansion extends PlaceholderExpansion {
         }
 
         switch (input) {
-            case "is_in_menu": return Menu.getMenuHolder(onlinePlayer) != null ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
+            case "is_in_menu": {
+                return Menu.getMenuHolder(onlinePlayer) != null ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
+            }
             case "opened_menu": {
                 Menu menu = Menu.getOpenMenu(onlinePlayer);
                 return menu == null ? "" : menu.getMenuName();

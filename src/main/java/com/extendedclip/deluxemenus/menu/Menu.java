@@ -213,7 +213,7 @@ public class Menu extends Command {
       });
     }
     holders.remove(holder);
-    lastMenus.put(p,holder.getMenu());
+    lastMenus.put(p, holder.getMenu());
   }
 
   public static void closeMenuForShutdown(final Player p) {

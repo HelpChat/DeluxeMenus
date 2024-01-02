@@ -77,7 +77,7 @@ public class MenuHolder implements InventoryHolder {
 
   public MenuItem getItem(int slot) {
     for (MenuItem item : activeItems) {
-      if (item.getSlot() == slot) {
+      if (item.options().slot() == slot) {
         return item;
       }
     }
@@ -139,9 +139,9 @@ public class MenuHolder implements InventoryHolder {
         boolean m = false;
         for (MenuItem item : e.values()) {
 
-          if (item.hasViewRequirement()) {
+          if (item.options().viewRequirements().isPresent()) {
 
-            if (item.getViewRequirements().evaluate(this)) {
+            if (item.options().viewRequirements().get().evaluate(this)) {
               m = true;
               active.add(item);
               break;
@@ -170,17 +170,17 @@ public class MenuHolder implements InventoryHolder {
 
           ItemStack iStack = item.getItemStack(this);
 
-          int slot = item.getSlot();
+          int slot = item.options().slot();
 
           if (slot >= menu.getSize()) {
             continue;
           }
 
-          if (item.updatePlaceholders()) {
+          if (item.options().updatePlaceholders()) {
             update = true;
           }
 
-          getInventory().setItem(item.getSlot(), iStack);
+          getInventory().setItem(item.options().slot(), iStack);
         }
 
         setActiveItems(active);
@@ -227,9 +227,9 @@ public class MenuHolder implements InventoryHolder {
 
         for (MenuItem item : items) {
 
-          if (item.updatePlaceholders()) {
+          if (item.options().updatePlaceholders()) {
 
-            ItemStack i = inventory.getItem(item.getSlot());
+            ItemStack i = inventory.getItem(item.options().slot());
 
             if (i == null) {
               continue;
@@ -237,16 +237,16 @@ public class MenuHolder implements InventoryHolder {
 
             int amt = i.getAmount();
 
-            if (item.getConfigDynamicAmount() != null) {
+            if (item.options().dynamicAmount().isPresent()) {
               try {
-               amt = Integer.parseInt(setPlaceholders(item.getConfigDynamicAmount()));
+               amt = Integer.parseInt(setPlaceholders(item.options().dynamicAmount().get()));
                 if (amt <= 0) {
                   amt = 1;
                 }
               } catch (Exception exception) {
                 DeluxeMenus.printStacktrace(
-                    "Something went wrong while updating item in slot " + item.getSlot() +
-                        ". Invalid dynamic amount: " + setPlaceholders(item.getConfigDynamicAmount()),
+                    "Something went wrong while updating item in slot " + item.options().slot() +
+                        ". Invalid dynamic amount: " + setPlaceholders(item.options().dynamicAmount().get()),
                     exception
                 );
               }
@@ -254,15 +254,15 @@ public class MenuHolder implements InventoryHolder {
 
             ItemMeta meta = i.getItemMeta();
 
-            if (item.displayNameHasPlaceholders()) {
-              meta.setDisplayName(StringUtils.color(setPlaceholders(item.getConfigDisplayName())));
+            if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
+              meta.setDisplayName(StringUtils.color(setPlaceholders(item.options().displayName().get())));
             }
 
-            if (item.loreHasPlaceholders()) {
+            if (item.options().loreHasPlaceholders()) {
 
               List<String> updated = new ArrayList<>();
 
-              for (String line : item.getConfigLore()) {
+              for (String line : item.options().lore()) {
                 updated.add(StringUtils
                     .color(setPlaceholders(line)));
               }

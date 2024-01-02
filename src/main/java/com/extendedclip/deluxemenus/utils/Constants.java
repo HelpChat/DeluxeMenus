@@ -1,6 +1,12 @@
 package com.extendedclip.deluxemenus.utils;
 
+import com.google.common.collect.ImmutableMap;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public final class Constants {
     private Constants() {
@@ -36,5 +42,15 @@ public final class Constants {
     public static final String ITEMSADDER_PREFIX = "itemsadder-";
     public static final String ORAXEN_PREFIX = "oraxen-";
 
-
+    /**
+     * A map between a slot name and the method used to get that item from a player's inventory
+     */
+    public static final Map<String, Function<PlayerInventory, ItemStack>> INVENTORY_ITEM_ACCESSORS = ImmutableMap.<String, Function<PlayerInventory, ItemStack>>builder()
+            .put(MAIN_HAND, PlayerInventory::getItemInMainHand)
+            .put(OFF_HAND, PlayerInventory::getItemInOffHand)
+            .put(HELMET, PlayerInventory::getHelmet)
+            .put(CHESTPLATE, PlayerInventory::getChestplate)
+            .put(LEGGINGS, PlayerInventory::getLeggings)
+            .put(BOOTS, PlayerInventory::getBoots)
+            .build();
 }

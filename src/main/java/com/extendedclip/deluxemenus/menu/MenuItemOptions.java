@@ -1,6 +1,5 @@
 package com.extendedclip.deluxemenus.menu;
 
-import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
@@ -50,7 +49,7 @@ public class MenuItemOptions {
     private final List<String> nbtStrings;
     private final List<String> nbtInts;
 
-    private int slot;
+    private final int slot;
     private final int priority;
     private final boolean updatePlaceholders;
 
@@ -224,10 +223,6 @@ public class MenuItemOptions {
 
     public @NotNull List<String> nbtInts() {
         return nbtInts;
-    }
-
-    public void slot(int slot) {
-        this.slot = slot;
     }
 
     public int slot() {

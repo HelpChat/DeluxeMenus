@@ -15,59 +15,48 @@ import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 public class JavascriptRequirement extends Requirement {
 
-  private final ScriptEngineFactory factory = new NashornScriptEngineFactory();
-  private final ServicesManager manager = Bukkit.getServer().getServicesManager();
-  private static ScriptEngineManager engine;
-  private final String expression;
+    private static final ScriptEngineFactory factory = new NashornScriptEngineFactory();
+    private static ScriptEngineManager engine;
+    private final String expression;
 
-  public JavascriptRequirement(String expression) {
-    this.expression = expression;
-    if (engine == null) {
-      if (manager.isProvidedFor(ScriptEngineManager.class)) {
-        final RegisteredServiceProvider provider = manager.getRegistration(ScriptEngineManager.class);
-        engine = (ScriptEngineManager) provider.getProvider();
-      } else {
-        engine = new ScriptEngineManager();
-        manager.register(ScriptEngineManager.class, engine, DeluxeMenus.getInstance(), ServicePriority.Highest);
-      }
-      engine.registerEngineName("JavaScript", factory);
-      engine.put("BukkitServer", Bukkit.getServer());
+    public JavascriptRequirement(String expression) {
+        this.expression = expression;
+        if (engine != null) return;
+
+        ServicesManager manager = Bukkit.getServer().getServicesManager();
+        if (manager.isProvidedFor(ScriptEngineManager.class)) {
+            final RegisteredServiceProvider<ScriptEngineManager> provider = manager.getRegistration(ScriptEngineManager.class);
+            if (provider != null) engine = provider.getProvider();
+        }
+        if (engine == null) {
+            engine = new ScriptEngineManager();
+            manager.register(ScriptEngineManager.class, engine, DeluxeMenus.getInstance(), ServicePriority.Highest);
+        }
+        engine.registerEngineName("JavaScript", factory);
+        engine.put("BukkitServer", Bukkit.getServer());
     }
-  }
 
-  @Override
-  public boolean evaluate(MenuHolder holder) {
+    @Override
+    public boolean evaluate(MenuHolder holder) {
+        String exp = holder.setPlaceholders(expression);
+        try {
+            engine.put("BukkitPlayer", holder.getViewer());
+            Object result = engine.getEngineByName("JavaScript").eval(exp);
 
-    String exp = holder.setPlaceholders(expression);
-    try {
+            if (result instanceof Boolean) return (boolean) result;
 
-      engine.put("BukkitPlayer", holder.getViewer());
-      Object result = engine.getEngineByName("JavaScript").eval(exp);
+            DeluxeMenus.debug(
+                    DebugLevel.HIGHEST,
+                    Level.WARNING,
+                    "Requirement javascript <" + expression + "> is invalid and does not return a boolean!"
+            );
+            return false;
 
-      if (!(result instanceof Boolean)) {
-        DeluxeMenus.debug(
-            DebugLevel.HIGHEST,
-            Level.WARNING,
-            "Requirement javascript <" + this.expression + "> is invalid and does not return a boolean!"
-        );
-        return false;
-      }
-
-      return (boolean) result;
-
-    } catch (final ScriptException | NullPointerException exception) {
-      DeluxeMenus.debug(
-          DebugLevel.HIGHEST,
-          Level.WARNING,
-          "Error in requirement javascript syntax - " + this.expression
-      );
-
-      DeluxeMenus.printStacktrace(
-          "Error in requirement javascript syntax - " + this.expression,
-          exception
-      );
-      return false;
+        } catch (final ScriptException | NullPointerException exception) {
+            DeluxeMenus.debug(DebugLevel.HIGHEST,Level.WARNING,"Error in requirement javascript syntax - " + expression);
+            DeluxeMenus.printStacktrace("Error in requirement javascript syntax - " + expression, exception);
+            return false;
+        }
     }
-  }
 
 }

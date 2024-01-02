@@ -6,67 +6,62 @@ import java.util.List;
 
 public class RequirementList {
 
-  private List<Requirement> requirements;
-  private ClickHandler denyHandler;
-  private int minimumRequirements;
-  private boolean stopAtSuccess;
+    private List<Requirement> requirements;
+    private ClickHandler denyHandler;
+    private int minimumRequirements;
+    private boolean stopAtSuccess;
 
-  public RequirementList(List<Requirement> requirements) {
-    this.setRequirements(requirements);
-  }
-
-  public boolean evaluate(MenuHolder holder) {
-    int successful = 0;
-    for (Requirement r : getRequirements()) {
-      if (r.evaluate(holder)) {
-        successful = successful + 1;
-        if (r.getSuccessHandler() != null) {
-          r.getSuccessHandler().onClick(holder);
-        }
-        if (this.stopAtSuccess && successful >= minimumRequirements) {
-          break;
-        }
-      } else {
-        if (r.getDenyHandler() != null) {
-          r.getDenyHandler().onClick(holder);
-        }
-        if (!r.isOptional()) {
-          return false;
-        }
-      }
+    public RequirementList(List<Requirement> requirements) {
+        setRequirements(requirements);
     }
-    return successful >= minimumRequirements;
-  }
 
-  public List<Requirement> getRequirements() {
-    return requirements;
-  }
+    public boolean evaluate(MenuHolder holder) {
+        int successful = 0;
+        for (Requirement r : getRequirements()) {
+            if (r.evaluate(holder)) {
+                successful = successful + 1;
+                if (r.getSuccessHandler() != null)
+                    r.getSuccessHandler().onClick(holder);
+                if (stopAtSuccess && successful >= minimumRequirements) break;
+            } else {
+                if (r.getDenyHandler() != null)
+                    r.getDenyHandler().onClick(holder);
 
-  public void setRequirements(List<Requirement> requirements) {
-    this.requirements = requirements;
-  }
+                if (!r.isOptional()) return false;
+            }
+        }
+        return successful >= minimumRequirements;
+    }
 
-  public ClickHandler getDenyHandler() {
-    return denyHandler;
-  }
+    public List<Requirement> getRequirements() {
+        return requirements;
+    }
 
-  public void setDenyHandler(ClickHandler denyHandler) {
-    this.denyHandler = denyHandler;
-  }
+    public void setRequirements(List<Requirement> requirements) {
+        this.requirements = requirements;
+    }
 
-  public int getMinimumRequirements() {
-    return minimumRequirements;
-  }
+    public ClickHandler getDenyHandler() {
+        return denyHandler;
+    }
 
-  public void setMinimumRequirements(int minimumRequirements) {
-    this.minimumRequirements = minimumRequirements;
-  }
+    public void setDenyHandler(ClickHandler denyHandler) {
+        this.denyHandler = denyHandler;
+    }
 
-  public boolean stopAtSuccess() {
-    return this.stopAtSuccess;
-  }
+    public int getMinimumRequirements() {
+        return minimumRequirements;
+    }
 
-  public void setStopAtSuccess(boolean stop) {
-    this.stopAtSuccess = stop;
-  }
+    public void setMinimumRequirements(int minimumRequirements) {
+        this.minimumRequirements = minimumRequirements;
+    }
+
+    public boolean stopAtSuccess() {
+        return stopAtSuccess;
+    }
+
+    public void setStopAtSuccess(boolean stop) {
+        this.stopAtSuccess = stop;
+    }
 }

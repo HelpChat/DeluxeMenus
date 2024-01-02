@@ -41,16 +41,21 @@ public class Expansion extends PlaceholderExpansion {
 
     @Override
     public @Nullable String onRequest(final OfflinePlayer offlinePlayer, @NotNull final String input) {
-        if (offlinePlayer == null || !offlinePlayer.isOnline()) return null;
-
+        if (offlinePlayer == null || !offlinePlayer.isOnline()) {
+            return null;
+        }
 
         final Player onlinePlayer = offlinePlayer.getPlayer();
-        if (onlinePlayer == null) return null;
+        if (onlinePlayer == null) {
+            return null;
+        }
 
         final String parsedInput = PlaceholderAPI.setBracketPlaceholders(onlinePlayer, input);
 
         if (input.startsWith("meta_")) {
-            if (!VersionHelper.IS_PDC_VERSION) return null;
+            if (!VersionHelper.IS_PDC_VERSION) {
+                return null;
+            }
 
             final boolean isHasValueRequest = parsedInput.startsWith("meta_has_value_");
 
@@ -58,14 +63,17 @@ public class Expansion extends PlaceholderExpansion {
                     ? parsedInput.substring(15)
                     : parsedInput.substring(5);
 
-            if (!finalInput.contains("_")) return null;
+            if (!finalInput.contains("_")) {
+                return null;
+            }
 
             String[] parts = isHasValueRequest
                     ? finalInput.split("_", 2)
                     : finalInput.split("_", 3);
 
-            if (parts.length < 2) return null;
-
+            if (parts.length < 2) {
+                return null;
+            }
 
             final String result = plugin.getPersistentMetaHandler().getMeta(
                     onlinePlayer,
@@ -75,17 +83,24 @@ public class Expansion extends PlaceholderExpansion {
             );
 
             // %deluxemenus_meta_has_value_<key>_<type>%
-            if (isHasValueRequest) return bool(result != null);
+            if (isHasValueRequest) {
+                return result == null
+                        ? PlaceholderAPIPlugin.booleanFalse()
+                        : PlaceholderAPIPlugin.booleanTrue();
+
+            }
 
             // %deluxemenus_meta_<key>_<type>_[defaultValue]%
-            if (result != null) return result;
+            if (result != null) {
+                return result;
+            }
 
             // return the default value
             return parts.length > 2 ? parts[2] : "";
         }
 
         switch (input) {
-            case "is_in_menu": return bool(Menu.getMenuHolder(onlinePlayer) != null);
+            case "is_in_menu": return Menu.getMenuHolder(onlinePlayer) != null ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
             case "opened_menu": {
                 Menu menu = Menu.getOpenMenu(onlinePlayer);
                 return menu == null ? "" : menu.getMenuName();
@@ -96,9 +111,5 @@ public class Expansion extends PlaceholderExpansion {
             }
         }
         return null;
-    }
-
-    private String bool(boolean bool) {
-        return bool ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
     }
 }

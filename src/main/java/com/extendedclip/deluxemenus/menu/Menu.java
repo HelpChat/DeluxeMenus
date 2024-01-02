@@ -33,6 +33,7 @@ public class Menu extends Command {
 
   private static final Map<String, Menu> menus = new HashMap<>();
   private static final Set<MenuHolder> holders = new HashSet<>();
+  private static final Map<Player, Menu> lastMenus = new HashMap<>();
   private static CommandMap commandMap = null;
   private final String menuName;
   private final String menuTitle;
@@ -105,6 +106,7 @@ public class Menu extends Command {
     }
     menus.clear();
     holders.clear();
+    lastMenus.clear();
   }
 
   public static void unloadForShutdown() {
@@ -167,6 +169,9 @@ public class Menu extends Command {
     MenuHolder h = getMenuHolder(p);
     return h == null ? null : h.getMenu();
   }
+  public static Menu getLastMenu(Player p) {
+    return lastMenus.get(p);
+  }
 
   public static void cleanInventory(Player player, @NotNull final MenuItemMarker marker) {
     if (player == null) {
@@ -208,6 +213,7 @@ public class Menu extends Command {
       });
     }
     holders.remove(holder);
+    lastMenus.put(p,holder.getMenu());
   }
 
   public static void closeMenuForShutdown(final Player p) {

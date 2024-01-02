@@ -5,8 +5,8 @@ plugins {
 }
 
 // Change to true when releasing
-val release = true
-val majorVersion = "1.14.0"
+val release = false
+val majorVersion = "1.14.1"
 val minorVersion = if (release) "Release" else "DEV-" + System.getenv("BUILD_NUMBER")
 
 group = "com.extendedclip"

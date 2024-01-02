@@ -205,7 +205,7 @@ public class MenuItem implements Cloneable {
             }
         }
 
-        if (isPotion(itemStack.getType())) {
+        if (hasPotionMeta(itemStack)) {
             final PotionMeta meta = (PotionMeta) itemStack.getItemMeta();
 
             if (meta != null) {
@@ -507,13 +507,13 @@ public class MenuItem implements Cloneable {
     }
 
     /**
-     * Checks if the material is a potion.
+     * Checks if the ItemStack is a potion or can hold potion effects.
      *
-     * @param material The material to check
-     * @return true if the material is a potion, false otherwise
+     * @param itemStack The ItemStack to check
+     * @return true if the ItemStack is a potion or can hold a potion effect, false otherwise
      */
-    private boolean isPotion(@NotNull final Material material) {
-        return material == Material.POTION || material == Material.SPLASH_POTION || material == Material.LINGERING_POTION;
+    private boolean hasPotionMeta(@NotNull final ItemStack itemStack) {
+        return itemStack.getItemMeta() instanceof PotionMeta;
     }
 
     private @NotNull ItemStack createWaterBottle(final int amount) {

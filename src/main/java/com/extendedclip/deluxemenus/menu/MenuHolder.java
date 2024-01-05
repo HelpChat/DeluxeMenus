@@ -29,6 +29,7 @@ public class MenuHolder implements InventoryHolder {
   private BukkitTask updateTask = null;
   private Inventory inventory;
   private boolean updating;
+  private boolean parsePlaceholdersInArguments;
   private Map<String, String> typedArgs;
 
   public MenuHolder(Player viewer) {
@@ -89,17 +90,21 @@ public class MenuHolder implements InventoryHolder {
   }
 
   public String setPlaceholders(String string) {
-    if (this.typedArgs == null || this.typedArgs.isEmpty()) {
-      if (placeholderPlayer != null) return PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
-      else return this.getViewer() == null ? string
-          : PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
+    if (this.parsePlaceholdersInArguments) {
+      string = setArguments(string);
     }
-    for (Entry<String, String> entry : typedArgs.entrySet()) {
-      string = string.replace("{" + entry.getKey() + "}", entry.getValue());
+
+    if (placeholderPlayer != null) {
+      string = PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
+    } else if (this.getViewer() != null) {
+      string = PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
     }
-    if (placeholderPlayer != null) return PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
-    else return this.getViewer() == null ? string
-        : PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
+
+    if (!this.parsePlaceholdersInArguments) {
+      string = setArguments(string);
+    }
+
+    return string;
   }
 
   public String setArguments(String string) {
@@ -302,6 +307,13 @@ public class MenuHolder implements InventoryHolder {
 
   public void setTypedArgs(Map<String, String> typedArgs) {
     this.typedArgs = typedArgs;
+  }
+
+  public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+  }
+  public boolean parsePlaceholdersInArguments() {
+    return parsePlaceholdersInArguments;
   }
 
   public void setPlaceholderPlayer(Player placeholderPlayer) {

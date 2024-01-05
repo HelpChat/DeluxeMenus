@@ -47,9 +47,10 @@ public class Menu extends Command {
   // args
   private List<String> args;
   private String argUsageMessage;
+  private boolean parsePlaceholdersInArguments;
 
   public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size, List<String> menuCommands, boolean registerCommand, List<String> args) {
+      int size, List<String> menuCommands, boolean registerCommand, List<String> args, boolean parsePlaceholdersInArguments) {
     super(menuCommands.get(0));
     this.menuName = menuName;
     this.menuTitle = StringUtils.color(menuTitle);
@@ -58,6 +59,7 @@ public class Menu extends Command {
     this.menuCommands = menuCommands;
     this.registersCommand = registerCommand;
     this.args = args;
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
     if (registerCommand) {
       if (menuCommands.size() > 1) {
         this.setAliases(menuCommands.subList(1, menuCommands.size()));
@@ -68,12 +70,13 @@ public class Menu extends Command {
   }
 
   public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size) {
+      int size, boolean parsePlaceholdersInArguments) {
     super(menuName);
     this.menuName = menuName;
     this.menuTitle = StringUtils.color(menuTitle);
     this.items = items;
     this.size = size;
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
     menus.put(this.menuName, this);
   }
 
@@ -541,5 +544,13 @@ public class Menu extends Command {
 
   public void setArgUsageMessage(String argUsageMessage) {
     this.argUsageMessage = argUsageMessage;
+  }
+
+  public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+  }
+
+  public boolean parsePlaceholdersInArguments() {
+    return parsePlaceholdersInArguments;
   }
 }

@@ -613,10 +613,12 @@ public class DeluxeMenusConfig {
       return;
     }
 
+    final boolean argumentsSupportPlaceholders = c.getBoolean(pre + "arguments_support_placeholders", false);
+
     Menu menu;
 
     if (openCommands.isEmpty()) {
-      menu = new Menu(key, title, items, size);
+      menu = new Menu(key, title, items, size, argumentsSupportPlaceholders);
     } else {
       boolean registerCommand = c.getBoolean(pre + "register_command", false);
       List<String> args = null;
@@ -628,7 +630,7 @@ public class DeluxeMenusConfig {
           args = Collections.singletonList(c.getString(pre + "args"));
         }
       }
-      menu = new Menu(key, title, items, size, openCommands, registerCommand, args);
+      menu = new Menu(key, title, items, size, openCommands, registerCommand, args, argumentsSupportPlaceholders);
       menu.setArgUsageMessage(c.getString(pre + "args_usage_message", null));
     }
 

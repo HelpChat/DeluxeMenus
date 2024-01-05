@@ -1375,7 +1375,7 @@ public class DeluxeMenusConfig {
             DeluxeMenus.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
-                "String length requirement at path: " + rPath + " does not contain an input: or one of (min: or max:)"
+                "String length requirement at path: " + rPath + " does not contain an input: or object:"
             );
           }
           break;

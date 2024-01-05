@@ -89,23 +89,23 @@ public class MenuHolder implements InventoryHolder {
     return Menu.getMenu(menuName);
   }
 
-  public String setPlaceholders(String string) {
-    if (this.parsePlaceholdersInArguments) {
-      string = setArguments(string);
-    }
+    public String setPlaceholders(String string) {
+        if (this.parsePlaceholdersInArguments) {
+            string = setArguments(string);
+        }
 
-    if (placeholderPlayer != null) {
-      string = PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
-    } else if (this.getViewer() != null) {
-      string = PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
-    }
+        if (placeholderPlayer != null) {
+            string = PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
+        } else if (this.getViewer() != null) {
+            string = PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
+        }
 
-    if (!this.parsePlaceholdersInArguments) {
-      string = setArguments(string);
-    }
+        if (!this.parsePlaceholdersInArguments) {
+            string = setArguments(string);
+        }
 
-    return string;
-  }
+        return string;
+    }
 
   public String setArguments(String string) {
     if (this.typedArgs == null || this.typedArgs.isEmpty()) {

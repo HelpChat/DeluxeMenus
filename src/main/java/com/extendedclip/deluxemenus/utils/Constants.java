@@ -35,6 +35,7 @@ public final class Constants {
 
     public static final String ITEMSADDER_PREFIX = "itemsadder-";
     public static final String ORAXEN_PREFIX = "oraxen-";
+    public static final String MMOITEMS_PREFIX = "mmoitems-";
 
 
 }

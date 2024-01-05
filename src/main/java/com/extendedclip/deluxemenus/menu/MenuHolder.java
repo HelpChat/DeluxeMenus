@@ -89,17 +89,20 @@ public class MenuHolder implements InventoryHolder {
   }
 
   public String setPlaceholders(String string) {
-    if (this.typedArgs == null || this.typedArgs.isEmpty()) {
-      if (placeholderPlayer != null) return PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
-      else return this.getViewer() == null ? string
-          : PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
+    // Set argument placeholders first
+    if (this.typedArgs != null && !this.typedArgs.isEmpty()) {
+      for (Entry<String, String> entry : typedArgs.entrySet()) {
+        string = string.replace("{" + entry.getKey() + "}", entry.getValue());
+      }
     }
-    for (Entry<String, String> entry : typedArgs.entrySet()) {
-      string = string.replace("{" + entry.getKey() + "}", entry.getValue());
+
+    // Then set actual PAPI placeholders
+    if (placeholderPlayer != null) {
+      return PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
+    } else {
+      return this.getViewer() == null ? string
+              : PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
     }
-    if (placeholderPlayer != null) return PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
-    else return this.getViewer() == null ? string
-        : PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
   }
 
   public String setArguments(String string) {

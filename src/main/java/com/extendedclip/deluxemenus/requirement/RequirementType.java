@@ -75,7 +75,13 @@ public enum RequirementType {
       Arrays.asList("input", "regex")),
   REGEX_DOES_NOT_MATCH(Arrays.asList("!regex matches", "!regex"),
       "Checks if a placeholder parsed string does not match a regex pattern",
-      Arrays.asList("input", "regex"));
+      Arrays.asList("input", "regex")),
+  STRING_LENGTH(Arrays.asList("string length"),
+  "Checks if the given string's length is between the provided minimum and (optionally) maximum.",
+          Arrays.asList("input", "min", "max")),
+  IS_OBJECT(Arrays.asList("is object"),
+          "Checks if the given string can be parsed as a given Java object.",
+          Arrays.asList("input", "object"));
 
   private final List<String> identifier;
   private final String description;

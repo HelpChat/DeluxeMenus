@@ -44,12 +44,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import static com.extendedclip.deluxemenus.utils.Constants.HEAD_PREFIXES;
-import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.PLAYER_ITEMS;
-import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
+import static com.extendedclip.deluxemenus.utils.Constants.*;
 
 public class DeluxeMenusConfig {
 
@@ -64,6 +59,7 @@ public class DeluxeMenusConfig {
     VALID_MATERIAL_PREFIXES.add(PLACEHOLDER_PREFIX);
     VALID_MATERIAL_PREFIXES.add(ITEMSADDER_PREFIX);
     VALID_MATERIAL_PREFIXES.add(ORAXEN_PREFIX);
+    VALID_MATERIAL_PREFIXES.add(MMOITEMS_PREFIX);
   }
 
   public static final Pattern DELAY_MATCHER = Pattern.compile("<delay=([^<>]+)>", Pattern.CASE_INSENSITIVE);

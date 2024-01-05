@@ -41,6 +41,7 @@ public final class Constants {
 
     public static final String ITEMSADDER_PREFIX = "itemsadder-";
     public static final String ORAXEN_PREFIX = "oraxen-";
+    public static final String MMOITEMS_PREFIX = "mmoitems-";
 
     /**
      * A map between a slot name and the method used to get that item from a player's inventory

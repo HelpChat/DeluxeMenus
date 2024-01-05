@@ -82,6 +82,11 @@ public class MenuItem {
         } else if (ItemUtils.isOraxenItem(lowercaseStringMaterial)) {
             itemStack = getItemFromHook("oraxen", holder.setPlaceholders(stringMaterial.substring(ORAXEN_PREFIX.length())))
                     .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
+        } else if (isMMOItemsItem(lowercaseStringMaterial)) {
+            itemStack = getItemFromHook("mmoitems", holder.setPlaceholders(stringMaterial.substring(MMOITEMS_PREFIX.length())))
+                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
+        } else if (isWaterBottle(lowercaseStringMaterial)) {
+            itemStack = createWaterBottle(amount);
         } else if (ItemUtils.isWaterBottle(lowercaseStringMaterial)) {
             itemStack = ItemUtils.createWaterBottles(amount);
         } else if (itemStack == null) {
@@ -360,6 +365,17 @@ public class MenuItem {
         final Optional<HeadType> headType = HeadType.parseHeadType(material);
         headType.ifPresent(this.options::headType);
         return headType.isPresent();
+    }
+
+    /**
+     * Checks if the string is an MMOItems item. The check is case-sensitive.
+     * MMOItems items are: "mmoitems-{namespace:name}"
+     *
+     * @param material The string to check
+     * @return true if the string is an MMOItem item, false otherwise
+     */
+    private boolean isMMOItemsItem(@NotNull final String material) {
+        return material.startsWith(MMOITEMS_PREFIX);
     }
 
     private @NotNull Optional<ItemStack> getItemFromHook(String hookName, String... args) {

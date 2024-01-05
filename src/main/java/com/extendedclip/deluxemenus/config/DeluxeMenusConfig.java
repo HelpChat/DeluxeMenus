@@ -9,18 +9,7 @@ import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.menu.MenuItemOptions;
-import com.extendedclip.deluxemenus.requirement.HasExpRequirement;
-import com.extendedclip.deluxemenus.requirement.HasItemRequirement;
-import com.extendedclip.deluxemenus.requirement.HasMetaRequirement;
-import com.extendedclip.deluxemenus.requirement.HasMoneyRequirement;
-import com.extendedclip.deluxemenus.requirement.HasPermissionRequirement;
-import com.extendedclip.deluxemenus.requirement.InputResultRequirement;
-import com.extendedclip.deluxemenus.requirement.IsNearRequirement;
-import com.extendedclip.deluxemenus.requirement.JavascriptRequirement;
-import com.extendedclip.deluxemenus.requirement.RegexMatchesRequirement;
-import com.extendedclip.deluxemenus.requirement.Requirement;
-import com.extendedclip.deluxemenus.requirement.RequirementList;
-import com.extendedclip.deluxemenus.requirement.RequirementType;
+import com.extendedclip.deluxemenus.requirement.*;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.LocationUtils;
@@ -56,12 +45,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import static com.extendedclip.deluxemenus.utils.Constants.HEAD_PREFIXES;
-import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.PLAYER_ITEMS;
-import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
+import static com.extendedclip.deluxemenus.utils.Constants.*;
 
 public class DeluxeMenusConfig {
 
@@ -76,6 +60,7 @@ public class DeluxeMenusConfig {
     VALID_MATERIAL_PREFIXES.add(PLACEHOLDER_PREFIX);
     VALID_MATERIAL_PREFIXES.add(ITEMSADDER_PREFIX);
     VALID_MATERIAL_PREFIXES.add(ORAXEN_PREFIX);
+    VALID_MATERIAL_PREFIXES.add(MMOITEMS_PREFIX);
   }
 
   public static final Pattern DELAY_MATCHER = Pattern.compile("<delay=([^<>]+)>", Pattern.CASE_INSENSITIVE);
@@ -451,7 +436,6 @@ public class DeluxeMenusConfig {
     String title = null;
 
     if (c.isString(pre + "menu_title")) {
-
       title = c.getString(pre + "menu_title");
     } else if (c.isList(pre + "menu_title")) {
       title = c.getStringList(pre + "menu_title").get(0);
@@ -619,16 +603,32 @@ public class DeluxeMenusConfig {
       menu = new Menu(key, title, items, size);
     } else {
       boolean registerCommand = c.getBoolean(pre + "register_command", false);
-      List<String> args = null;
+      List<String> args = new ArrayList<>();
+      List<RequirementList> argRequirements = new ArrayList<>();
       if (c.contains(pre + "args")) {
-        if (c.isList(pre + "args")) {
-          args = c.getStringList(pre + "args");
-        }
-        if (c.isString(pre + "args")) {
-          args = Collections.singletonList(c.getString(pre + "args"));
+        // New requirements parsing
+        if (c.isConfigurationSection(pre + "args")) {
+          Set<String> mapList = c.getConfigurationSection(pre + "args").getKeys(false);
+          debug("found args");
+          for (String arg : mapList) {
+            debug("arg: " + arg);
+            // If it has requirements, add them
+            if (c.contains(pre + "args." + arg + ".requirements")) {
+              debug("arg has requirements: " + arg);
+              argRequirements.add(this.getRequirements(c, pre + "args." + arg));
+            }
+            // Always add the arg itself
+            args.add(arg);
+          }
+          // Old list parsing
+        } else if (c.isList(pre + "args")) {
+          args.addAll(c.getStringList(pre + "args"));
+          // Old singular item parsing
+        } else if (c.isString(pre + "args")) {
+          args.add(c.getString(pre + "args"));
         }
       }
-      menu = new Menu(key, title, items, size, openCommands, registerCommand, args);
+      menu = new Menu(key, title, items, size, openCommands, registerCommand, args, argRequirements);
       menu.setArgUsageMessage(c.getString(pre + "args_usage_message", null));
     }
 
@@ -1326,6 +1326,33 @@ public class DeluxeMenusConfig {
                 Level.WARNING,
                 "Has Meta requirement at path: " + rPath
                     + " does not contain the key:, meta_type: and/or value: entries!"
+            );
+          }
+          break;
+        case STRING_LENGTH:
+          if (c.contains(rPath + ".input") && (c.contains(rPath + ".min") || c.contains(rPath + ".max"))) {
+            int min = c.getInt(rPath + ".min", 0);
+            Integer max = null;
+            if (c.contains(rPath + ".max")) {
+              max = c.getInt(rPath + ".max");
+            }
+            req = new StringLengthRequirement(c.getString(rPath + ".input"), min, max);
+          } else {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "String length requirement at path: " + rPath + " does not contain an input: or one of (min: or max:)"
+            );
+          }
+          break;
+        case IS_OBJECT:
+          if (c.contains(rPath + ".input") && c.contains(rPath + ".object")) {
+            req = new IsObjectRequirement(c.getString(rPath + ".input"), c.getString(rPath + ".object"));
+          } else {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "String length requirement at path: " + rPath + " does not contain an input: or object:"
             );
           }
           break;

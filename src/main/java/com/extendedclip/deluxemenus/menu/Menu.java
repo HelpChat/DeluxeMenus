@@ -7,15 +7,8 @@ import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
@@ -33,6 +26,7 @@ public class Menu extends Command {
 
   private static final Map<String, Menu> menus = new HashMap<>();
   private static final Set<MenuHolder> holders = new HashSet<>();
+  private static final Map<UUID, Menu> lastMenus = new HashMap<>();
   private static CommandMap commandMap = null;
   private final String menuName;
   private final String menuTitle;
@@ -46,10 +40,11 @@ public class Menu extends Command {
   private boolean registersCommand;
   // args
   private List<String> args;
+  private List<RequirementList> argRequirements;
   private String argUsageMessage;
 
   public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size, List<String> menuCommands, boolean registerCommand, List<String> args) {
+      int size, List<String> menuCommands, boolean registerCommand, List<String> args, List<RequirementList> argRequirements) {
     super(menuCommands.get(0));
     this.menuName = menuName;
     this.menuTitle = StringUtils.color(menuTitle);
@@ -58,6 +53,7 @@ public class Menu extends Command {
     this.menuCommands = menuCommands;
     this.registersCommand = registerCommand;
     this.args = args;
+    this.argRequirements = argRequirements;
     if (registerCommand) {
       if (menuCommands.size() > 1) {
         this.setAliases(menuCommands.subList(1, menuCommands.size()));
@@ -105,6 +101,7 @@ public class Menu extends Command {
     }
     menus.clear();
     holders.clear();
+    lastMenus.clear();
   }
 
   public static void unloadForShutdown() {
@@ -167,6 +164,9 @@ public class Menu extends Command {
     MenuHolder h = getMenuHolder(p);
     return h == null ? null : h.getMenu();
   }
+  public static Menu getLastMenu(Player p) {
+    return lastMenus.get(p.getUniqueId());
+  }
 
   public static void cleanInventory(Player player, @NotNull final MenuItemMarker marker) {
     if (player == null) {
@@ -208,6 +208,7 @@ public class Menu extends Command {
       });
     }
     holders.remove(holder);
+    lastMenus.put(p.getUniqueId(), holder.getMenu());
   }
 
   public static void closeMenuForShutdown(final Player p) {
@@ -288,7 +289,8 @@ public class Menu extends Command {
 
     Map<String, String> argMap = null;
 
-    if (this.args != null) {
+    if (!this.args.isEmpty()) {
+      DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "has args");
       if (typedArgs.length < this.args.size()) {
         if (this.argUsageMessage != null) {
           Msg.msg(sender, this.argUsageMessage);
@@ -300,15 +302,18 @@ public class Menu extends Command {
       for (String arg : this.args) {
         if (index + 1 == this.args.size()) {
           String last = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
+          DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + last);
           argMap.put(arg, last);
         } else {
           argMap.put(arg, typedArgs[index]);
+          DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + typedArgs[index]);
         }
         index++;
       }
     }
 
     Player player = (Player) sender;
+    DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "opening menu: " + this.menuName);
     openMenu(player, argMap, null);
     return true;
   }
@@ -336,6 +341,27 @@ public class Menu extends Command {
     return true;
   }
 
+  private boolean handleArgRequirements(MenuHolder holder) {
+    if (argRequirements == null) {
+      return true;
+    }
+
+    for (RequirementList rl : argRequirements) {
+      if (rl.getRequirements() == null) {
+        continue;
+      }
+
+      if (!rl.evaluate(holder)) {
+        if (rl.getDenyHandler() != null) {
+          rl.getDenyHandler().onClick(holder);
+        }
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   public void openMenu(final Player viewer) {
     openMenu(viewer, null, null);
   }
@@ -346,8 +372,14 @@ public class Menu extends Command {
     }
 
     final MenuHolder holder = new MenuHolder(viewer);
-    if (placeholderPlayer != null) holder.setPlaceholderPlayer(placeholderPlayer);
+    if (placeholderPlayer != null) {
+      holder.setPlaceholderPlayer(placeholderPlayer);
+    }
     holder.setTypedArgs(args);
+
+    if (!this.handleArgRequirements(holder)) {
+      return;
+    }
 
     if (!this.handleOpenRequirements(holder)) {
       return;

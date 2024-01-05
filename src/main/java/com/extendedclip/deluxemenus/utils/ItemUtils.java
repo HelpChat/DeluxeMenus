@@ -54,7 +54,7 @@ public final class ItemUtils {
 
     /**
      * Checks if the string is an Oraxen item. The check is case-sensitive.
-     * ItemsAdder items are: "oraxen-{namespace:name}"
+     * Oraxen items are: "oraxen-{namespace:name}"
      *
      * @param material The string to check
      * @return true if the string is an Oraxen item, false otherwise

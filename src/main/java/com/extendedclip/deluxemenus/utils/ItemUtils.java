@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
 import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.MMOITEMS_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
@@ -60,6 +61,17 @@ public final class ItemUtils {
      */
     public static boolean isOraxenItem(@NotNull final String material) {
         return material.startsWith(ORAXEN_PREFIX);
+    }
+
+    /**
+     * Checks if the string is an MMOItems item. The check is case-sensitive.
+     * MMOItems items are: "mmoitems-{namespace:name}"
+     *
+     * @param material The string to check
+     * @return true if the string is an MMOItem item, false otherwise
+     */
+    public static boolean isMMOItemsItem(@NotNull final String material) {
+        return material.startsWith(MMOITEMS_PREFIX);
     }
 
     /**

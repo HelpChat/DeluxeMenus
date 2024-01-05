@@ -1352,6 +1352,33 @@ public class DeluxeMenusConfig {
             );
           }
           break;
+        case STRING_LENGTH:
+          if (c.contains(rPath + ".input") && (c.contains(rPath + ".min") || c.contains(rPath + ".max"))) {
+            int min = c.getInt(rPath + ".min", 0);
+            Integer max = null;
+            if (c.contains(rPath + ".max")) {
+              max = c.getInt(rPath + ".max");
+            }
+            req = new StringLengthRequirement(c.getString(rPath + ".input"), min, max);
+          } else {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "String length requirement at path: " + rPath + " does not contain an input: or one of (min: or max:)"
+            );
+          }
+          break;
+        case IS_OBJECT:
+          if (c.contains(rPath + ".input") && c.contains(rPath + ".object")) {
+            req = new IsObjectRequirement(c.getString(rPath + ".input"), c.getString(rPath + ".object"));
+          } else {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "String length requirement at path: " + rPath + " does not contain an input: or one of (min: or max:)"
+            );
+          }
+          break;
         default:
           break;
       }

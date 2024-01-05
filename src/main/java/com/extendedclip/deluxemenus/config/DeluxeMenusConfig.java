@@ -5,22 +5,10 @@ import com.extendedclip.deluxemenus.action.ActionType;
 import com.extendedclip.deluxemenus.action.ClickAction;
 import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.menu.HeadType;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
-import com.extendedclip.deluxemenus.requirement.HasExpRequirement;
-import com.extendedclip.deluxemenus.requirement.HasItemRequirement;
-import com.extendedclip.deluxemenus.requirement.HasMetaRequirement;
-import com.extendedclip.deluxemenus.requirement.HasMoneyRequirement;
-import com.extendedclip.deluxemenus.requirement.HasPermissionRequirement;
-import com.extendedclip.deluxemenus.requirement.InputResultRequirement;
-import com.extendedclip.deluxemenus.requirement.IsNearRequirement;
-import com.extendedclip.deluxemenus.requirement.JavascriptRequirement;
-import com.extendedclip.deluxemenus.requirement.RegexMatchesRequirement;
-import com.extendedclip.deluxemenus.requirement.Requirement;
-import com.extendedclip.deluxemenus.requirement.RequirementList;
-import com.extendedclip.deluxemenus.requirement.RequirementType;
+import com.extendedclip.deluxemenus.requirement.*;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.LocationUtils;
@@ -451,7 +439,6 @@ public class DeluxeMenusConfig {
     String title = null;
 
     if (c.isString(pre + "menu_title")) {
-
       title = c.getString(pre + "menu_title");
     } else if (c.isList(pre + "menu_title")) {
       title = c.getStringList(pre + "menu_title").get(0);
@@ -619,16 +606,32 @@ public class DeluxeMenusConfig {
       menu = new Menu(key, title, items, size);
     } else {
       boolean registerCommand = c.getBoolean(pre + "register_command", false);
-      List<String> args = null;
+      List<String> args = new ArrayList<>();
+      List<RequirementList> argRequirements = new ArrayList<>();
       if (c.contains(pre + "args")) {
-        if (c.isList(pre + "args")) {
-          args = c.getStringList(pre + "args");
-        }
-        if (c.isString(pre + "args")) {
-          args = Collections.singletonList(c.getString(pre + "args"));
+        // New requirements parsing
+        if (c.isConfigurationSection(pre + "args")) {
+          Set<String> mapList = c.getConfigurationSection(pre + "args").getKeys(false);
+          debug("found args");
+          for (String arg : mapList) {
+            debug("arg: " + arg);
+            // If it has requirements, add them
+            if (c.contains(pre + "args." + arg + ".requirements")) {
+              debug("arg has requirements: " + arg);
+              argRequirements.add(this.getRequirements(c, pre + "args." + arg));
+            }
+            // Always add the arg itself
+            args.add(arg);
+          }
+          // Old list parsing
+        } else if (c.isList(pre + "args")) {
+          args.addAll(c.getStringList(pre + "args"));
+          // Old singular item parsing
+        } else if (c.isString(pre + "args")) {
+          args.add(c.getString(pre + "args"));
         }
       }
-      menu = new Menu(key, title, items, size, openCommands, registerCommand, args);
+      menu = new Menu(key, title, items, size, openCommands, registerCommand, args, argRequirements);
       menu.setArgUsageMessage(c.getString(pre + "args_usage_message", null));
     }
 

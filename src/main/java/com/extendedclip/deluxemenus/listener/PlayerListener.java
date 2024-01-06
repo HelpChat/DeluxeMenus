@@ -1,11 +1,15 @@
 package com.extendedclip.deluxemenus.listener;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
+import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;
@@ -19,6 +23,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class PlayerListener implements Listener {
 
@@ -148,76 +153,78 @@ public class PlayerListener implements Listener {
       this.shiftCache.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
-    if (item.getClickHandler() != null) {
-      if (item.getClickRequirements() != null) {
-        if (!item.getClickRequirements().evaluate(holder)) {
-          if (item.getClickRequirements().getDenyHandler() != null) {
-            item.getClickRequirements().getDenyHandler().onClick(holder);
-          }
-          return;
-        }
-      }
-      this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-      item.getClickHandler().onClick(holder);
+    if (handleClick(player, holder, item.options().clickHandler(),
+            item.options().clickRequirements())) {
       return;
     }
 
-    if (event.isShiftClick() && event.isLeftClick() && item.getShiftLeftClickHandler() != null) {
-      if (item.getShiftLeftClickRequirements() != null) {
-        if (!item.getShiftLeftClickRequirements().evaluate(holder)) {
-          if (item.getShiftLeftClickRequirements().getDenyHandler() != null) {
-            item.getShiftLeftClickRequirements().getDenyHandler().onClick(holder);
-          }
-          return;
-        }
+    if (event.isShiftClick() && event.isLeftClick()) {
+      if (handleClick(player, holder, item.options().shiftLeftClickHandler(),
+              item.options().shiftLeftClickRequirements())) {
+        return;
       }
-      this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-      item.getShiftLeftClickHandler().onClick(holder);
-    } else if (event.isShiftClick() && event.isRightClick()
-        && item.getShiftRightClickHandler() != null) {
-      if (item.getShiftRightClickRequirements() != null) {
-        if (!item.getShiftRightClickRequirements().evaluate(holder)) {
-          if (item.getShiftRightClickRequirements().getDenyHandler() != null) {
-            item.getShiftRightClickRequirements().getDenyHandler().onClick(holder);
-          }
-          return;
-        }
-      }
-      this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-      item.getShiftRightClickHandler().onClick(holder);
-    } else if (event.getClick() == ClickType.LEFT && item.getLeftClickHandler() != null) {
-      if (item.getLeftClickRequirements() != null) {
-        if (!item.getLeftClickRequirements().evaluate(holder)) {
-          if (item.getLeftClickRequirements().getDenyHandler() != null) {
-            item.getLeftClickRequirements().getDenyHandler().onClick(holder);
-          }
-          return;
-        }
-      }
-      this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-      item.getLeftClickHandler().onClick(holder);
-    } else if (event.getClick() == ClickType.RIGHT && item.getRightClickHandler() != null) {
-      if (item.getRightClickRequirements() != null) {
-        if (!item.getRightClickRequirements().evaluate(holder)) {
-          if (item.getRightClickRequirements().getDenyHandler() != null) {
-            item.getRightClickRequirements().getDenyHandler().onClick(holder);
-          }
-          return;
-        }
-      }
-      this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-      item.getRightClickHandler().onClick(holder);
-    } else if (event.getClick() == ClickType.MIDDLE && item.getMiddleClickHandler() != null) {
-      if (item.getMiddleClickRequirements() != null) {
-        if (!item.getMiddleClickRequirements().evaluate(holder)) {
-          if (item.getMiddleClickRequirements().getDenyHandler() != null) {
-            item.getMiddleClickRequirements().getDenyHandler().onClick(holder);
-          }
-          return;
-        }
-      }
-      this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-      item.getMiddleClickHandler().onClick(holder);
     }
+
+    if (event.isShiftClick() && event.isRightClick()) {
+      if (handleClick(player, holder, item.options().shiftRightClickHandler(),
+              item.options().shiftRightClickRequirements())) {
+        return;
+      }
+    }
+
+    if (event.getClick() == ClickType.LEFT) {
+      if (handleClick(player, holder, item.options().leftClickHandler(),
+              item.options().leftClickRequirements())) {
+        return;
+      }
+    }
+
+    if (event.getClick() == ClickType.RIGHT) {
+      if (handleClick(player, holder, item.options().rightClickHandler(),
+              item.options().rightClickRequirements())) {
+        return;
+      }
+    }
+
+    if (event.getClick() == ClickType.MIDDLE) {
+      if (handleClick(player, holder, item.options().middleClickHandler(),
+              item.options().middleClickRequirements())) {
+        return;
+      }
+    }
+  }
+
+  /**
+   * Handles menu click by player
+   * @param player player who clicked
+   * @param holder menu holder
+   * @param handler click handler
+   * @param requirements click requirements
+   * @return true if click was handled successfully. will ever return false if no click handler was found
+   */
+  private boolean handleClick(final @NotNull Player player, final @NotNull MenuHolder holder,
+                              final @NotNull Optional<ClickHandler> handler,
+                              final @NotNull Optional<RequirementList> requirements) {
+    if (handler.isEmpty()) {
+      return false;
+    }
+
+    if (requirements.isPresent()) {
+      final ClickHandler denyHandler = requirements.get().getDenyHandler();
+
+      if (!requirements.get().evaluate(holder)) {
+        if (denyHandler == null) {
+          return true;
+        }
+
+        denyHandler.onClick(holder);
+        return true;
+      }
+    }
+
+    this.cache.put(player.getUniqueId(), System.currentTimeMillis());
+    handler.get().onClick(holder);
+
+    return true;
   }
 }

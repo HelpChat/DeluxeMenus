@@ -396,7 +396,7 @@ public class Menu extends Command {
 
         for (MenuItem item : entry.getValue().values()) {
 
-          int slot = item.getSlot();
+          int slot = item.options().slot();
 
           if (slot >= size) {
             DeluxeMenus.debug(
@@ -408,9 +408,9 @@ public class Menu extends Command {
             continue;
           }
 
-          if (item.hasViewRequirement()) {
+          if (item.options().viewRequirements().isPresent()) {
 
-            if (item.getViewRequirements().evaluate(holder)) {
+            if (item.options().viewRequirements().get().evaluate(holder)) {
 
               activeItems.add(item);
               break;
@@ -458,7 +458,7 @@ public class Menu extends Command {
 
         iStack = DeluxeMenus.getInstance().getMenuItemMarker().mark(iStack);
 
-        int slot = item.getSlot();
+        int slot = item.options().slot();
 
         if (slot >= size) {
           DeluxeMenus.debug(
@@ -470,11 +470,11 @@ public class Menu extends Command {
           continue;
         }
 
-        if (item.updatePlaceholders()) {
+        if (item.options().updatePlaceholders()) {
           update = true;
         }
 
-        inventory.setItem(item.getSlot(), iStack);
+        inventory.setItem(item.options().slot(), iStack);
       }
 
       final boolean updatePlaceholders = update;

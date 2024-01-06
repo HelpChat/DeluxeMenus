@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -719,12 +720,12 @@ public class DeluxeMenusConfig {
 
       MenuItemOptions.MenuItemOptionsBuilder builder = MenuItemOptions.builder()
               .material(material)
-              .baseColor(c.contains(currentPath + "base_color") && c.isString(currentPath + "base_color")
-                      ? DyeColor.valueOf(c.getString(currentPath + "base_color", "WHITE").toUpperCase(Locale.getDefault()))
-                      : null)
+              .baseColor(Optional.ofNullable(c.getString(currentPath + "base_color"))
+                      .map(String::toUpperCase)
+                      .map(DyeColor::valueOf)
+                      .orElse(null))
               .slot(c.getInt(currentPath + "slot", 0))
               .amount(c.getInt(currentPath + "amount", -1))
-              .dynamicAmount(c.getString(currentPath + "dynamic_amount", null))
               .dynamicAmount(c.getString(currentPath + "dynamic_amount", null))
               .customModelData(c.getString(currentPath + "model_data", null))
               .displayName(c.getString(currentPath + "display_name"))

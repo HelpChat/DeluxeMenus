@@ -8,6 +8,8 @@ import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;
@@ -22,7 +24,6 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class PlayerListener implements Listener {
 
@@ -152,42 +153,42 @@ public class PlayerListener implements Listener {
       this.shiftCache.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
-    if (handleClick(player, holder, item.options().clickHandler().orElse(null),
-            item.options().clickRequirements().orElse(null))) {
+    if (handleClick(player, holder, item.options().clickHandler(),
+            item.options().clickRequirements())) {
       return;
     }
 
     if (event.isShiftClick() && event.isLeftClick()) {
-      if (handleClick(player, holder, item.options().shiftLeftClickHandler().orElse(null),
-              item.options().shiftLeftClickRequirements().orElse(null))) {
+      if (handleClick(player, holder, item.options().shiftLeftClickHandler(),
+              item.options().shiftLeftClickRequirements())) {
         return;
       }
     }
 
     if (event.isShiftClick() && event.isRightClick()) {
-      if (handleClick(player, holder, item.options().shiftRightClickHandler().orElse(null),
-              item.options().shiftRightClickRequirements().orElse(null))) {
+      if (handleClick(player, holder, item.options().shiftRightClickHandler(),
+              item.options().shiftRightClickRequirements())) {
         return;
       }
     }
 
     if (event.getClick() == ClickType.LEFT) {
-      if (handleClick(player, holder, item.options().leftClickHandler().orElse(null),
-              item.options().leftClickRequirements().orElse(null))) {
+      if (handleClick(player, holder, item.options().leftClickHandler(),
+              item.options().leftClickRequirements())) {
         return;
       }
     }
 
     if (event.getClick() == ClickType.RIGHT) {
-      if (handleClick(player, holder, item.options().rightClickHandler().orElse(null),
-              item.options().rightClickRequirements().orElse(null))) {
+      if (handleClick(player, holder, item.options().rightClickHandler(),
+              item.options().rightClickRequirements())) {
         return;
       }
     }
 
     if (event.getClick() == ClickType.MIDDLE) {
-      if (handleClick(player, holder, item.options().middleClickHandler().orElse(null),
-              item.options().middleClickRequirements().orElse(null))) {
+      if (handleClick(player, holder, item.options().middleClickHandler(),
+              item.options().middleClickRequirements())) {
         return;
       }
     }
@@ -202,15 +203,16 @@ public class PlayerListener implements Listener {
    * @return true if click was handled successfully. will ever return false if no click handler was found
    */
   private boolean handleClick(final @NotNull Player player, final @NotNull MenuHolder holder,
-                              final @Nullable ClickHandler handler, final @Nullable RequirementList requirements) {
-    if (handler == null) {
+                              final @NotNull Optional<ClickHandler> handler,
+                              final @NotNull Optional<RequirementList> requirements) {
+    if (handler.isEmpty()) {
       return false;
     }
 
-    if (requirements != null) {
-      final ClickHandler denyHandler = requirements.getDenyHandler();
+    if (requirements.isPresent()) {
+      final ClickHandler denyHandler = requirements.get().getDenyHandler();
 
-      if (!requirements.evaluate(holder)) {
+      if (!requirements.get().evaluate(holder)) {
         if (denyHandler == null) {
           return true;
         }
@@ -221,7 +223,7 @@ public class PlayerListener implements Listener {
     }
 
     this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-    handler.onClick(holder);
+    handler.get().onClick(holder);
 
     return true;
   }

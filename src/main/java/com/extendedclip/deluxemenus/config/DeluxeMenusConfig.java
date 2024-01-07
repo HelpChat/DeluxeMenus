@@ -1475,22 +1475,19 @@ public class DeluxeMenusConfig {
               continue;
             }
 
+            final ClickActionTask actionTask = new ClickActionTask(
+                    plugin,
+                    holder.getViewer().getName(),
+                    action.getType(),
+                    action.getExecutable()
+            );
+
             if (action.hasDelay()) {
-              new ClickActionTask(
-                  plugin,
-                  holder.getViewer().getName(),
-                  action.getType(),
-                  holder.setArguments(action.getExecutable())
-              ).runTaskLater(plugin, action.getDelay(holder));
+              actionTask.runTaskLater(plugin, action.getDelay(holder));
               continue;
             }
 
-            new ClickActionTask(
-                plugin,
-                holder.getViewer().getName(),
-                action.getType(),
-                holder.setArguments(action.getExecutable())
-            ).runTask(plugin);
+            actionTask.runTask(plugin);
           }
         }
       };

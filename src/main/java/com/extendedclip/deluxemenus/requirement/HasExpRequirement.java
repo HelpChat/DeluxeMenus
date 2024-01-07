@@ -21,10 +21,10 @@ public class HasExpRequirement extends Requirement {
         int amount;
         int has = level ? holder.getViewer().getLevel() : ExpUtils.getTotalExperience(holder.getViewer());
         try {
-            amount = Integer.parseInt(holder.setPlaceholders(amt));
+            amount = Integer.parseInt(holder.setPlaceholdersAndArguments(amt));
         } catch (final Exception exception) {
             DeluxeMenus.printStacktrace(
-                "Invalid amount found for has exp requirement: " + holder.setPlaceholders(amt),
+                "Invalid amount found for has exp requirement: " + holder.setPlaceholdersAndArguments(amt),
                 exception
             );
             return false;

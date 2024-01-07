@@ -46,8 +46,8 @@ public class ClickActionTask extends BukkitRunnable {
       return;
     }
 
-    final String executable = PlaceholderAPI.setPlaceholders((OfflinePlayer) player, exec);
     final MenuHolder holder = Menu.getMenuHolder(player);
+    final String executable = holder.setPlaceholdersAndArguments(exec);
 
     switch (actionType) {
       case META:

@@ -379,6 +379,7 @@ public class Menu extends Command {
       holder.setPlaceholderPlayer(placeholderPlayer);
     }
     holder.setTypedArgs(args);
+    holder.parsePlaceholdersInArguments(this.parsePlaceholdersInArguments);
 
     if (!this.handleArgRequirements(holder)) {
       return;
@@ -434,7 +435,7 @@ public class Menu extends Command {
         this.openHandler.onClick(holder);
       }
 
-      String title = StringUtils.color(holder.setPlaceholders(this.menuTitle));
+      String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.menuTitle));
 
       Inventory inventory;
 

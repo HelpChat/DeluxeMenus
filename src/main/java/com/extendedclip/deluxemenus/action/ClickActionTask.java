@@ -23,30 +23,25 @@ import org.jetbrains.annotations.NotNull;
 public class ClickActionTask extends BukkitRunnable {
 
   private final DeluxeMenus plugin;
-  private final String name;
+  private final MenuHolder holder;
   private final ActionType actionType;
   private final String exec;
 
   public ClickActionTask(
       @NotNull final DeluxeMenus plugin,
-      @NotNull final String name,
+      @NotNull final MenuHolder holder,
       @NotNull final ActionType actionType,
       @NotNull final String exec
   ) {
     this.plugin = plugin;
-    this.name = name;
+    this.holder = holder;
     this.actionType = actionType;
     this.exec = exec;
   }
 
   @Override
   public void run() {
-    final Player player = Bukkit.getServer().getPlayerExact(name);
-    if (player == null) {
-      return;
-    }
-
-    final MenuHolder holder = Menu.getMenuHolder(player);
+    final Player player = holder.getViewer();
     final String executable = holder.setPlaceholdersAndArguments(exec);
 
     switch (actionType) {

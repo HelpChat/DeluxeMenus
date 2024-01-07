@@ -8,12 +8,13 @@ import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
-import me.clip.placeholderapi.PlaceholderAPI;
-import net.kyori.adventure.Adventure;
+
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -23,26 +24,36 @@ import org.jetbrains.annotations.NotNull;
 public class ClickActionTask extends BukkitRunnable {
 
   private final DeluxeMenus plugin;
-  private final MenuHolder holder;
+  private final UUID uuid;
   private final ActionType actionType;
   private final String exec;
+  // Ugly hack to get around the fact that arguments are not available at task execution time
+  private final Map<String, String> arguments;
 
   public ClickActionTask(
       @NotNull final DeluxeMenus plugin,
-      @NotNull final MenuHolder holder,
+      @NotNull final UUID uuid,
       @NotNull final ActionType actionType,
-      @NotNull final String exec
+      @NotNull final String exec,
+      @NotNull final Map<String, String> arguments
   ) {
     this.plugin = plugin;
-    this.holder = holder;
+    this.uuid = uuid;
     this.actionType = actionType;
     this.exec = exec;
+    this.arguments = arguments;
   }
 
   @Override
   public void run() {
-    final Player player = holder.getViewer();
-    final String executable = holder.setPlaceholdersAndArguments(exec);
+    final Player player = Bukkit.getPlayer(this.uuid);
+    if (player == null) {
+      return;
+    }
+
+    final MenuHolder holder = Menu.getMenuHolder(player);
+    final String executable = StringUtils.replacePlaceholdersAndArguments(this.exec, this.arguments, player);
+
 
     switch (actionType) {
       case META:

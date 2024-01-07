@@ -1477,9 +1477,10 @@ public class DeluxeMenusConfig {
 
             final ClickActionTask actionTask = new ClickActionTask(
                     plugin,
-                    holder,
+                    holder.getViewer().getUniqueId(),
                     action.getType(),
-                    action.getExecutable()
+                    holder.setPlaceholdersAndArguments(action.getExecutable()),
+                    holder.getTypedArgs()
             );
 
             if (action.hasDelay()) {

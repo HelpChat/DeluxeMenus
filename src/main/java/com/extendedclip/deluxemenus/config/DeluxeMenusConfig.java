@@ -5,22 +5,11 @@ import com.extendedclip.deluxemenus.action.ActionType;
 import com.extendedclip.deluxemenus.action.ClickAction;
 import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.menu.HeadType;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
-import com.extendedclip.deluxemenus.requirement.HasExpRequirement;
-import com.extendedclip.deluxemenus.requirement.HasItemRequirement;
-import com.extendedclip.deluxemenus.requirement.HasMetaRequirement;
-import com.extendedclip.deluxemenus.requirement.HasMoneyRequirement;
-import com.extendedclip.deluxemenus.requirement.HasPermissionRequirement;
-import com.extendedclip.deluxemenus.requirement.InputResultRequirement;
-import com.extendedclip.deluxemenus.requirement.IsNearRequirement;
-import com.extendedclip.deluxemenus.requirement.JavascriptRequirement;
-import com.extendedclip.deluxemenus.requirement.RegexMatchesRequirement;
-import com.extendedclip.deluxemenus.requirement.Requirement;
-import com.extendedclip.deluxemenus.requirement.RequirementList;
-import com.extendedclip.deluxemenus.requirement.RequirementType;
+import com.extendedclip.deluxemenus.menu.MenuItemOptions;
+import com.extendedclip.deluxemenus.requirement.*;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.LocationUtils;
@@ -37,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -56,12 +46,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import static com.extendedclip.deluxemenus.utils.Constants.HEAD_PREFIXES;
-import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.PLAYER_ITEMS;
-import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
+import static com.extendedclip.deluxemenus.utils.Constants.*;
 
 public class DeluxeMenusConfig {
 
@@ -76,6 +61,7 @@ public class DeluxeMenusConfig {
     VALID_MATERIAL_PREFIXES.add(PLACEHOLDER_PREFIX);
     VALID_MATERIAL_PREFIXES.add(ITEMSADDER_PREFIX);
     VALID_MATERIAL_PREFIXES.add(ORAXEN_PREFIX);
+    VALID_MATERIAL_PREFIXES.add(MMOITEMS_PREFIX);
   }
 
   public static final Pattern DELAY_MATCHER = Pattern.compile("<delay=([^<>]+)>", Pattern.CASE_INSENSITIVE);
@@ -451,7 +437,6 @@ public class DeluxeMenusConfig {
     String title = null;
 
     if (c.isString(pre + "menu_title")) {
-
       title = c.getString(pre + "menu_title");
     } else if (c.isList(pre + "menu_title")) {
       title = c.getStringList(pre + "menu_title").get(0);
@@ -587,74 +572,12 @@ public class DeluxeMenusConfig {
         }
       }
     } else {
-      switch (type) {
-        case BEACON:
-        case COMPOSTER:
-          DeluxeMenus.debug(
+      size = type.getDefaultSize();
+      DeluxeMenus.debug(
               DebugLevel.LOWEST,
               Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 1"
-          );
-          size = 1;
-          break;
-        case ENCHANTING:
-        case STONECUTTER:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 2"
-          );
-          size = 2;
-          break;
-        case CARTOGRAPHY:
-        case GRINDSTONE:
-        case BLAST_FURNACE:
-        case FURNACE:
-        case SMOKER:
-        case SMITHING:
-        case ANVIL:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 3"
-          );
-          size = 3;
-          break;
-        case LOOM:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 4"
-          );
-          size = 4;
-          break;
-        case BREWING:
-        case HOPPER:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 5"
-          );
-          size = 5;
-          break;
-        case DISPENSER:
-        case DROPPER:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 9"
-          );
-          size = 9;
-          break;
-        case WORKBENCH:
-          DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-              "TYPE IS: " + type + ". Setting size to: 10"
-          );
-          size = 10;
-          break;
-      }
+              "TYPE IS: " + type + ". Setting size to:" + type.getDefaultSize()
+      );
     }
 
     RequirementList orl = null;
@@ -675,22 +598,40 @@ public class DeluxeMenusConfig {
       return;
     }
 
+    final boolean argumentsSupportPlaceholders = c.getBoolean(pre + "arguments_support_placeholders", false);
+
     Menu menu;
 
     if (openCommands.isEmpty()) {
-      menu = new Menu(key, title, items, size);
+      menu = new Menu(key, title, items, size, argumentsSupportPlaceholders);
     } else {
       boolean registerCommand = c.getBoolean(pre + "register_command", false);
-      List<String> args = null;
+      List<String> args = new ArrayList<>();
+      List<RequirementList> argRequirements = new ArrayList<>();
       if (c.contains(pre + "args")) {
-        if (c.isList(pre + "args")) {
-          args = c.getStringList(pre + "args");
-        }
-        if (c.isString(pre + "args")) {
-          args = Collections.singletonList(c.getString(pre + "args"));
+        // New requirements parsing
+        if (c.isConfigurationSection(pre + "args")) {
+          Set<String> mapList = c.getConfigurationSection(pre + "args").getKeys(false);
+          debug("found args");
+          for (String arg : mapList) {
+            debug("arg: " + arg);
+            // If it has requirements, add them
+            if (c.contains(pre + "args." + arg + ".requirements")) {
+              debug("arg has requirements: " + arg);
+              argRequirements.add(this.getRequirements(c, pre + "args." + arg));
+            }
+            // Always add the arg itself
+            args.add(arg);
+          }
+          // Old list parsing
+        } else if (c.isList(pre + "args")) {
+          args.addAll(c.getStringList(pre + "args"));
+          // Old singular item parsing
+        } else if (c.isString(pre + "args")) {
+          args.add(c.getString(pre + "args"));
         }
       }
-      menu = new Menu(key, title, items, size, openCommands, registerCommand, args);
+      menu = new Menu(key, title, items, size, openCommands, registerCommand, args, argRequirements, argumentsSupportPlaceholders);
       menu.setArgUsageMessage(c.getString(pre + "args_usage_message", null));
     }
 
@@ -767,65 +708,42 @@ public class DeluxeMenusConfig {
         continue;
       }
 
-      MenuItem menuItem = new MenuItem();
-
       final String material = c.getString(currentPath + "material");
       final String lowercaseMaterial = material.toLowerCase(Locale.ROOT);
       if (!isValidMaterial(lowercaseMaterial)) {
         DeluxeMenus.debug(
-            DebugLevel.HIGHEST,
-            Level.WARNING,
-            "Material for item: " + key + " in menu: " + name + " is not valid!",
-            "Skipping item: " + key
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "Material for item: " + key + " in menu: " + name + " is not valid!",
+                "Skipping item: " + key
         );
         continue;
       }
 
-      menuItem.setConfigMaterial(material);
-
-      // shield base color
-      menuItem.setConfigBaseColor(c.contains(currentPath + "base_color") && c.isString(currentPath + "base_color")
-          ? DyeColor.valueOf(c.getString(currentPath + "base_color", "WHITE").toUpperCase(Locale.getDefault()))
-          : null
-      );
-      // slot
-      menuItem.setSlot(c.getInt(currentPath + "slot", 0));
-      // amount
-      menuItem.setConfigAmount(c.getInt(currentPath + "amount", -1));
-      // dynamic amount
-      menuItem.setConfigDynamicAmount(c.getString(currentPath + "dynamic_amount", null));
-      // custom model data
-      menuItem.setCustomModelData(c.getString(currentPath + "model_data", null));
-      // displayname
-      menuItem.setConfigDisplayName(c.getString(currentPath + "display_name"));
-      // lore
-      if (c.isList(currentPath + "lore")) {
-        menuItem.setConfigLore(c.getStringList(currentPath + "lore"));
-      }
-      // rgb
-      menuItem.setRGB(c.getString(currentPath + "rgb", null));
-      // unbreakable
-      menuItem.setUnbreakable(c.getBoolean(currentPath + "unbreakable", false));
-      // update placeholders
-      menuItem.setUpdatePlaceholders(c.getBoolean(currentPath + "update", false));
-      // hide attributes
-      menuItem.setHideAttributes(c.getBoolean(currentPath + "hide_attributes", false));
-      // hide unbreakable
-      menuItem.setHideUnbreakable(c.getBoolean(currentPath + "hide_unbreakable", false));
-      // hide enchants
-      menuItem.setHideEnchants(c.getBoolean(currentPath + "hide_enchantments", false));
-      // hide potion effects
-      menuItem.setHidePotionEffects(c.getBoolean(currentPath + "hide_effects", false));
-      // nbt string
-      menuItem.setNbtString(c.getString(currentPath + "nbt_string", null));
-      // nbt int
-      menuItem.setNbtInt(c.getString(currentPath + "nbt_int", null));
-      // nbt strings
-      menuItem.setNbtStrings(c.getStringList(currentPath + "nbt_strings"));
-      // nbt ints
-      menuItem.setNbtInts(c.getStringList(currentPath + "nbt_ints"));
-      // priority
-      menuItem.setPriority(c.getInt(currentPath + "priority", 1));
+      MenuItemOptions.MenuItemOptionsBuilder builder = MenuItemOptions.builder()
+              .material(material)
+              .baseColor(Optional.ofNullable(c.getString(currentPath + "base_color"))
+                      .map(String::toUpperCase)
+                      .map(DyeColor::valueOf)
+                      .orElse(null))
+              .slot(c.getInt(currentPath + "slot", 0))
+              .amount(c.getInt(currentPath + "amount", -1))
+              .dynamicAmount(c.getString(currentPath + "dynamic_amount", null))
+              .customModelData(c.getString(currentPath + "model_data", null))
+              .displayName(c.getString(currentPath + "display_name"))
+              .lore(c.getStringList(currentPath + "lore"))
+              .rgb(c.getString(currentPath + "rgb", null))
+              .unbreakable(c.getBoolean(currentPath + "unbreakable", false))
+              .updatePlaceholders(c.getBoolean(currentPath + "update", false))
+              .hideAttributes(c.getBoolean(currentPath + "hide_attributes", false))
+              .hideUnbreakable(c.getBoolean(currentPath + "hide_unbreakable", false))
+              .hideEnchants(c.getBoolean(currentPath + "hide_enchantments", false))
+              .hidePotionEffects(c.getBoolean(currentPath + "hide_effects", false))
+              .nbtString(c.getString(currentPath + "nbt_string", null))
+              .nbtInt(c.getString(currentPath + "nbt_int", null))
+              .nbtStrings(c.getStringList(currentPath + "nbt_strings"))
+              .nbtInts(c.getStringList(currentPath + "nbt_ints"))
+              .priority(c.getInt(currentPath + "priority", 1));
 
       // item flags
       if (c.contains(currentPath + "item_flags")) {
@@ -834,7 +752,7 @@ public class DeluxeMenusConfig {
           ItemFlag flag;
           try {
             flag = ItemFlag.valueOf(flagAsString.toUpperCase());
-            menuItem.setItemFlags(Collections.singletonList(flag));
+            builder.itemFlags(Collections.singletonList(flag));
           } catch (IllegalArgumentException | NullPointerException ignored) {
             DeluxeMenus.debug(
                 DebugLevel.HIGHEST,
@@ -860,14 +778,14 @@ public class DeluxeMenusConfig {
           }
 
           if (!flags.isEmpty()) {
-            menuItem.setItemFlags(flags);
+            builder.itemFlags(flags);
           }
         }
       }
 
       if (c.contains(currentPath + "data")) {
         if (c.isInt(currentPath + "data")) {
-          menuItem.setConfigData((short) c.getInt(currentPath + "data"));
+          builder.data((short) c.getInt(currentPath + "data"));
         } else {
           String dataString = c.getString(currentPath + "data", "");
           if (dataString.startsWith("placeholder-")) {
@@ -884,7 +802,7 @@ public class DeluxeMenusConfig {
             }
 
             if (containsPlaceholders(parts[1])) {
-              menuItem.setPlaceholderData(parts[1]);
+              builder.placeholderData(parts[1]);
             }
           }
         }
@@ -939,8 +857,8 @@ public class DeluxeMenusConfig {
         }
 
         if (!bannerMeta.isEmpty()) {
-          menuItem.setBannerMeta(bannerMeta);
-          menuItem.setHidePotionEffects(true);
+          builder.bannerMeta(bannerMeta);
+          builder.hidePotionEffects(true);
         }
       }
 
@@ -993,7 +911,7 @@ public class DeluxeMenusConfig {
           }
         }
         if (!potionEffects.isEmpty()) {
-          menuItem.setPotionEffects(potionEffects);
+          builder.potionEffects(potionEffects);
         }
       }
 
@@ -1056,61 +974,61 @@ public class DeluxeMenusConfig {
 
           }
           if (!enchants.isEmpty()) {
-            menuItem.setEnchantments(enchants);
+            builder.enchantments(enchants);
           }
         }
       }
 
       if (c.contains(currentPath + "view_requirement")) {
-        menuItem.setViewRequirements(this.getRequirements(c, currentPath + "view_requirement"));
+        builder.viewRequirements(this.getRequirements(c, currentPath + "view_requirement"));
       }
 
       if (c.contains(currentPath + "click_commands")) {
-        menuItem.setClickHandler(getClickHandler(c, currentPath + "click_commands"));
+        builder.clickHandler(getClickHandler(c, currentPath + "click_commands"));
         if (c.contains(currentPath + "click_requirement")) {
-          menuItem.setClickRequirements(
+          builder.clickRequirements(
               this.getRequirements(c, currentPath + "click_requirement"));
         }
       }
 
       if (c.contains(currentPath + "left_click_commands")) {
-        menuItem.setLeftClickHandler(getClickHandler(c, currentPath + "left_click_commands"));
+        builder.leftClickHandler(getClickHandler(c, currentPath + "left_click_commands"));
         if (c.contains(currentPath + "left_click_requirement")) {
-          menuItem.setLeftClickRequirements(
+          builder.leftClickRequirements(
               this.getRequirements(c, currentPath + "left_click_requirement"));
         }
       }
 
       if (c.contains(currentPath + "right_click_commands")) {
-        menuItem.setRightClickHandler(getClickHandler(c, currentPath + "right_click_commands"));
+        builder.rightClickHandler(getClickHandler(c, currentPath + "right_click_commands"));
         if (c.contains(currentPath + "right_click_requirement")) {
-          menuItem.setRightClickRequirements(
+          builder.rightClickRequirements(
               this.getRequirements(c, currentPath + "right_click_requirement"));
         }
       }
 
       if (c.contains(currentPath + "shift_left_click_commands")) {
-        menuItem.setShiftLeftClickHandler(
+        builder.shiftLeftClickHandler(
             getClickHandler(c, currentPath + "shift_left_click_commands"));
         if (c.contains(currentPath + "shift_left_click_requirement")) {
-          menuItem.setShiftLeftClickRequirements(
+          builder.shiftLeftClickRequirements(
               this.getRequirements(c, currentPath + "shift_left_click_requirement"));
         }
       }
 
       if (c.contains(currentPath + "shift_right_click_commands")) {
-        menuItem.setShiftRightClickHandler(
+        builder.shiftRightClickHandler(
             getClickHandler(c, currentPath + "shift_right_click_commands"));
         if (c.contains(currentPath + "shift_right_click_requirement")) {
-          menuItem.setShiftRightClickRequirements(
+          builder.shiftRightClickRequirements(
               this.getRequirements(c, currentPath + "shift_right_click_requirement"));
         }
       }
 
       if (c.contains(currentPath + "middle_click_commands")) {
-        menuItem.setMiddleClickHandler(getClickHandler(c, currentPath + "middle_click_commands"));
+        builder.middleClickHandler(getClickHandler(c, currentPath + "middle_click_commands"));
         if (c.contains(currentPath + "middle_click_requirement")) {
-          menuItem.setMiddleClickRequirements(
+          builder.middleClickRequirements(
               this.getRequirements(c, currentPath + "middle_click_requirement"));
         }
       }
@@ -1133,6 +1051,8 @@ public class DeluxeMenusConfig {
         slots.add(c.getInt(currentPath + "slot", 0));
       }
 
+      final MenuItem menuItem = new MenuItem(builder.build());
+
       for (int slot : slots) {
         TreeMap<Integer, MenuItem> slotPriorityMap;
         if ((!menuItems.containsKey(slot)) || menuItems.get(slot) == null) {
@@ -1141,9 +1061,10 @@ public class DeluxeMenusConfig {
         } else {
           slotPriorityMap = menuItems.get(slot);
         }
-        MenuItem clone = menuItem.clone();
-        clone.setSlot(slot);
-        slotPriorityMap.put(menuItem.getPriority(), clone);
+        slotPriorityMap.put(
+                menuItem.options().priority(),
+                new MenuItem(menuItem.options().asBuilder().slot(slot).build())
+        );
       }
     }
     return menuItems;
@@ -1411,6 +1332,33 @@ public class DeluxeMenusConfig {
             );
           }
           break;
+        case STRING_LENGTH:
+          if (c.contains(rPath + ".input") && (c.contains(rPath + ".min") || c.contains(rPath + ".max"))) {
+            int min = c.getInt(rPath + ".min", 0);
+            Integer max = null;
+            if (c.contains(rPath + ".max")) {
+              max = c.getInt(rPath + ".max");
+            }
+            req = new StringLengthRequirement(c.getString(rPath + ".input"), min, max);
+          } else {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "String length requirement at path: " + rPath + " does not contain an input: or one of (min: or max:)"
+            );
+          }
+          break;
+        case IS_OBJECT:
+          if (c.contains(rPath + ".input") && c.contains(rPath + ".object")) {
+            req = new IsObjectRequirement(c.getString(rPath + ".input"), c.getString(rPath + ".object"));
+          } else {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "String length requirement at path: " + rPath + " does not contain an input: or object:"
+            );
+          }
+          break;
         default:
           break;
       }
@@ -1527,22 +1475,19 @@ public class DeluxeMenusConfig {
               continue;
             }
 
+            final ClickActionTask actionTask = new ClickActionTask(
+                    plugin,
+                    holder.getViewer().getName(),
+                    action.getType(),
+                    action.getExecutable()
+            );
+
             if (action.hasDelay()) {
-              new ClickActionTask(
-                  plugin,
-                  holder.getViewer().getName(),
-                  action.getType(),
-                  holder.setArguments(action.getExecutable())
-              ).runTaskLater(plugin, action.getDelay(holder));
+              actionTask.runTaskLater(plugin, action.getDelay(holder));
               continue;
             }
 
-            new ClickActionTask(
-                plugin,
-                holder.getViewer().getName(),
-                action.getType(),
-                holder.setArguments(action.getExecutable())
-            ).runTask(plugin);
+            actionTask.runTask(plugin);
           }
         }
       };

@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.placeholder;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
@@ -98,6 +99,19 @@ public class Expansion extends PlaceholderExpansion {
             return parts.length > 2 ? parts[2] : "";
         }
 
+        switch (input) {
+            case "is_in_menu": {
+                return Menu.getMenuHolder(onlinePlayer) != null ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
+            }
+            case "opened_menu": {
+                Menu menu = Menu.getOpenMenu(onlinePlayer);
+                return menu == null ? "" : menu.getMenuName();
+            }
+            case "last_menu": {
+                Menu menu = Menu.getLastMenu(onlinePlayer);
+                return menu == null ? "" : menu.getMenuName();
+            }
+        }
         return null;
     }
 }

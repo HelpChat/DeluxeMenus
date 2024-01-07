@@ -5,8 +5,8 @@ plugins {
 }
 
 // Change to true when releasing
-val release = true
-val majorVersion = "1.14.0"
+val release = false
+val majorVersion = "1.14.1"
 val minorVersion = if (release) "Release" else "DEV-" + System.getenv("BUILD_NUMBER")
 
 group = "com.extendedclip"
@@ -17,6 +17,7 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://repo.glaremasters.me/repository/public/")
+    maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
     maven("https://jitpack.io")
 }
 
@@ -29,6 +30,7 @@ dependencies {
     compileOnly(libs.headdb)
     compileOnly(libs.itemsadder)
     compileOnly(libs.oraxen)
+    compileOnly(libs.mmoitems)
 
     compileOnly(libs.papi)
 

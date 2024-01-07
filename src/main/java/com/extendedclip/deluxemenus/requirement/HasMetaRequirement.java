@@ -24,15 +24,15 @@ public class HasMetaRequirement extends Requirement {
     if (player == null) {
       return false;
     }
-    String parsedKey = holder.setPlaceholders(key);
+    String parsedKey = holder.setPlaceholdersAndArguments(key);
     String metaVal = DeluxeMenus.getInstance().getPersistentMetaHandler()
         .getMeta(player, parsedKey, type, null);
     if (metaVal == null) {
       return invert;
     }
 
-    String expected = holder.setPlaceholders(value);
-    metaVal = holder.setPlaceholders(metaVal);
+    String expected = holder.setPlaceholdersAndArguments(value);
+    metaVal = holder.setPlaceholdersAndArguments(metaVal);
 
     switch (type) {
       case "STRING":

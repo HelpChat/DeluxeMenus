@@ -50,8 +50,8 @@ public class ClickActionTask extends BukkitRunnable {
       return;
     }
 
-    final String executable = PlaceholderAPI.setPlaceholders((OfflinePlayer) player, exec);
     final MenuHolder holder = Menu.getMenuHolder(player);
+    final String executable = holder.setPlaceholdersAndArguments(exec);
 
     switch (actionType) {
       case META:
@@ -79,7 +79,7 @@ public class ClickActionTask extends BukkitRunnable {
         break;
 
       case PLACEHOLDER:
-        PlaceholderAPI.setPlaceholders(player, executable);
+        holder.setPlaceholders(executable);
         break;
 
       case CHAT:

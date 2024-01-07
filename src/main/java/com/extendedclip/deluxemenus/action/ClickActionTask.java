@@ -75,7 +75,7 @@ public class ClickActionTask extends BukkitRunnable {
         break;
 
       case PLACEHOLDER:
-        PlaceholderAPI.setPlaceholders(player, executable);
+        holder.setPlaceholders(executable);
         break;
 
       case CHAT:

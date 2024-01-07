@@ -96,7 +96,7 @@ public class MenuHolder implements InventoryHolder {
         return setArguments(setPlaceholders(string));
     }
 
-    private @NotNull String setPlaceholders(final @NotNull String string) {
+    public @NotNull String setPlaceholders(final @NotNull String string) {
         if (placeholderPlayer != null) {
             return PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
         } else if (this.getViewer() != null) {
@@ -106,7 +106,7 @@ public class MenuHolder implements InventoryHolder {
         return string;
     }
 
-    private @NotNull String setArguments(@NotNull String string) {
+    public @NotNull String setArguments(@NotNull String string) {
         if (this.typedArgs == null || this.typedArgs.isEmpty()) {
             return string;
         }

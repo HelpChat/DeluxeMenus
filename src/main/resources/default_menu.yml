@@ -1,5 +1,4 @@
-menu_title: 'Default Menu'
-open_command: menu
+menu_title: '&8Default Menu'
 size: 9
 open_requirement:
   requirements:
@@ -7,13 +6,14 @@ open_requirement:
       type: has permission
       permission: deluxemenus.admin
       deny_commands:
-        - '[message] &cYou don''t have permission to do that!'
+      - '[sound] BLOCK_NOTE_BLOCK_BASS'
+      - '[message] &6&lDeluxe&emenus &8» &7You don''t have permission to open this menu.'
 items:
   'dirt':
     material: DIRT
     slot: 0
   'grass':
-    material: GRASS
+    material: GRASS_BLOCK
     slot: 1
   'gravel':
     material: GRAVEL
@@ -38,8 +38,6 @@ items:
     slot: 8
     display_name: 'Exit'
     lore:
-      - 'click to exit'
-    left_click_commands:
-      - '[close]'
-    right_click_commands:
-      - '[close]'
+    - 'click to exit'
+    click_commands:
+    - '[close]'

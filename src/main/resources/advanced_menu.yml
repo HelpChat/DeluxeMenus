@@ -1,118 +1,387 @@
-#  A DeluxeMenus advanced configuration guide
-#=========================================================
-menu_title: '&8> &6&lD&eM &bAdvanced Example'
-open_command:
-  - advancedmenu
-  - advancedexamplemenu
-  - themostadvancedmenuintheworld
-open_commands:
-  - '[sound] BLOCK_BEACON_ACTIVATE'
-  - '[message] &7Opening Advanced example menu, Plugin created by &bextended_clip&7!'
-size: 27
-# as always, only cool people can open this menu :)
-open_requirement:
-  requirements:
-    permission:
-      type: has permission
-      permission: deluxemenus.admin
-      deny_commands:
-        - "[message] &8[&bDeluxe&eMenus&8] &cYou don't have perms for this!"
+# An Advanced Deluxemenus confiruation made by @kristophergeou
+#
+# This menu requires the following expansions:
+# player, luckperms, vault, changeoutput, statistic, math 
+#
+# Plugins: https://www.spigotmc.org/resources/%E2%9A%A1-master-cooldowns-placeholder-cooldowns-1-8-1-19-%E2%9A%A1.72145/
+##############################################################
+menu_title: '&7Advanced Menu'
+open_command: # This is the command that will open this menu 
+- dmadvancedmenu
+register_command: true # Optional: Register the command (/dmadvancedmenu) on your server. Requires server restart.
+open_commands: # These actions will be executed once you open this menu
+- '[sound] BLOCK_CHEST_OPEN' # The sound list can be found here: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
+- '[message] &6&lDeluxe&emenus &8» &7Opening Advanced example menu, Plugin created by &eextended_clip&7.'
+inventory_type: CHEST # Optional: Change the inventory type of your menu, No need to add this to your config if you use CHEST. 
+update_interval: 1 # This option will update every items that have update: true, every 1 second
+open_requirement: # Optional: Use the Open Requirement setting to limit the access of the users that have access to this menu.
+  requirements: # If you want everyone to have access to the menu, open_requirement arent needed. 
+    user_op: 
+      type: string equals # This setting checks if the input matches the output value
+      input: '%player_is_op%' # This placeholder checks if the user is op 
+      output: 'yes' # If the user is op "yes" this menu will open, otherwise "no" the deny_command will run 
+      deny_commands: 
+      - '[message] &6&lDeluxe&emenus &8» &7Only Operators can open this menu.' # Deny commands will be executed when the requirement isn't met 
+size: 27 # Set the inventory size of your menu. The values will round up/down to the closest number of the multiplies of 9.
 items:
-  'example':
-    material: LIME_DYE
+#############################################
+# Example: Purchase an item (with cooldown)
+#############################################
+
+# First
+# Method: Money
+# Type: Permission Based
+
+# Start - Permission Based ( Temp Permissions from luckperms )
+  'redstone_can_claim':
+    material: redstone
+    slot: 10
+    priority: 1
+    view_requirement: 
+      requirements: 
+        no_cooldown: 
+          type: "!has permission" #This checks if the user doesnt have the permission
+          permission: 'item.1.cooldown' #If the user has this permission, they wont be able to view this item
+    display_name: '&c&lRedstone'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7You can purchase this item every 24h '
+    - ''
+    - '&c• &7Costs: &a1000 $'
+    - '&c• &7Balance: %changeoutput_>=_input:{vault_eco_balance}_matcher:1000_ifmatch:&a_else:&c%%vault_eco_balance% $' # This will turn the balance of the user green if has 1000+ $ otherwise it will be red
+    - ''
+    - '&cClick to purchase '
+    click_requirement: 
+      requirements: 
+        money: 
+          type: '>='
+          input: '%vault_eco_balance%'
+          output: 1000
+          deny_commands: 
+          - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough money'
+          - '[sound] BLOCK_NOTE_BLOCK_BASS'
+    click_commands: 
+    - '[takemoney] 1000'
+    - '[message] &6&lDeluxe&emenus &8» &7Purchased item &aRedstone'
+    - '[sound] ENTITY_ITEM_PICKUP'
+    - '[console] give %player_name% redstone'
+    - '[console] lp user %player_name% permission settemp item.1.cooldown true 24h' # This will set the item on cooldown for 24hours
+    - '[refresh]' # This will refresh the menu so the cooldown item appears
+
+  'redstone_cant_claim':
+    material: barrier
+    slot: 10
+    priority: 2
+    update: true # This will update the placeholder in the lore 
+    display_name: '&c&lCooldown'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7You can purchase this item every 24h '
+    - ''
+    - '&c• &7Cooldown: &c%luckperms_expiry_time_item.1.cooldown%'
+    click_requirement: 
+      requirements: 
+        no_cooldown: 
+          type: "has permission"
+          permission: 'item.1.cooldown'
+          success_commands: # This is a nice way to prevent some of the actions, when the user has the menu opened and the cooldown is done
+          - '[sound] BLOCK_NOTE_BLOCK_BASS'
+          - '[message] &6&lDeluxe&emenus &8» &7Try again in &c%luckperms_expiry_time_item.1.cooldown%' 
+    click_commands:  
+    - '[refresh]'
+# End - Permission Based ( Temp Permissions from luckperms )
+
+# Second
+# Method: XP
+# Type: MasterCooldowns
+
+# Start - Cooldown ( Mastercooldowns )
+  'diamond_can_claim':
+    material: diamond
     slot: 11
     priority: 1
-    update: true
-    hide_attributes: true
-    display_name: '&bExample Kit'
-    lore:
-      - ''
-      - '&7Cooldown : &f3 Days'
-      - '&7Left Click to Redeem'
-    view_requirement:
+    view_requirement: 
       requirements:
-        kit_requirement:
+        cooldown:
           type: string equals
-          input: '%essentials_kit_is_available_example%'
-          output: 'yes'
-        kit_perm:
-          type: has permission
-          permission: essentials.kits.example
-    left_click_commands:
-      - '[player] kit example'
-      - '[close]'
-  'examplecd':
-    material: GRAY_DYE
+          input: '%mcd_isinactive_diamondclaim%'
+          output: 'No'
+    display_name: '&b&lDiamond'
+    lore:
+    - ''
+    - '&b&lInformation:'
+    - '&b• &7You can purchase this item every 12h '
+    - ''
+    - '&b• &7Costs: &a10xp '
+    - '&b• &7Balance: %changeoutput_>=_input:{player_level}_matcher:10_ifmatch:&a_else:&c%%player_level% $' # This will turn the balance of the user green if has 10+ xp levels otherwise it will be red
+    - ''
+    - '&bClick to purchase '
+    click_requirement: 
+      requirements: 
+        money: 
+          type: '>='
+          input: '%player_level%'
+          output: 10
+          deny_commands: 
+          - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough xp levels'
+          - '[sound] BLOCK_NOTE_BLOCK_BASS'
+    click_commands: 
+    - '[console] xp take %player_name% 10l'
+    - '[message] &6&lDeluxe&emenus &8» &7Purchased item &aDiamond'
+    - '[console] give %player_name% diamond'
+    - '[sound] ENTITY_ITEM_PICKUP' 
+    - '[console] mcd add %player_name% diamondclaim 864000' # This will set the item on cooldown for 24hours
+    - '[refresh]' # This will refresh the menu so the cooldown item appears
+
+  'diamond_cant_claim':
+    material: barrier
     slot: 11
     priority: 2
-    update: true
-    hide_attributes: true
-    display_name: '&cExample Kit Unavailable'
+    update: true # This will update the placeholder in the lore 
+    display_name: '&c&lCooldown'
     lore:
-      - '&7This kit is on cooldown!'
-      - '&7You must wait : &f%essentials_kit_time_until_available_example%'
-      - '&7Before using this kit again.'
-    view_requirement:
-      requirements:
-        kit_perm:
-          type: has permission
-          permission: essentials.kits.example
-  'examplenoperm':
-    material: GRAY_DYE
-    slot: 11
-    priority: 3
-    update: true
-    hide_attributes: true
-    display_name: '&7Example Kit'
-    lore:
-      - '&7You do not have permission for this kit!'
-  'shopexample':
-    material: head-extended_clip
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7You can purchase this item every 12h '
+    - ''
+    - '&c• &7Cooldown: &c%mcd_left_formatted_diamondclaim%'
+    click_requirement: 
+      requirements: 
+        no_cooldown: 
+          type: string equals
+          input: '%mcd_isinactive_diamondclaim%'
+          output: 'No'
+          success_commands: # This is a nice way to prevent some of the actions, when the user has the menu opened and the cooldown is done
+          - '[sound] BLOCK_NOTE_BLOCK_BASS'
+          - '[message] &6&lDeluxe&emenus &8» &7Try again in &c%mcd_left_formatted_diamondclaim%' 
+    click_commands:  
+    - '[refresh]'
+# End - Cooldown ( Mastercooldowns )
+
+###################################
+# Example: Purchase one time item 
+###################################
+
+# First
+# Method: Money
+# Type: Permission Based
+
+# Start - Permission Based
+  'poppy_claimed':
+    material: barrier
     slot: 12
-    display_name: '&r'
-    lore:
-      - '&7Shop example using'
-      - '&7view requirements!'
-      - '&fLeft click to purchase.'
     priority: 1
-    view_requirement:
-      requirements:
-        shop_perm:
-          type: has permission
-          permission: deluxemenus.shopexample
-    left_click_commands:
-      - '[sound] ENTITY_FIREWORK_ROCKET_BLAST'
-      - '[console] give %player_name% skull 1 player:extended_clip name:&bExtended_Clip lore:&8<lore>|&7Example_Shop_Item|&8<lore>'
-      - '[message] &8[&6&lDeluxeShop&8] &fYou have succesfully purchased &7extended_clips &fhead!'
-      - '[console] eco take %player_name% 666'
-      - '[close]'
-    left_click_requirement:
-      requirements:
-        balance_check:
-          type: has money
-          amount: 666
-  'shopnoperm':
-    material: head-extended_clip
-    slot: 12
-    display_name: '&7No permission'
+    update: true # This will update the placeholder in the lore 
+    display_name: '&c&lPoppy'
+    view_requirement: 
+      requirements: 
+        purchased: 
+          type: "has permission" #This checks if the user has the permission
+          permission: 'purchased.poppy' #If the user has this permission, they will view this item
     lore:
-      - '&8You are missing the &bdeluxemenus.shopexample'
-      - '&8permission which is required to view the item!'
-      - '&fLeft click to close the menu.'
-    left_click_commands:
-      - '[sound] ENTITY_SNOW_GOLEM_DEATH'
-      - '[close]'
-      - '[message] &8[&6&lDeluxeShop&8] &fYou have closed the menu! &7(1 Second message delay!) <delay=20>'
-  'filler_item':
-    material: GRAY_STAINED_GLASS_PANE
-    slots:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-      - 5
-      - 6
-      - 7
-      - 8
-    display_name: ' '
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Poppy item '
+    - ''
+    - '&c• &cPurchased'
+
+  'poppy_can_claim':
+    material: poppy
+    slot: 12
+    priority: 2
+    display_name: '&c&lPoppy'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Poppy item '
+    - ''
+    - '&c• &7Costs: &a2500 $'
+    - '&c• &7Balance: %changeoutput_>=_input:{vault_eco_balance}_matcher:2500_ifmatch:&a_else:&c%%vault_eco_balance% $' # This will turn the balance of the user green if has 2500+ $ otherwise it will be red
+    - ''
+    - '&cClick to purchase '
+    click_requirement: 
+      requirements: 
+        money: 
+          type: '>='
+          input: '%vault_eco_balance%'
+          output: 2500
+          deny_commands: 
+          - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough money'
+          - '[sound] BLOCK_NOTE_BLOCK_BASS'
+    click_commands: 
+    - '[takemoney] 2500'
+    - '[message] &6&lDeluxe&emenus &8» &7Purchased item &aPoppy'
+    - '[sound] ENTITY_ITEM_PICKUP'
+    - '[console] give %player_name% poppy'
+    - '[console] lp user %player_name% permission set purchased.poppy true'
+    - '[refresh]' # This will refresh the menu so the claimed item can appear
+# End - Permission Based
+
+# Second
+# Method: Money
+# Type: Meta Based
+
+# Start - Meta Based
+  'sunflower_claimed':
+    material: sunflower
+    slot: 13
+    priority: 1
+    update: true # This will update the placeholder in the lore 
+    display_name: '&c&lSunflower'
+    view_requirement: 
+      requirements: 
+        purchased: 
+          type: string equals 
+          input: '%deluxemenus_meta_PurchasedSunflower_STRING_no%'
+          output: 'yes'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Sunflower item '
+    - ''
+    - '&c• &cPurchased'
+
+  'sunflower_claim':
+    material: sunflower
+    slot: 13
+    priority: 2
+    display_name: '&c&lSunflower'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Sunflower item '
+    - ''
+    - '&c• &7Costs: &a2500 $'
+    - '&c• &7Balance: %changeoutput_>=_input:{vault_eco_balance}_matcher:2500_ifmatch:&a_else:&c%%vault_eco_balance% $' # This will turn the balance of the user green if has 2500+ $ otherwise it will be red
+    - ''
+    - '&cClick to purchase '
+    click_requirement: 
+      requirements: 
+        money: 
+          type: '>='
+          input: '%vault_eco_balance%'
+          output: 2500
+          deny_commands: 
+          - '[message] &6&lDeluxe&emenus &8» &7You don''t have enough money'
+          - '[sound] BLOCK_NOTE_BLOCK_BASS'
+    click_commands: 
+    - '[takemoney] 2500'
+    - '[message] &6&lDeluxe&emenus &8» &7Purchased item &aSunflower'
+    - '[sound] ENTITY_ITEM_PICKUP'
+    - '[console] give %player_name% sunflower'
+    - '[meta] set PurchasedSunflower STRING yes' #This will set the meta with id PurchasedSunflower to yes
+    - '[refresh]' # This will refresh the menu so the claimed item can appear
+# End - Meta Based
+
+###################################
+# Example: Item with progress
+###################################
+
+# First
+# Method: Progress
+# Type: Break 10 Stone
+
+# Start - Progress 
+  'goal_achieved':
+    material: stone
+    slot: 14
+    priority: 1
+    display_name: '&c&lStone'
+    view_requirement: 
+      requirements: 
+        purchased: 
+          type: '>='
+          input: '%statistic_mine_block:STONE%'
+          output: '10'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Mine 10 Stone '
+    - ''
+    - '&c• &cCompleted'
+
+  'goal_not_achieved':
+    material: barrier
+    slot: 14
+    priority: 2
+    display_name: '&c&lStone'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Mine 10 Stone '
+    - ''
+    - '&c• &7Status: &a%statistic_mine_block:STONE%&7/&c10'
+    - ''
+    - '&cIn Progress'
+    click_commands: 
+    - '[sound] BLOCK_NOTE_BLOCK_BASS'
+    - '[message] &6&lDeluxe&emenus &8» &7You have to mine &c%math_0_10-{statistic_mine_block:STONE}% &7more stone.'
+# Start - End Progress
+
+# Second
+# Method: Double Progress
+# Type: Playtime + VIP 
+
+# Start - Progress 2
+  'goal_achieved_2':
+    material: clock
+    slot: 15
+    priority: 1
+    display_name: '&c&lClock'
+    view_requirement: 
+      requirements: 
+        purchased: 
+          type: '>='
+          input: '%statistic_hours_played%'
+          output: '2'
+        group: 
+          type: 'string equals'
+          input: '%vault_group%'
+          output: 'vip'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Play for 2 hours'
+    - '&c• &7Be a VIP'
+    - ''
+    - '&c• &cCompleted'
+
+  'goal_not_achieved_2':
+    material: barrier
+    slot: 15
+    priority: 2
+    display_name: '&c&lClock'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7Play for 1 hour '
+    - '&c• &7Be a VIP'
+    - ''
+    - '&c• &7VIP: %changeoutput_equals_input:{vault_group}_matcher:VIP_ifmatch:&ayes_else:&cno% '
+    - '&c• &7Playtime: %changeoutput_>=_input:{statistic_hours_played}_matcher:2_ifmatch:&a_else:&c%&7/&c2'
+    - ''
+    - '&cIn Progress'
+    click_commands: 
+    - '[sound] BLOCK_NOTE_BLOCK_BASS'
+    - '[message] &6&lDeluxe&emenus &8» &7You have to play for &c2H &7and be a &cVIP&7.'
+# End - Progress 2
+
+# Start - Progress 2
+
+# EXTRA
+  'skull':
+    material: head-kristophergeou
+    slot: 16
+    display_name: '&c&lKristophergeou'
+    lore:
+    - ''
+    - '&c&lInformation:'
+    - '&c• &7If you need help you can find me on Helpchat!'
+
+  'glass_black':
+    material: black_stained_glass_pane
+    slots: [0-9, 17-26]
+    display_name: '&eAdvancedMenu'
+

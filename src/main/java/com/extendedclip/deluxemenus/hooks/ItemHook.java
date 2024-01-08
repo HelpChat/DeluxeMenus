@@ -6,4 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public interface ItemHook {
 
   ItemStack getItem(@NotNull final String... arguments);
+
+  String getPrefix();
+
 }

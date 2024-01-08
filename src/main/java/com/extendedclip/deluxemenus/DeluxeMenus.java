@@ -218,6 +218,10 @@ public class DeluxeMenus extends JavaPlugin {
     return Optional.ofNullable(itemHooks.get(id));
   }
 
+  public Map<String, ItemHook> getItemHooks() {
+    return itemHooks;
+  }
+
   public ItemStack getHead() {
     return head != null ? head : new ItemStack(Material.DIRT, 1);
   }

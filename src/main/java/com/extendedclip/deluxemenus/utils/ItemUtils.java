@@ -13,6 +13,8 @@ import static com.extendedclip.deluxemenus.utils.Constants.MMOITEMS_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
+import static com.extendedclip.deluxemenus.utils.Constants.EXECUTABLEITEMS_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.EXECUTABLEBLOCKS_PREFIX;
 
 public final class ItemUtils {
 
@@ -72,6 +74,26 @@ public final class ItemUtils {
      */
     public static boolean isMMOItemsItem(@NotNull final String material) {
         return material.startsWith(MMOITEMS_PREFIX);
+    }
+
+    /**
+     * Checks if the string is an ExecutableItems item. The check is case-sensitive.
+     *
+     * @param material The string to check
+     * @return true if the string is an ExecutableItems item, false otherwise
+     */
+    public static boolean isExecutableItem(@NotNull final String material) {
+        return material.startsWith(EXECUTABLEITEMS_PREFIX);
+    }
+
+    /**
+     * Checks if the string is an ExecutableBlocks item. The check is case-sensitive.
+     *
+     * @param material The string to check
+     * @return true if the string is an ExecutableBlocks item, false otherwise
+     */
+    public static boolean isExecutableBlock(@NotNull final String material) {
+        return material.startsWith(EXECUTABLEBLOCKS_PREFIX);
     }
 
     /**

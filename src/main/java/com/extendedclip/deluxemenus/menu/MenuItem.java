@@ -37,6 +37,8 @@ import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.MMOITEMS_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.EXECUTABLEITEMS_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.EXECUTABLEBLOCKS_PREFIX;
 
 public class MenuItem {
 
@@ -85,6 +87,12 @@ public class MenuItem {
                     .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
         } else if (ItemUtils.isMMOItemsItem(lowercaseStringMaterial)) {
             itemStack = getItemFromHook("mmoitems", holder.setPlaceholders(stringMaterial.substring(MMOITEMS_PREFIX.length())))
+                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
+        } else if (ItemUtils.isExecutableItem(lowercaseStringMaterial)) {
+            itemStack = getItemFromHook("executableitems", holder.setPlaceholders(stringMaterial.substring(EXECUTABLEITEMS_PREFIX.length())))
+                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
+        } else if (ItemUtils.isExecutableBlock(lowercaseStringMaterial)) {
+            itemStack = getItemFromHook("executableblocks", holder.setPlaceholders(stringMaterial.substring(EXECUTABLEBLOCKS_PREFIX.length())))
                     .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
         } else if (ItemUtils.isWaterBottle(lowercaseStringMaterial)) {
             itemStack = ItemUtils.createWaterBottles(amount);

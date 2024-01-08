@@ -65,7 +65,7 @@ public class MenuItem {
 
             // Some of the methods are marked as @NotNull, and in theory that means they return an item with material STONE
             if (playerItem == null) {
-                return new ItemStack(Material.STONE, amount);
+                return new ItemStack(Material.AIR, amount);
             }
 
             itemStack = playerItem.clone();

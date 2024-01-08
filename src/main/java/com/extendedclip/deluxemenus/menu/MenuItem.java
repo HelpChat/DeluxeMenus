@@ -76,14 +76,14 @@ public class MenuItem {
         final int temporaryAmount = amount;
 
         final String finalMaterial = lowercaseStringMaterial;
-        final ItemHook target = DeluxeMenus.getInstance().getItemHooks().values()
+        final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
             .stream()
-            .filter(itemHook -> finalMaterial.startsWith(itemHook.getPrefix()))
+            .filter(x -> finalMaterial.startsWith(x.getPrefix()))
             .findFirst()
             .orElse(null);
 
-        if (target != null) {
-            itemStack = target.getItem(stringMaterial.substring(target.getPrefix().length()));
+        if (pluginHook != null) {
+            itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
         }
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {

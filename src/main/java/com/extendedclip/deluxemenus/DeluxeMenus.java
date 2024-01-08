@@ -102,6 +102,20 @@ public class DeluxeMenus extends JavaPlugin {
 
     this.adventure = BukkitAudiences.create(this);
 
+    setupItemHooks();
+
+    if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+      vaultHook = new VaultHook();
+
+      if (vaultHook.hooked()) {
+        debug(
+            DebugLevel.HIGHEST,
+            Level.INFO,
+            "Successfully hooked into Vault!"
+        );
+      }
+    }
+
     if (!VersionHelper.IS_ITEM_LEGACY) {
       head = new ItemStack(Material.PLAYER_HEAD, 1);
     } else {
@@ -144,20 +158,6 @@ public class DeluxeMenus extends JavaPlugin {
             DebugLevel.HIGHEST,
             Level.INFO,
             "You are running the latest version of DeluxeMenus!"
-        );
-      }
-    }
-
-    setupItemHooks();
-
-    if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
-      vaultHook = new VaultHook();
-
-      if (vaultHook.hooked()) {
-        debug(
-            DebugLevel.HIGHEST,
-            Level.INFO,
-            "Successfully hooked into Vault!"
         );
       }
     }

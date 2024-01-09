@@ -63,9 +63,8 @@ public class MenuItem {
         if (ItemUtils.isPlayerItem(lowercaseStringMaterial)) {
             final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseStringMaterial).apply(viewer.getInventory());
 
-            // Some of the methods are marked as @NotNull, and in theory that means they return an item with material STONE
-            if (playerItem == null) {
-                return new ItemStack(Material.STONE, amount);
+            if (playerItem == null || playerItem.getType() == Material.AIR) {
+                return new ItemStack(Material.AIR);
             }
 
             itemStack = playerItem.clone();

@@ -29,6 +29,11 @@ public class ExecutableBlocksHook implements ItemHook, SimpleCache {
   }
 
   @Override
+  public String getPrefix() {
+    return "execblocks-";
+  }
+
+  @Override
   public void clearCache() {
     this.cache.clear();
   }

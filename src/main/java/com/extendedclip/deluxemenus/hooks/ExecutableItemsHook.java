@@ -32,6 +32,11 @@ public class ExecutableItemsHook implements ItemHook, SimpleCache {
   }
 
   @Override
+  public String getPrefix() {
+    return "execitems-";
+  }
+
+  @Override
   public void clearCache() {
     this.cache.clear();
   }

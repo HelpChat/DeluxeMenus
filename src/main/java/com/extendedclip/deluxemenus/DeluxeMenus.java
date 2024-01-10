@@ -104,7 +104,7 @@ public class DeluxeMenus extends JavaPlugin {
 
     setupItemHooks();
 
-    if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+    if (Bukkit.getPluginManager().isPluginEnabled("Vault")) {
       vaultHook = new VaultHook();
 
       if (vaultHook.hooked()) {

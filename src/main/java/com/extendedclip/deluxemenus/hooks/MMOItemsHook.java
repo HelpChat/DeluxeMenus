@@ -57,11 +57,12 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
             DeluxeMenus.debug(DebugLevel.HIGHEST, Level.SEVERE, "Error getting MMOItem synchronously.");
         }
 
-        if (mmoItem == null) {
-            return new ItemStack(Material.STONE, 1);
-        } else {
-            return mmoItem;
-        }
+        return mmoItem == null ? new ItemStack(Material.STONE, 1) : mmoItem;
+    }
+
+    @Override
+    public String getPrefix() {
+        return "mmoitems-";
     }
 
     @Override

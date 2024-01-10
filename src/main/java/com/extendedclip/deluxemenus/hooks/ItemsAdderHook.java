@@ -37,6 +37,11 @@ public class ItemsAdderHook implements ItemHook, SimpleCache {
     }
 
     @Override
+    public String getPrefix() {
+        return "itemsadder-";
+    }
+
+    @Override
     public void clearCache() {
         cache.clear();
     }

@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
@@ -73,21 +74,23 @@ public class MenuItem {
 
         final int temporaryAmount = amount;
 
-        if (isHeadItem(lowercaseStringMaterial) && this.options.headType().isPresent()) {
-            itemStack = getItemFromHook(this.options.headType().get().getHookName(), holder.setPlaceholders(stringMaterial.substring(this.options.headType().get().getPrefix().length())))
-                    .orElseGet(() -> DeluxeMenus.getInstance().getHead().clone());
-        } else if (ItemUtils.isItemsAdderItem(lowercaseStringMaterial)) {
-            itemStack = getItemFromHook("itemsadder", holder.setPlaceholders(stringMaterial.substring(ITEMSADDER_PREFIX.length())))
-                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (ItemUtils.isOraxenItem(lowercaseStringMaterial)) {
-            itemStack = getItemFromHook("oraxen", holder.setPlaceholders(stringMaterial.substring(ORAXEN_PREFIX.length())))
-                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (ItemUtils.isMMOItemsItem(lowercaseStringMaterial)) {
-            itemStack = getItemFromHook("mmoitems", holder.setPlaceholders(stringMaterial.substring(MMOITEMS_PREFIX.length())))
-                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (ItemUtils.isWaterBottle(lowercaseStringMaterial)) {
+        final String finalMaterial = lowercaseStringMaterial;
+        final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+            .stream()
+            .filter(x -> finalMaterial.startsWith(x.getPrefix()))
+            .findFirst()
+            .orElse(null);
+
+        if (pluginHook != null) {
+            itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
+        }
+
+        if (ItemUtils.isWaterBottle(stringMaterial)) {
             itemStack = ItemUtils.createWaterBottles(amount);
-        } else if (itemStack == null) {
+        }
+
+        // The item is neither a water bottle nor plugin hook item
+        if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
                 DeluxeMenus.debug(
@@ -95,9 +98,9 @@ public class MenuItem {
                         Level.WARNING,
                         "Material: " + stringMaterial + " is not valid! Setting to Stone."
                 );
-                itemStack = new ItemStack(Material.STONE, amount);
+                itemStack = new ItemStack(Material.STONE, temporaryAmount);
             } else {
-                itemStack = new ItemStack(material, amount);
+                itemStack = new ItemStack(material, temporaryAmount);
             }
         }
 

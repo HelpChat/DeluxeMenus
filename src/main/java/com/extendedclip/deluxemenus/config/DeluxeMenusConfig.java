@@ -58,6 +58,7 @@ public class DeluxeMenusConfig {
   static {
     VALID_MATERIALS.addAll(PLAYER_ITEMS);
     VALID_MATERIALS.add(WATER_BOTTLE);
+
     VALID_MATERIAL_PREFIXES.addAll(
         DeluxeMenus.getInstance().getItemHooks().values()
             .stream()

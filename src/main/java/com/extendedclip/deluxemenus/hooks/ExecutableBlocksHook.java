@@ -30,7 +30,7 @@ public class ExecutableBlocksHook implements ItemHook, SimpleCache {
 
   @Override
   public String getPrefix() {
-    return "execblocks-";
+    return "executableblocks-";
   }
 
   @Override

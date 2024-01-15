@@ -1485,13 +1485,12 @@ public class DeluxeMenusConfig {
               ).runTaskLater(plugin, action.getDelay(holder));
               continue;
             }
-
-            new ClickActionTask(
-                plugin,
-                holder.getViewer().getName(),
-                action.getType(),
-                holder.setArguments(action.getExecutable())
-            ).runTask(plugin);
+            plugin.getUniversalScheduler().runTask(holder.getViewer(), new ClickActionTask(
+                    plugin,
+                    holder.getViewer().getName(),
+                    action.getType(),
+                    holder.setArguments(action.getExecutable())
+            ));
           }
         }
       };

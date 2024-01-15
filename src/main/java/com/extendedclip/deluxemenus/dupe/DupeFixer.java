@@ -53,9 +53,8 @@ public class DupeFixer implements Listener {
 
     @EventHandler
     private void onLogin(@NotNull final PlayerLoginEvent event) {
-        plugin.getServer().getScheduler().runTaskLater(
-                plugin,
-                () -> {
+        DeluxeMenus.getInstance().getUniversalScheduler().runTaskLater(
+                event.getPlayer(), () -> {
                     for (final ItemStack itemStack : event.getPlayer().getInventory().getContents()) {
                         if (itemStack == null) continue;
                         if (!marker.isMarked(itemStack)) continue;

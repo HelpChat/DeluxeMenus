@@ -35,6 +35,7 @@ dependencies {
     compileOnly(libs.papi)
 
     implementation(libs.nashorn)
+    implementation(libs.folia)
     implementation(libs.adventure.platform)
     implementation(libs.adventure.minimessage)
 

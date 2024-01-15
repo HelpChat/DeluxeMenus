@@ -33,22 +33,11 @@ public class UpdateChecker implements Listener {
 
   public UpdateChecker(final @NotNull DeluxeMenus instance) {
     plugin = instance;
-
-    new BukkitRunnable() {
-      @Override
-      public void run() {
-        if (check()) {
-          new BukkitRunnable() {
-
-            @Override
-            public void run() {
-              register();
-            }
-          }.runTask(plugin);
-        }
+    plugin.getUniversalScheduler().runTaskAsynchronously(() -> {
+      if (check()) {
+        plugin.getUniversalScheduler().runTask(this::register);
       }
-
-    }.runTaskAsynchronously(plugin);
+    });
   }
 
   private void register() {

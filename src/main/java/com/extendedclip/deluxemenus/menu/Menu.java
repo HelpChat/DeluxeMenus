@@ -3,6 +3,8 @@ package com.extendedclip.deluxemenus.menu;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
+import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
+import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
@@ -371,6 +373,11 @@ public class Menu extends Command {
       return;
     }
 
+    DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
+    Bukkit.getPluginManager().callEvent(preOpenEvent);
+
+    if (preOpenEvent.isCancelled()) return;
+
     final MenuHolder holder = new MenuHolder(viewer);
     if (placeholderPlayer != null) {
       holder.setPlaceholderPlayer(placeholderPlayer);
@@ -487,6 +494,11 @@ public class Menu extends Command {
         if (updatePlaceholders) {
           holder.startUpdatePlaceholdersTask();
         }
+      });
+
+      Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
+        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+        Bukkit.getPluginManager().callEvent(openEvent);
       });
     });
   }

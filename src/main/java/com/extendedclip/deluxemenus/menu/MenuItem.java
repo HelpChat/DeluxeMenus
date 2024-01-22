@@ -34,9 +34,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
-import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.MMOITEMS_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 
 public class MenuItem {

@@ -14,6 +14,7 @@ score = "4.23.10.8"
 nashorn = "15.4"
 adventure-platform = "4.3.2-SNAPSHOT"
 adventure-minimessage = "4.15.0-SNAPSHOT"
+foliaver ="0.1.6"
 
 [libraries]
 # Compile only
@@ -28,6 +29,7 @@ papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
 score = { module = "com.github.Ssomar-Developement:SCore", version.ref = "score" }
 
 # Implementation
+folia = { module = "com.github.Anon8281:universalScheduler", version.ref = "foliaver" }
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }
 adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
 adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }

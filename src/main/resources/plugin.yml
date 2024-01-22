@@ -5,6 +5,7 @@ version: ${version}
 authors: [ extended_clip, Glare ]
 softdepend: [ PlaceholderAPI, Vault, HeadDatabase, ItemsAdder, Oraxen, ExecutableItems, ExecutableBlocks, Score ]
 description: All in one inventory menu system
+folia-supported: true
 commands:
   deluxemenus:
     description: DeluxeMenus main commands

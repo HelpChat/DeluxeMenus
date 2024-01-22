@@ -96,7 +96,7 @@ public class PlayerListener implements Listener {
 
     if (Menu.inMenu(player)) {
       Menu.closeMenu(player, false);
-      Bukkit.getScheduler().runTaskLater(plugin, () -> {
+      plugin.getUniversalScheduler().runTaskLater(plugin, () -> {
         Menu.cleanInventory(player, plugin.getMenuItemMarker());
         player.updateInventory();
       }, 3L);

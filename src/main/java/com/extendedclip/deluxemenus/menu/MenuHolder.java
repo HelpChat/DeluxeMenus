@@ -105,6 +105,10 @@ public class MenuHolder implements InventoryHolder {
     }
   }
 
+  public String setPlaceholdersWithOptions(String value, MenuItemOptions options) {
+    return this.setPlaceholders(value.replace("{slot}", String.valueOf(options.slot())));
+  }
+
   public String setArguments(String string) {
     if (this.typedArgs == null || this.typedArgs.isEmpty()) {
       return string;
@@ -242,14 +246,14 @@ public class MenuHolder implements InventoryHolder {
 
             if (item.options().dynamicAmount().isPresent()) {
               try {
-               amt = Integer.parseInt(setPlaceholders(item.options().dynamicAmount().get()));
+               amt = Integer.parseInt(setPlaceholdersWithOptions(item.options().dynamicAmount().get(), item.options()));
                 if (amt <= 0) {
                   amt = 1;
                 }
               } catch (Exception exception) {
                 DeluxeMenus.printStacktrace(
                     "Something went wrong while updating item in slot " + item.options().slot() +
-                        ". Invalid dynamic amount: " + setPlaceholders(item.options().dynamicAmount().get()),
+                        ". Invalid dynamic amount: " + setPlaceholdersWithOptions(item.options().dynamicAmount().get(), item.options()),
                     exception
                 );
               }
@@ -258,7 +262,7 @@ public class MenuHolder implements InventoryHolder {
             ItemMeta meta = i.getItemMeta();
 
             if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
-              meta.setDisplayName(StringUtils.color(setPlaceholders(item.options().displayName().get())));
+              meta.setDisplayName(StringUtils.color(setPlaceholdersWithOptions(item.options().displayName().get(), item.options())));
             }
 
             if (item.options().loreHasPlaceholders()) {
@@ -267,7 +271,7 @@ public class MenuHolder implements InventoryHolder {
 
               for (String line : item.options().lore()) {
                 updated.add(StringUtils
-                    .color(setPlaceholders(line)));
+                    .color(setPlaceholdersWithOptions(line, item.options())));
               }
               meta.setLore(updated);
             }

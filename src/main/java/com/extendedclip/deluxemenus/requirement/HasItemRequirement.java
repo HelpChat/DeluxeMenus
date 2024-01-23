@@ -22,8 +22,8 @@ public class HasItemRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
-    String materialName = holder.setPlaceholders(wrapper.getMaterial()).toUpperCase();
+  public boolean evaluate(MenuHolder holder, int slot) {
+    String materialName = holder.setPlaceholders(wrapper.getMaterial(), slot).toUpperCase();
     Material material = DeluxeMenus.MATERIALS.get(materialName);
     if (material == null) {
       return invert;
@@ -37,20 +37,20 @@ public class HasItemRequirement extends Requirement {
 
     int total = 0;
     for (ItemStack itemToCheck: inventory) {
-      if (!isRequiredItem(itemToCheck, holder, material)) continue;
+      if (!isRequiredItem(itemToCheck, holder, material, slot)) continue;
       total += itemToCheck.getAmount();
     }
 
     if (offHand != null) {
       for (ItemStack itemToCheck: offHand) {
-        if (!isRequiredItem(itemToCheck, holder, material)) continue;
+        if (!isRequiredItem(itemToCheck, holder, material, slot)) continue;
         total += itemToCheck.getAmount();
       }
     }
 
     if (armor != null) {
       for (ItemStack itemToCheck: armor) {
-        if (!isRequiredItem(itemToCheck, holder, material)) continue;
+        if (!isRequiredItem(itemToCheck, holder, material, slot)) continue;
         total += itemToCheck.getAmount();
       }
     }
@@ -58,7 +58,7 @@ public class HasItemRequirement extends Requirement {
     return invert == (total < wrapper.getAmount());
   }
 
-  private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material) {
+  private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material, int slot) {
     if (itemToCheck == null || itemToCheck.getType() == Material.AIR) return false;
     if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
     if (wrapper.hasData() && itemToCheck.getDurability() != wrapper.getData()) return false;
@@ -87,8 +87,8 @@ public class HasItemRequirement extends Requirement {
       if (wrapper.getName() != null) {
         if (!metaToCheck.hasDisplayName()) return false;
 
-        String name = StringUtils.color(holder.setPlaceholders(wrapper.getName()));
-        String nameToCheck = StringUtils.color(holder.setPlaceholders(metaToCheck.getDisplayName()));
+        String name = StringUtils.color(holder.setPlaceholders(wrapper.getName(), slot));
+        String nameToCheck = StringUtils.color(holder.setPlaceholders(metaToCheck.getDisplayName(), slot));
 
         if (wrapper.checkNameContains() && wrapper.checkNameIgnoreCase()) {
           if (!org.apache.commons.lang3.StringUtils.containsIgnoreCase(nameToCheck, name)) return false;
@@ -108,8 +108,8 @@ public class HasItemRequirement extends Requirement {
         List<String> loreX = metaToCheck.getLore();
         if (loreX == null) return false;
 
-        String lore = wrapper.getLoreList().stream().map(holder::setPlaceholders).map(StringUtils::color).collect(Collectors.joining("&&"));
-        String loreToCheck = loreX.stream().map(holder::setPlaceholders).map(StringUtils::color).collect(Collectors.joining("&&"));
+        String lore = wrapper.getLoreList().stream().map(s -> holder.setPlaceholders(s, slot)).map(StringUtils::color).collect(Collectors.joining("&&"));
+        String loreToCheck = loreX.stream().map(s -> holder.setPlaceholders(s, slot)).map(StringUtils::color).collect(Collectors.joining("&&"));
 
         if (wrapper.checkLoreContains() && wrapper.checkLoreIgnoreCase()) {
           if (!org.apache.commons.lang3.StringUtils.containsIgnoreCase(loreToCheck, lore)) return false;
@@ -129,8 +129,8 @@ public class HasItemRequirement extends Requirement {
         List<String> loreX = metaToCheck.getLore();
         if (loreX == null) return false;
 
-        String lore = StringUtils.color(holder.setPlaceholders(wrapper.getLore()));
-        String loreToCheck = loreX.stream().map(holder::setPlaceholders).map(StringUtils::color).collect(Collectors.joining("&&"));
+        String lore = StringUtils.color(holder.setPlaceholders(wrapper.getLore(), slot));
+        String loreToCheck = loreX.stream().map(s -> holder.setPlaceholders(s, slot)).map(StringUtils::color).collect(Collectors.joining("&&"));
 
         if (wrapper.checkLoreContains() && wrapper.checkLoreIgnoreCase()) {
           return org.apache.commons.lang3.StringUtils.containsIgnoreCase(loreToCheck, lore);

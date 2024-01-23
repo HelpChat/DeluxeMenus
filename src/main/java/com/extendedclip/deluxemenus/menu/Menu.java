@@ -197,7 +197,7 @@ public class Menu extends Command {
 
     if (executeCloseActions) {
       if (holder.getMenu().getCloseHandler() != null) {
-        holder.getMenu().getCloseHandler().onClick(holder);
+        holder.getMenu().getCloseHandler().onClick(holder, -1);
       }
     }
 
@@ -332,9 +332,9 @@ public class Menu extends Command {
       return true;
     }
 
-    if (!openRequirements.evaluate(holder)) {
+    if (!openRequirements.evaluate(holder, -1)) {
       if (openRequirements.getDenyHandler() != null) {
-        openRequirements.getDenyHandler().onClick(holder);
+        openRequirements.getDenyHandler().onClick(holder, -1);
       }
       return false;
     }
@@ -351,9 +351,9 @@ public class Menu extends Command {
         continue;
       }
 
-      if (!rl.evaluate(holder)) {
+      if (!rl.evaluate(holder, -1)) {
         if (rl.getDenyHandler() != null) {
-          rl.getDenyHandler().onClick(holder);
+          rl.getDenyHandler().onClick(holder, -1);
         }
         return false;
       }
@@ -407,7 +407,7 @@ public class Menu extends Command {
 
           if (item.options().viewRequirements().isPresent()) {
 
-            if (item.options().viewRequirements().get().evaluate(holder)) {
+            if (item.options().viewRequirements().get().evaluate(holder, item.options().slot())) {
 
               activeItems.add(item);
               break;
@@ -428,10 +428,10 @@ public class Menu extends Command {
       holder.setActiveItems(activeItems);
 
       if (this.openHandler != null) {
-        this.openHandler.onClick(holder);
+        this.openHandler.onClick(holder, -1);
       }
 
-      String title = StringUtils.color(holder.setPlaceholders(this.menuTitle));
+      String title = StringUtils.color(holder.setPlaceholders(this.menuTitle, -1));
 
       Inventory inventory;
 

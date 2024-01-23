@@ -15,20 +15,20 @@ public class RequirementList {
     this.setRequirements(requirements);
   }
 
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, int slot) {
     int successful = 0;
     for (Requirement r : getRequirements()) {
-      if (r.evaluate(holder)) {
+      if (r.evaluate(holder, slot)) {
         successful = successful + 1;
         if (r.getSuccessHandler() != null) {
-          r.getSuccessHandler().onClick(holder);
+          r.getSuccessHandler().onClick(holder, slot);
         }
         if (this.stopAtSuccess && successful >= minimumRequirements) {
           break;
         }
       } else {
         if (r.getDenyHandler() != null) {
-          r.getDenyHandler().onClick(holder);
+          r.getDenyHandler().onClick(holder, slot);
         }
         if (!r.isOptional()) {
           return false;

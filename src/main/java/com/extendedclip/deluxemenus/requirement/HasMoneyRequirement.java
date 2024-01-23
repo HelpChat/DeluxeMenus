@@ -16,18 +16,18 @@ public class HasMoneyRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, int slot) {
     if (getInstance().getVault() == null) {
       return false;
     }
 
     if (placeholder != null) {
       try {
-        String expected = holder.setPlaceholders(placeholder);
+        String expected = holder.setPlaceholders(placeholder, slot);
         amount = Double.parseDouble(expected);
       } catch (final NumberFormatException exception) {
         DeluxeMenus.printStacktrace(
-            "Invalid amount found for has money requirement: " + holder.setPlaceholders(placeholder),
+            "Invalid amount found for has money requirement: " + holder.setPlaceholders(placeholder, slot),
             exception
         );
       }

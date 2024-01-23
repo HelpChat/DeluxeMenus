@@ -168,7 +168,7 @@ public class DeluxeMenusCommands implements CommandExecutor {
       MenuHolder holder =
           Menu.getMenuHolder(target) == null ? new MenuHolder(target) : Menu.getMenuHolder(target);
 
-      if (!action.checkChance(holder)) {
+      if (!action.checkChance(holder, -1)) {
         plugin.sms(sender, Messages.CHANCE_FAIL);
         return true;
       }
@@ -179,12 +179,12 @@ public class DeluxeMenusCommands implements CommandExecutor {
             target.getName(),
             action.getType(),
             action.getExecutable()
-        ).runTaskLater(plugin, action.getDelay(holder));
+        ).runTaskLater(plugin, action.getDelay(holder, -1));
 
         plugin.sms(
             sender,
             Messages.ACTION_TO_BE_EXECUTED.message().replaceText(
-                AMOUNT_REPLACER_BUILDER.replacement(String.valueOf(action.getDelay(holder))).build())
+                AMOUNT_REPLACER_BUILDER.replacement(String.valueOf(action.getDelay(holder, -1))).build())
         );
         return true;
       }

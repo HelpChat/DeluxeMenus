@@ -21,8 +21,8 @@ public class IsObjectRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
-        String toCheck = holder.setPlaceholders(input);
+    public boolean evaluate(MenuHolder holder, int slot) {
+        String toCheck = holder.setPlaceholders(input, slot);
 
         switch (object) {
             case "int":

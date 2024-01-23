@@ -5,5 +5,5 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ClickHandler {
 
-  void onClick(@NotNull final MenuHolder menuHolder);
+  void onClick(@NotNull final MenuHolder menuHolder, int slot);
 }

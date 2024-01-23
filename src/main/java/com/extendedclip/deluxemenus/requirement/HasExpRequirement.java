@@ -17,14 +17,14 @@ public class HasExpRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
+    public boolean evaluate(MenuHolder holder, int slot) {
         int amount;
         int has = level ? holder.getViewer().getLevel() : ExpUtils.getTotalExperience(holder.getViewer());
         try {
-            amount = Integer.parseInt(holder.setPlaceholders(amt));
+            amount = Integer.parseInt(holder.setPlaceholders(amt, slot));
         } catch (final Exception exception) {
             DeluxeMenus.printStacktrace(
-                "Invalid amount found for has exp requirement: " + holder.setPlaceholders(amt),
+                "Invalid amount found for has exp requirement: " + holder.setPlaceholders(amt, slot),
                 exception
             );
             return false;

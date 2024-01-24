@@ -1483,8 +1483,9 @@ public class DeluxeMenusConfig {
                     plugin,
                     holder.getViewer().getUniqueId(),
                     action.getType(),
-                    holder.setPlaceholdersAndArguments(action.getExecutable()),
-                    holder.getTypedArgs()
+                    action.getExecutable(),
+                    holder.getTypedArgs(),
+                    holder.parsePlaceholdersInArguments()
             );
 
             if (action.hasDelay()) {

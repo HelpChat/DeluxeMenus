@@ -178,7 +178,8 @@ public class DeluxeMenusCommands implements CommandExecutor {
               target.getUniqueId(),
               action.getType(),
               action.getExecutable(),
-              holder.getTypedArgs()
+              holder.getTypedArgs(),
+              true
       );
 
       if (action.hasDelay()) {

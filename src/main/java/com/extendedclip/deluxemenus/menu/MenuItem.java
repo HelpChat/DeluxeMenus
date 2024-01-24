@@ -84,7 +84,10 @@ public class MenuItem {
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {
             itemStack = ItemUtils.createWaterBottles(amount);
-        } else if (itemStack == null) {
+        }
+
+        // The item is neither a water bottle nor plugin hook item
+        if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
                 DeluxeMenus.debug(

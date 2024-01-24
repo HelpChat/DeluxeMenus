@@ -29,6 +29,11 @@ public class OraxenHook implements ItemHook, SimpleCache {
     }
 
     @Override
+    public String getPrefix() {
+        return "oraxen-";
+    }
+
+    @Override
     public void clearCache() {
         cache.clear();
     }

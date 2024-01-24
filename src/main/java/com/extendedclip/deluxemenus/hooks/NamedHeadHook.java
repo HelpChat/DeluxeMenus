@@ -45,6 +45,11 @@ public class NamedHeadHook implements ItemHook, Listener, SimpleCache {
     }
 
     @Override
+    public String getPrefix() {
+        return "head-";
+    }
+
+    @Override
     public void clearCache() {
         cache.clear();
     }

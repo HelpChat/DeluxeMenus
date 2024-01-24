@@ -32,6 +32,11 @@ public class BaseHeadHook implements ItemHook, SimpleCache {
   }
 
   @Override
+  public String getPrefix() {
+    return "basehead-";
+  }
+
+  @Override
   public void clearCache() {
     cache.clear();
   }

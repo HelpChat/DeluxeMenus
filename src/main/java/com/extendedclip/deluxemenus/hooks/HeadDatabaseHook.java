@@ -31,4 +31,9 @@ public class HeadDatabaseHook implements ItemHook {
 
     return DeluxeMenus.getInstance().getHead().clone();
   }
+
+  @Override
+  public String getPrefix() {
+    return "hdb-";
+  }
 }

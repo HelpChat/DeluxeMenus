@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
@@ -33,9 +34,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
-import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.MMOITEMS_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 
 public class MenuItem {
@@ -63,9 +61,8 @@ public class MenuItem {
         if (ItemUtils.isPlayerItem(lowercaseStringMaterial)) {
             final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseStringMaterial).apply(viewer.getInventory());
 
-            // Some of the methods are marked as @NotNull, and in theory that means they return an item with material STONE
-            if (playerItem == null) {
-                return new ItemStack(Material.STONE, amount);
+            if (playerItem == null || playerItem.getType() == Material.AIR) {
+                return new ItemStack(Material.AIR);
             }
 
             itemStack = playerItem.clone();
@@ -74,21 +71,23 @@ public class MenuItem {
 
         final int temporaryAmount = amount;
 
-        if (isHeadItem(lowercaseStringMaterial) && this.options.headType().isPresent()) {
-            itemStack = getItemFromHook(this.options.headType().get().getHookName(), holder.setPlaceholdersAndArguments(stringMaterial.substring(this.options.headType().get().getPrefix().length())))
-                    .orElseGet(() -> DeluxeMenus.getInstance().getHead().clone());
-        } else if (ItemUtils.isItemsAdderItem(lowercaseStringMaterial)) {
-            itemStack = getItemFromHook("itemsadder", holder.setPlaceholdersAndArguments(stringMaterial.substring(ITEMSADDER_PREFIX.length())))
-                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (ItemUtils.isOraxenItem(lowercaseStringMaterial)) {
-            itemStack = getItemFromHook("oraxen", holder.setPlaceholdersAndArguments(stringMaterial.substring(ORAXEN_PREFIX.length())))
-                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (ItemUtils.isMMOItemsItem(lowercaseStringMaterial)) {
-            itemStack = getItemFromHook("mmoitems", holder.setPlaceholdersAndArguments(stringMaterial.substring(MMOITEMS_PREFIX.length())))
-                    .orElseGet(() -> new ItemStack(Material.STONE, temporaryAmount));
-        } else if (ItemUtils.isWaterBottle(lowercaseStringMaterial)) {
+        final String finalMaterial = lowercaseStringMaterial;
+        final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+            .stream()
+            .filter(x -> finalMaterial.startsWith(x.getPrefix()))
+            .findFirst()
+            .orElse(null);
+
+        if (pluginHook != null) {
+            itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
+        }
+
+        if (ItemUtils.isWaterBottle(stringMaterial)) {
             itemStack = ItemUtils.createWaterBottles(amount);
-        } else if (itemStack == null) {
+        }
+
+        // The item is neither a water bottle nor plugin hook item
+        if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
                 DeluxeMenus.debug(
@@ -96,9 +95,9 @@ public class MenuItem {
                         Level.WARNING,
                         "Material: " + stringMaterial + " is not valid! Setting to Stone."
                 );
-                itemStack = new ItemStack(Material.STONE, amount);
+                itemStack = new ItemStack(Material.STONE, temporaryAmount);
             } else {
-                itemStack = new ItemStack(material, amount);
+                itemStack = new ItemStack(material, temporaryAmount);
             }
         }
 

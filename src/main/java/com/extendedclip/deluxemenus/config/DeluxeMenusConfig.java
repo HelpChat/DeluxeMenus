@@ -5,6 +5,7 @@ import com.extendedclip.deluxemenus.action.ActionType;
 import com.extendedclip.deluxemenus.action.ClickAction;
 import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.action.ClickHandler;
+import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
@@ -32,6 +33,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -57,11 +59,13 @@ public class DeluxeMenusConfig {
     VALID_MATERIALS.addAll(PLAYER_ITEMS);
     VALID_MATERIALS.add(WATER_BOTTLE);
 
-    VALID_MATERIAL_PREFIXES.addAll(HEAD_PREFIXES);
     VALID_MATERIAL_PREFIXES.add(PLACEHOLDER_PREFIX);
-    VALID_MATERIAL_PREFIXES.add(ITEMSADDER_PREFIX);
-    VALID_MATERIAL_PREFIXES.add(ORAXEN_PREFIX);
-    VALID_MATERIAL_PREFIXES.add(MMOITEMS_PREFIX);
+    VALID_MATERIAL_PREFIXES.addAll(
+        DeluxeMenus.getInstance().getItemHooks().values()
+            .stream()
+            .map(ItemHook::getPrefix)
+            .collect(Collectors.toList())
+    );
   }
 
   public static final Pattern DELAY_MATCHER = Pattern.compile("<delay=([^<>]+)>", Pattern.CASE_INSENSITIVE);

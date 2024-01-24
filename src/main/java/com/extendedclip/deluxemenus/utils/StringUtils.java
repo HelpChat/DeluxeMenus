@@ -37,12 +37,13 @@ public class StringUtils {
     }
 
     @NotNull
-    public static String replacePlaceholdersAndArguments(@NotNull String input, final @Nullable Map<String, String> arguments, final @Nullable Player player) {
+    public static String replacePlaceholdersAndArguments(@NotNull String input, final @Nullable Map<String, String> arguments,
+                                                         final @Nullable Player player, boolean parsePlaceholdersInsideArguments) {
         if (player == null) {
-            return replaceArguments(input, arguments, null);
+            return replaceArguments(input, arguments, null, parsePlaceholdersInsideArguments);
         }
 
-        return replaceArguments(replacePlaceholders(input, player), arguments, player);
+        return replaceArguments(replacePlaceholders(input, player), arguments, player, parsePlaceholdersInsideArguments);
     }
 
     @NotNull
@@ -51,13 +52,16 @@ public class StringUtils {
     }
 
     @NotNull
-    public static String replaceArguments(@NotNull String input, final @Nullable Map<String, String> arguments, final @Nullable Player player) {
+    public static String replaceArguments(@NotNull String input, final @Nullable Map<String, String> arguments,
+                                          final @Nullable Player player, boolean parsePlaceholdersInsideArguments) {
         if (arguments == null || arguments.isEmpty()) {
             return input;
         }
 
         for (final Map.Entry<String, String> entry : arguments.entrySet()) {
-            final String value = player != null ? replacePlaceholders(entry.getValue(), player) : entry.getValue();
+            final String value = player != null && parsePlaceholdersInsideArguments
+                    ? replacePlaceholders(entry.getValue(), player)
+                    : entry.getValue();
             input = input.replace("{" + entry.getKey() + "}", value);
         }
 

@@ -107,7 +107,8 @@ public class MenuHolder implements InventoryHolder {
         return StringUtils.replaceArguments(
                 string,
                 this.typedArgs,
-                player
+                player,
+                this.parsePlaceholdersInArguments
         );
     }
 

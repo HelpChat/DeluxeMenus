@@ -52,7 +52,7 @@ public class ClickActionTask extends BukkitRunnable {
     }
 
     final MenuHolder holder = Menu.getMenuHolder(player);
-    final String executable = StringUtils.replacePlaceholdersAndArguments(this.exec, this.arguments, player);
+    final String executable = StringUtils.replacePlaceholdersAndArguments(this.exec, this.arguments, player, true);
 
 
     switch (actionType) {

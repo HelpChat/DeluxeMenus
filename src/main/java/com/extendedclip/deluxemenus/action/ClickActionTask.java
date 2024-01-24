@@ -118,96 +118,96 @@ public class ClickActionTask extends BukkitRunnable {
                 Menu.closeMenu(player, true, true);
                 break;
 
-      case OPEN_GUI_MENU:
-      case OPEN_MENU:
-        final String[] executableParts = executable.split(" ", 2);
+            case OPEN_GUI_MENU:
+            case OPEN_MENU:
+                final String[] executableParts = executable.split(" ", 2);
 
-        if (executableParts.length == 0) {
-          DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + executable);
-          break;
-        }
+                if (executableParts.length == 0) {
+                    DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + executable);
+                    break;
+                }
 
-        final String menuName = executableParts[0];
+                final String menuName = executableParts[0];
 
-        final Menu menuToOpen = Menu.getMenu(menuName);
+                final Menu menuToOpen = Menu.getMenu(menuName);
 
-        if (menuToOpen == null) {
-          DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + menuName);
-          break;
-        }
+                if (menuToOpen == null) {
+                    DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + menuName);
+                    break;
+                }
 
-        final List<String> argNames = menuToOpen.getArgs();
+                final List<String> argNames = menuToOpen.getArgs();
 
-        String[] argValues = null;
-        if (executableParts.length > 1) {
-          argValues = executableParts[1].split("\\s+");
-        }
+                String[] argValues = null;
+                if (executableParts.length > 1) {
+                    argValues = executableParts[1].split("\\s+");
+                }
 
-        if (argNames == null || argNames.isEmpty()) {
-          if (argValues != null && argValues.length > 0) {
-            DeluxeMenus.debug(
-                DebugLevel.HIGHEST,
-                Level.WARNING,
-                "Arguments given for menu " + menuName + " that does not support arguments when opening using the [openguimenu] or [openmenu] action!"
-            );
-          }
+                if (argNames == null || argNames.isEmpty()) {
+                    if (argValues != null && argValues.length > 0) {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Arguments given for menu " + menuName + " that does not support arguments when opening using the [openguimenu] or [openmenu] action!"
+                        );
+                    }
 
-          if (holder == null) {
-            menuToOpen.openMenu(player);
-            break;
-          }
+                    if (holder == null) {
+                        menuToOpen.openMenu(player);
+                        break;
+                    }
 
-          menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
-          break;
-        }
+                    menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+                    break;
+                }
 
-        if (argValues == null || argValues.length == 0) {
-          if (holder == null) {
-            menuToOpen.openMenu(player);
-            break;
-          }
+                if (argValues == null || argValues.length == 0) {
+                    if (holder == null) {
+                        menuToOpen.openMenu(player);
+                        break;
+                    }
 
-          menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
-          break;
-        }
+                    menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+                    break;
+                }
 
-        if (argValues.length < argNames.size()) {
-            DeluxeMenus.debug(
-                DebugLevel.HIGHEST,
-                Level.WARNING,
-                "Not enough arguments given for menu " + menuName + " when opening using the [openguimenu] or [openmenu] action!"
-            );
-          break;
-        }
+                if (argValues.length < argNames.size()) {
+                    DeluxeMenus.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Not enough arguments given for menu " + menuName + " when opening using the [openguimenu] or [openmenu] action!"
+                    );
+                    break;
+                }
 
-        final Map<String, String> argsMap = new HashMap<>();
-        if (holder != null && holder.getTypedArgs() != null) {
-          argsMap.putAll(holder.getTypedArgs());
-        }
+                final Map<String, String> argsMap = new HashMap<>();
+                if (holder != null && holder.getTypedArgs() != null) {
+                    argsMap.putAll(holder.getTypedArgs());
+                }
 
-        for (int index = 0; index < argNames.size(); index++) {
-          final String argName = argNames.get(index);
+                for (int index = 0; index < argNames.size(); index++) {
+                    final String argName = argNames.get(index);
 
-          if (argValues.length <= index) {
-            break;
-          }
+                    if (argValues.length <= index) {
+                        break;
+                    }
 
-          if (argNames.size() == index + 1) {
-            final String lastArgValue = String.join(" ", Arrays.asList(argValues).subList(index, argValues.length));
-            argsMap.put(argName, lastArgValue);
-            break;
-          }
+                    if (argNames.size() == index + 1) {
+                        final String lastArgValue = String.join(" ", Arrays.asList(argValues).subList(index, argValues.length));
+                        argsMap.put(argName, lastArgValue);
+                        break;
+                    }
 
-          argsMap.put(argName, argValues[index]);
-        }
+                    argsMap.put(argName, argValues[index]);
+                }
 
-        if (holder == null) {
-          menuToOpen.openMenu(player, argsMap, null);
-          break;
-        }
+                if (holder == null) {
+                    menuToOpen.openMenu(player, argsMap, null);
+                    break;
+                }
 
-        menuToOpen.openMenu(player, argsMap, holder.getPlaceholderPlayer());
-        break;
+                menuToOpen.openMenu(player, argsMap, holder.getPlaceholderPlayer());
+                break;
 
             case CONNECT:
                 DeluxeMenus.getInstance().connect(player, executable);

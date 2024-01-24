@@ -1482,7 +1482,8 @@ public class DeluxeMenusConfig {
                   plugin,
                   holder.getViewer().getName(),
                   action.getType(),
-                  holder.setArguments(action.getExecutable())
+                  holder.setArguments(action.getExecutable()),
+                  slot
               ).runTaskLater(plugin, action.getDelay(holder, slot));
               continue;
             }
@@ -1491,7 +1492,8 @@ public class DeluxeMenusConfig {
                 plugin,
                 holder.getViewer().getName(),
                 action.getType(),
-                holder.setArguments(action.getExecutable())
+                holder.setArguments(action.getExecutable()),
+                slot
             ).runTask(plugin);
           }
         }

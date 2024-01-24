@@ -178,7 +178,8 @@ public class DeluxeMenusCommands implements CommandExecutor {
             plugin,
             target.getName(),
             action.getType(),
-            action.getExecutable()
+            action.getExecutable(),
+            -1
         ).runTaskLater(plugin, action.getDelay(holder, -1));
 
         plugin.sms(
@@ -193,7 +194,8 @@ public class DeluxeMenusCommands implements CommandExecutor {
           plugin,
           target.getName(),
           action.getType(),
-          action.getExecutable()
+          action.getExecutable(),
+          -1
       ).runTask(plugin);
 
       plugin.sms(

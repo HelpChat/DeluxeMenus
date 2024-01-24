@@ -18,7 +18,7 @@ public abstract class Requirement {
     this.setOptional(optional);
   }
 
-  public abstract boolean evaluate(MenuHolder holder);
+  public abstract boolean evaluate(MenuHolder holder, int slot);
 
   public ClickHandler getDenyHandler() {
     return denyHandler;

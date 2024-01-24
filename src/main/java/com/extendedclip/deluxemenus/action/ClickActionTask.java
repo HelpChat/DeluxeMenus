@@ -26,17 +26,20 @@ public class ClickActionTask extends BukkitRunnable {
   private final String name;
   private final ActionType actionType;
   private final String exec;
+  private final int slot;
 
   public ClickActionTask(
       @NotNull final DeluxeMenus plugin,
       @NotNull final String name,
       @NotNull final ActionType actionType,
-      @NotNull final String exec
+      @NotNull final String exec,
+      @NotNull final int slot
   ) {
     this.plugin = plugin;
     this.name = name;
     this.actionType = actionType;
     this.exec = exec;
+    this.slot = slot;
   }
 
   @Override
@@ -46,7 +49,7 @@ public class ClickActionTask extends BukkitRunnable {
       return;
     }
 
-    final String executable = PlaceholderAPI.setPlaceholders((OfflinePlayer) player, exec);
+    final String executable = PlaceholderAPI.setPlaceholders((OfflinePlayer) player, exec.replace("{slot}", String.valueOf(this.slot)));
     final MenuHolder holder = Menu.getMenuHolder(player);
 
     switch (actionType) {

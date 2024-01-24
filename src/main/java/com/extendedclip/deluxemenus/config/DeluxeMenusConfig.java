@@ -1469,11 +1469,11 @@ public class DeluxeMenusConfig {
       handler = new ClickHandler() {
 
         @Override
-        public void onClick(@NotNull final MenuHolder holder) {
+        public void onClick(@NotNull final MenuHolder holder, int slot) {
 
           for (ClickAction action : actions) {
 
-            if (!action.checkChance(holder)) {
+            if (!action.checkChance(holder, slot)) {
               continue;
             }
 
@@ -1482,8 +1482,9 @@ public class DeluxeMenusConfig {
                   plugin,
                   holder.getViewer().getName(),
                   action.getType(),
-                  holder.setArguments(action.getExecutable())
-              ).runTaskLater(plugin, action.getDelay(holder));
+                  holder.setArguments(action.getExecutable()),
+                  slot
+              ).runTaskLater(plugin, action.getDelay(holder, slot));
               continue;
             }
 
@@ -1491,7 +1492,8 @@ public class DeluxeMenusConfig {
                 plugin,
                 holder.getViewer().getName(),
                 action.getType(),
-                holder.setArguments(action.getExecutable())
+                holder.setArguments(action.getExecutable()),
+                slot
             ).runTask(plugin);
           }
         }

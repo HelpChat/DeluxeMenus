@@ -154,41 +154,41 @@ public class PlayerListener implements Listener {
     }
 
     if (handleClick(player, holder, item.options().clickHandler(),
-            item.options().clickRequirements())) {
+            item.options().clickRequirements(), item.options().slot())) {
       return;
     }
 
     if (event.isShiftClick() && event.isLeftClick()) {
       if (handleClick(player, holder, item.options().shiftLeftClickHandler(),
-              item.options().shiftLeftClickRequirements())) {
+              item.options().shiftLeftClickRequirements(), item.options().slot())) {
         return;
       }
     }
 
     if (event.isShiftClick() && event.isRightClick()) {
       if (handleClick(player, holder, item.options().shiftRightClickHandler(),
-              item.options().shiftRightClickRequirements())) {
+              item.options().shiftRightClickRequirements(), item.options().slot())) {
         return;
       }
     }
 
     if (event.getClick() == ClickType.LEFT) {
       if (handleClick(player, holder, item.options().leftClickHandler(),
-              item.options().leftClickRequirements())) {
+              item.options().leftClickRequirements(), item.options().slot())) {
         return;
       }
     }
 
     if (event.getClick() == ClickType.RIGHT) {
       if (handleClick(player, holder, item.options().rightClickHandler(),
-              item.options().rightClickRequirements())) {
+              item.options().rightClickRequirements(), item.options().slot())) {
         return;
       }
     }
 
     if (event.getClick() == ClickType.MIDDLE) {
       if (handleClick(player, holder, item.options().middleClickHandler(),
-              item.options().middleClickRequirements())) {
+              item.options().middleClickRequirements(), item.options().slot())) {
         return;
       }
     }
@@ -204,7 +204,7 @@ public class PlayerListener implements Listener {
    */
   private boolean handleClick(final @NotNull Player player, final @NotNull MenuHolder holder,
                               final @NotNull Optional<ClickHandler> handler,
-                              final @NotNull Optional<RequirementList> requirements) {
+                              final @NotNull Optional<RequirementList> requirements, int slot) {
     if (handler.isEmpty()) {
       return false;
     }
@@ -212,18 +212,18 @@ public class PlayerListener implements Listener {
     if (requirements.isPresent()) {
       final ClickHandler denyHandler = requirements.get().getDenyHandler();
 
-      if (!requirements.get().evaluate(holder)) {
+      if (!requirements.get().evaluate(holder, slot)) {
         if (denyHandler == null) {
           return true;
         }
 
-        denyHandler.onClick(holder);
+        denyHandler.onClick(holder, slot);
         return true;
       }
     }
 
     this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-    handler.get().onClick(holder);
+    handler.get().onClick(holder, slot);
 
     return true;
   }

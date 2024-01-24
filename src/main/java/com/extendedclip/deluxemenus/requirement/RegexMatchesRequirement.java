@@ -16,12 +16,12 @@ public class RegexMatchesRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
-    String toCheck = holder.setPlaceholders(input);
+  public boolean evaluate(MenuHolder holder, int slot) {
+    String toCheck = holder.setPlaceholders(input, slot);
     if (invert) {
-      return !pattern.matcher(holder.setPlaceholders(toCheck)).find();
+      return !pattern.matcher(holder.setPlaceholders(toCheck, slot)).find();
     } else {
-      return pattern.matcher(holder.setPlaceholders(toCheck)).find();
+      return pattern.matcher(holder.setPlaceholders(toCheck, slot)).find();
     }
   }
 }

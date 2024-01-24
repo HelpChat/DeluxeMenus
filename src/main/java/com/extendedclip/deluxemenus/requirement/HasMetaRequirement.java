@@ -19,20 +19,20 @@ public class HasMetaRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, int slot) {
     Player player = holder.getViewer();
     if (player == null) {
       return false;
     }
-    String parsedKey = holder.setPlaceholders(key);
+    String parsedKey = holder.setPlaceholders(key, slot);
     String metaVal = DeluxeMenus.getInstance().getPersistentMetaHandler()
         .getMeta(player, parsedKey, type, null);
     if (metaVal == null) {
       return invert;
     }
 
-    String expected = holder.setPlaceholders(value);
-    metaVal = holder.setPlaceholders(metaVal);
+    String expected = holder.setPlaceholders(value, slot);
+    metaVal = holder.setPlaceholders(metaVal, slot);
 
     switch (type) {
       case "STRING":

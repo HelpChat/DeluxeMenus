@@ -103,12 +103,12 @@ public class ClickAction {
    * @return the parsed delay
    */
   @SuppressWarnings("UnstableApiUsage")
-  public long getDelay(@NotNull final MenuHolder holder) {
+  public long getDelay(@NotNull final MenuHolder holder, int slot) {
     if (delay == null || delay.isEmpty()) {
       return 0;
     }
 
-    final var parsed = Longs.tryParse(holder.setPlaceholders(delay));
+    final var parsed = Longs.tryParse(holder.setPlaceholders(delay, slot));
     return parsed == null ? 0 : parsed;
   }
 
@@ -120,12 +120,12 @@ public class ClickAction {
    * @return true if the chance has passed, false otherwise
    */
   @SuppressWarnings("UnstableApiUsage")
-  public boolean checkChance(@NotNull final MenuHolder holder) {
+  public boolean checkChance(@NotNull final MenuHolder holder, int slot) {
     if (chance == null) {
       return true;
     }
 
-    final Double parsedChance = Doubles.tryParse(holder.setPlaceholders(this.chance));
+    final Double parsedChance = Doubles.tryParse(holder.setPlaceholders(this.chance, slot));
     if (parsedChance == null) {
       return false;
     }

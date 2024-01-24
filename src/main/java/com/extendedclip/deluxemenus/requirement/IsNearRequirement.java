@@ -16,7 +16,7 @@ public class IsNearRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, int slot) {
     if (holder.getViewer() == null) {
       return false;
     }

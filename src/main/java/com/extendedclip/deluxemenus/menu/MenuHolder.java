@@ -88,13 +88,15 @@ public class MenuHolder implements InventoryHolder {
     return Menu.getMenu(menuName);
   }
 
-  public String setPlaceholders(String string) {
+  public String setPlaceholders(String string, int slot) {
     // Set argument placeholders first
     if (this.typedArgs != null && !this.typedArgs.isEmpty()) {
       for (Entry<String, String> entry : typedArgs.entrySet()) {
         string = string.replace("{" + entry.getKey() + "}", entry.getValue());
       }
     }
+
+    string = string.replace("{slot}", String.valueOf(slot));
 
     // Then set actual PAPI placeholders
     if (placeholderPlayer != null) {
@@ -144,7 +146,7 @@ public class MenuHolder implements InventoryHolder {
 
           if (item.options().viewRequirements().isPresent()) {
 
-            if (item.options().viewRequirements().get().evaluate(this)) {
+            if (item.options().viewRequirements().get().evaluate(this, item.options().slot())) {
               m = true;
               active.add(item);
               break;
@@ -242,14 +244,14 @@ public class MenuHolder implements InventoryHolder {
 
             if (item.options().dynamicAmount().isPresent()) {
               try {
-               amt = Integer.parseInt(setPlaceholders(item.options().dynamicAmount().get()));
+               amt = Integer.parseInt(setPlaceholders(item.options().dynamicAmount().get(), item.options().slot()));
                 if (amt <= 0) {
                   amt = 1;
                 }
               } catch (Exception exception) {
                 DeluxeMenus.printStacktrace(
                     "Something went wrong while updating item in slot " + item.options().slot() +
-                        ". Invalid dynamic amount: " + setPlaceholders(item.options().dynamicAmount().get()),
+                        ". Invalid dynamic amount: " + setPlaceholders(item.options().dynamicAmount().get(), item.options().slot()),
                     exception
                 );
               }
@@ -258,7 +260,7 @@ public class MenuHolder implements InventoryHolder {
             ItemMeta meta = i.getItemMeta();
 
             if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
-              meta.setDisplayName(StringUtils.color(setPlaceholders(item.options().displayName().get())));
+              meta.setDisplayName(StringUtils.color(setPlaceholders(item.options().displayName().get(), item.options().slot())));
             }
 
             if (item.options().loreHasPlaceholders()) {
@@ -267,7 +269,7 @@ public class MenuHolder implements InventoryHolder {
 
               for (String line : item.options().lore()) {
                 updated.add(StringUtils
-                    .color(setPlaceholders(line)));
+                    .color(setPlaceholders(line, item.options().slot())));
               }
               meta.setLore(updated);
             }

@@ -15,8 +15,8 @@ public class StringLengthRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
-        String toCheck = holder.setPlaceholders(input);
+    public boolean evaluate(MenuHolder holder, int slot) {
+        String toCheck = holder.setPlaceholders(input, slot);
         if (max == null) {
             return toCheck.length() >= min;
         } else {

@@ -16,10 +16,10 @@ public class InputResultRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, int slot) {
 
-    String parsedInput = holder.setPlaceholders(this.input);
-    String parsedResult = holder.setPlaceholders(this.result);
+    String parsedInput = holder.setPlaceholders(this.input, slot);
+    String parsedResult = holder.setPlaceholders(this.result, slot);
 
     switch (type) {
       case STRING_CONTAINS:

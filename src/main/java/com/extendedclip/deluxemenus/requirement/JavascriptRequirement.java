@@ -36,9 +36,9 @@ public class JavascriptRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, int slot) {
 
-    String exp = holder.setPlaceholders(expression);
+    String exp = holder.setPlaceholders(expression, slot);
     try {
 
       engine.put("BukkitPlayer", holder.getViewer());

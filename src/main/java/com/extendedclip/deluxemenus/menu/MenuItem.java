@@ -74,20 +74,17 @@ public class MenuItem {
         final String finalMaterial = lowercaseStringMaterial;
         final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
             .stream()
-            .filter(x -> finalMaterial.startsWith(x.getPrefix()))
+            .filter(x ->  finalMaterial.startsWith(x.getPrefix()))
             .findFirst()
             .orElse(null);
 
         if (pluginHook != null) {
-            itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
+            itemStack = pluginHook.getItem(holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length())));
         }
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {
             itemStack = ItemUtils.createWaterBottles(amount);
-        }
-
-        // The item is neither a water bottle nor plugin hook item
-        if (itemStack == null) {
+        } else if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
                 DeluxeMenus.debug(

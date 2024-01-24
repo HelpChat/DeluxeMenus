@@ -71,7 +71,10 @@ public class SkullUtils {
       profileField.setAccessible(true);
       profileField.set(headMeta, profile);
     } catch (final NoSuchFieldException | IllegalArgumentException | IllegalAccessException exception) {
-      exception.printStackTrace();
+      DeluxeMenus.printStacktrace(
+              "Failed to get head item from base64 texture url",
+              exception
+      );
     }
     head.setItemMeta(headMeta);
     return head;

@@ -8,9 +8,7 @@ import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
-import java.util.logging.Level;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.kyori.adventure.Adventure;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -19,6 +17,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
+import java.util.logging.Level;
 
 public class ClickActionTask extends BukkitRunnable {
 
@@ -47,7 +48,7 @@ public class ClickActionTask extends BukkitRunnable {
     }
 
     final String executable = PlaceholderAPI.setPlaceholders((OfflinePlayer) player, exec);
-    final MenuHolder holder = Menu.getMenuHolder(player);
+    final Optional<MenuHolder> holder = Menu.getMenuHolder(player);
 
     switch (actionType) {
       case META:
@@ -108,18 +109,18 @@ public class ClickActionTask extends BukkitRunnable {
 
       case OPEN_GUI_MENU:
       case OPEN_MENU:
-        final Menu menuToOpen = Menu.getMenu(executable);
-        if (menuToOpen == null) {
+        final Optional<Menu> menuToOpen = Menu.getMenuByName(executable);
+        if (menuToOpen.isEmpty()) {
           DeluxeMenus.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open menu " + executable);
           break;
         }
 
-        if (holder == null) {
-          menuToOpen.openMenu(player);
+        if (holder.isEmpty()) {
+          menuToOpen.get().openMenu(player);
           break;
         }
 
-        menuToOpen.openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+        menuToOpen.get().openMenu(player, holder.get().getTypedArgs(), holder.get().getPlaceholderPlayer());
         break;
 
       case CONNECT:
@@ -136,7 +137,7 @@ public class ClickActionTask extends BukkitRunnable {
         break;
 
       case REFRESH:
-        if (holder == null) {
+        if (holder.isEmpty()) {
           DeluxeMenus.debug(
               DebugLevel.HIGHEST,
               Level.WARNING,
@@ -145,7 +146,7 @@ public class ClickActionTask extends BukkitRunnable {
           break;
         }
 
-        holder.refreshMenu();
+        holder.get().refreshMenu();
         break;
 
       case TAKE_MONEY:

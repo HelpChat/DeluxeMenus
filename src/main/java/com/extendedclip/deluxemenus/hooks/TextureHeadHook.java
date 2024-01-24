@@ -32,6 +32,11 @@ public class TextureHeadHook implements ItemHook, SimpleCache {
   }
 
   @Override
+  public String getPrefix() {
+    return "texture-";
+  }
+
+  @Override
   public void clearCache() {
     cache.clear();
   }

@@ -31,6 +31,7 @@ dependencies {
     compileOnly(libs.itemsadder)
     compileOnly(libs.oraxen)
     compileOnly(libs.mmoitems)
+    compileOnly(libs.score)
 
     compileOnly(libs.papi)
 

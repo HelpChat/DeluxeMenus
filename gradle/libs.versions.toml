@@ -8,6 +8,7 @@ itemsadder = "3.2.5"
 oraxen = "1.159.0"
 mmoitems = "6.9.4-SNAPSHOT"
 papi = "2.11.2"
+score = "4.23.10.8"
 
 # Implementation
 nashorn = "15.4"
@@ -24,6 +25,7 @@ itemsadder = { module = "com.github.LoneDev6:api-itemsadder", version.ref = "ite
 oraxen = { module = "com.github.oraxen:oraxen", version.ref = "oraxen" }
 mmoitems = { module = "net.Indyuce:MMOItems-API", version.ref = "mmoitems" }
 papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
+score = { module = "com.github.Ssomar-Developement:SCore", version.ref = "score" }
 
 # Implementation
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }

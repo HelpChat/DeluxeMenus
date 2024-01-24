@@ -2,18 +2,7 @@ package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -22,6 +11,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class MenuHolder implements InventoryHolder {
 
@@ -97,26 +93,23 @@ public class MenuHolder implements InventoryHolder {
     }
 
     public @NotNull String setPlaceholders(final @NotNull String string) {
-        if (placeholderPlayer != null) {
-            return PlaceholderAPI.setPlaceholders((OfflinePlayer) placeholderPlayer, string);
-        } else if (this.getViewer() != null) {
-            return PlaceholderAPI.setPlaceholders((OfflinePlayer) this.getViewer(), string);
-        }
-
-        return string;
-    }
-
-    public @NotNull String setArguments(@NotNull String string) {
-        if (this.typedArgs == null || this.typedArgs.isEmpty()) {
+        final Player player = this.placeholderPlayer != null ? this.placeholderPlayer : this.getViewer();
+        if (player == null) {
             return string;
         }
 
-        for (final Entry<String, String> entry : this.typedArgs.entrySet()) {
-            final String value = this.parsePlaceholdersInArguments ? setPlaceholders(entry.getValue()) : entry.getValue();
-            string = string.replace("{" + entry.getKey() + "}", value);
-        }
+        return StringUtils.replacePlaceholders(string, player);
+    }
 
-        return string;
+    public @NotNull String setArguments(final @NotNull String string) {
+        final Player player = this.placeholderPlayer != null ? this.placeholderPlayer : this.getViewer();
+
+        return StringUtils.replaceArguments(
+                string,
+                this.typedArgs,
+                player,
+                this.parsePlaceholdersInArguments
+        );
     }
 
     public void refreshMenu() {

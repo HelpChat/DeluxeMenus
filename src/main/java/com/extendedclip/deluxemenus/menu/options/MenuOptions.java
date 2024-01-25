@@ -120,14 +120,14 @@ public class MenuOptions {
 
         private String name;
         private String title;
-        private InventoryType type;
-        private int size;
-        private int updateInterval;
+        private InventoryType type = InventoryType.CHEST;
+        private int size = 9;
+        private int updateInterval = 10;
 
-        private List<String> commands;
-        private boolean registerCommands;
-        private List<String> arguments;
-        private List<RequirementList> argumentRequirements;
+        private List<String> commands = List.of();
+        private boolean registerCommands = false;
+        private List<String> arguments = List.of();
+        private List<RequirementList> argumentRequirements = List.of();
         private String argumentsUsageMessage;
 
         private RequirementList openRequirements;

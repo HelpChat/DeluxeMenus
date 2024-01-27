@@ -734,6 +734,7 @@ public class DeluxeMenusConfig {
               .customModelData(c.getString(currentPath + "model_data", null))
               .displayName(c.getString(currentPath + "display_name"))
               .lore(c.getStringList(currentPath + "lore"))
+              .originalItemLore(c.getBoolean(currentPath + "original_lore", false))
               .rgb(c.getString(currentPath + "rgb", null))
               .unbreakable(c.getBoolean(currentPath + "unbreakable", false))
               .updatePlaceholders(c.getBoolean(currentPath + "update", false))

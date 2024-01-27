@@ -25,11 +25,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -218,14 +214,18 @@ public class MenuItem {
         }
 
         if (!this.options.lore().isEmpty()) {
-            final List<String> lore = this.options.lore().stream()
+            List<String> lore = new ArrayList<>();
+            // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
+            if (options.originalItemLore() && itemMeta.hasLore()) lore = itemMeta.getLore();
+
+            lore.addAll(this.options.lore().stream()
                     .map(holder::setPlaceholders)
                     .map(StringUtils::color)
                     .map(line -> line.split("\n"))
                     .flatMap(Arrays::stream)
                     .map(line -> line.split("\\\\n"))
                     .flatMap(Arrays::stream)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
 
             itemMeta.setLore(lore);
         }

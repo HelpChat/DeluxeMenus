@@ -213,6 +213,11 @@ public class MenuItem {
             itemMeta.setDisplayName(StringUtils.color(displayName));
         }
 
+        // This removes all lore from the item if the option is enabled. Useful if you have a hooked item with lore that you don't want.
+        if (this.options.ignoreLore()) {
+            itemMeta.setLore(new ArrayList<>());
+        }
+
         if (!this.options.lore().isEmpty()) {
             List<String> lore = new ArrayList<>();
             // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item

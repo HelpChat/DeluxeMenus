@@ -43,6 +43,7 @@ public class MenuItemOptions {
 
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
+    private final boolean ignoreLore;
     private LoreAppendMode loreAppendMode;
 
     private final String nbtString;
@@ -77,6 +78,7 @@ public class MenuItemOptions {
         this.dynamicAmount = builder.dynamicAmount;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
+        this.ignoreLore = builder.ignoreLore;
         this.loreAppendMode = builder.loreAppendMode;
         this.baseColor = builder.baseColor;
         this.headType = builder.headType;
@@ -209,6 +211,10 @@ public class MenuItemOptions {
 
     public boolean loreHasPlaceholders() {
         return loreHasPlaceholders;
+    }
+
+    public boolean ignoreLore() {
+        return ignoreLore;
     }
 
     public LoreAppendMode originalItemLore() {
@@ -367,6 +373,7 @@ public class MenuItemOptions {
 
         private boolean displayNameHasPlaceholders;
         private boolean loreHasPlaceholders;
+        private boolean ignoreLore;
         private LoreAppendMode loreAppendMode;
 
         private String nbtString;
@@ -532,6 +539,11 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder updatePlaceholders(final boolean updatePlaceholders) {
             this.updatePlaceholders = updatePlaceholders;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder ignoreLore(final boolean ignoreLore) {
+            this.ignoreLore = ignoreLore;
             return this;
         }
 

@@ -229,7 +229,7 @@ public class MenuItem {
                     case IGNORE: // DM lore is not added at all
                         lore.addAll(itemLore);
                         break;
-                    case TOP: // DM lore is added at the top
+                    case BOTTOM: // DM lore is bottom at the bottom
                         lore.addAll(itemLore);
                         lore.addAll(this.options.lore().stream()
                                 .map(holder::setPlaceholders)
@@ -240,7 +240,7 @@ public class MenuItem {
                                 .flatMap(Arrays::stream)
                                 .collect(Collectors.toList()));
                         break;
-                    case BOTTOM: // DM lore is added at the bottom
+                    case TOP: // DM lore is added at the top
                         lore.addAll(this.options.lore().stream()
                                 .map(holder::setPlaceholders)
                                 .map(StringUtils::color)

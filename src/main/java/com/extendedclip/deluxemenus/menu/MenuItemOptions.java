@@ -43,7 +43,7 @@ public class MenuItemOptions {
 
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
-    private boolean originalItemLore;
+    private LoreAppendMode loreAppendMode;
 
     private final String nbtString;
     private final String nbtInt;
@@ -77,7 +77,7 @@ public class MenuItemOptions {
         this.dynamicAmount = builder.dynamicAmount;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
-        this.originalItemLore = builder.originalItemLore;
+        this.loreAppendMode = builder.loreAppendMode;
         this.baseColor = builder.baseColor;
         this.headType = builder.headType;
         this.placeholderData = builder.placeholderData;
@@ -211,8 +211,8 @@ public class MenuItemOptions {
         return loreHasPlaceholders;
     }
 
-    public boolean originalItemLore() {
-        return originalItemLore;
+    public LoreAppendMode originalItemLore() {
+        return loreAppendMode;
     }
 
     public @NotNull Optional<String> nbtString() {
@@ -304,7 +304,7 @@ public class MenuItemOptions {
                 .dynamicAmount(this.dynamicAmount)
                 .displayName(this.displayName)
                 .lore(this.lore)
-                .originalItemLore(this.originalItemLore)
+                .loreAppendMode(this.loreAppendMode)
                 .baseColor(this.baseColor)
                 .headType(this.headType)
                 .placeholderData(this.placeholderData)
@@ -367,7 +367,7 @@ public class MenuItemOptions {
 
         private boolean displayNameHasPlaceholders;
         private boolean loreHasPlaceholders;
-        private boolean originalItemLore;
+        private LoreAppendMode loreAppendMode;
 
         private String nbtString;
         private String nbtInt;
@@ -535,8 +535,8 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder originalItemLore(final boolean originalItemLore) {
-            this.originalItemLore = originalItemLore;
+        public MenuItemOptionsBuilder loreAppendMode(final LoreAppendMode loreAppendMode) {
+            this.loreAppendMode = loreAppendMode;
             return this;
         }
 

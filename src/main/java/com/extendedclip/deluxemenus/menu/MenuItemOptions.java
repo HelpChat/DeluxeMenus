@@ -310,6 +310,7 @@ public class MenuItemOptions {
                 .dynamicAmount(this.dynamicAmount)
                 .displayName(this.displayName)
                 .lore(this.lore)
+                .ignoreLore(this.ignoreLore)
                 .loreAppendMode(this.loreAppendMode)
                 .baseColor(this.baseColor)
                 .headType(this.headType)

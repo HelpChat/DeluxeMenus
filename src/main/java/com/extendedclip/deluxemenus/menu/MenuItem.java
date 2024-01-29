@@ -221,56 +221,44 @@ public class MenuItem {
         if (!this.options.lore().isEmpty()) {
             List<String> lore = new ArrayList<>();
             // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
-            // If an item has no lore, then don't bother with these checks. It'll always just override.
-            if (itemMeta.hasLore()) {
-                // ItemMeta.getLore is nullable, but we check if it hasLore beforehand. This *should* check for nullability, but just in case...
-                List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
-                switch (this.options.loreAppendMode()) {
-                    case IGNORE: // DM lore is not added at all
-                        lore.addAll(itemLore);
-                        break;
-                    case BOTTOM: // DM lore is bottom at the bottom
-                        lore.addAll(itemLore);
-                        lore.addAll(this.options.lore().stream()
-                                .map(holder::setPlaceholders)
-                                .map(StringUtils::color)
-                                .map(line -> line.split("\n"))
-                                .flatMap(Arrays::stream)
-                                .map(line -> line.split("\\\\n"))
-                                .flatMap(Arrays::stream)
-                                .collect(Collectors.toList()));
-                        break;
-                    case TOP: // DM lore is added at the top
-                        lore.addAll(this.options.lore().stream()
-                                .map(holder::setPlaceholders)
-                                .map(StringUtils::color)
-                                .map(line -> line.split("\n"))
-                                .flatMap(Arrays::stream)
-                                .map(line -> line.split("\\\\n"))
-                                .flatMap(Arrays::stream)
-                                .collect(Collectors.toList()));
-                        lore.addAll(itemLore);
-                        break;
-                    case OVERRIDE: // Lore from DM overrides the lore from the item
-                        lore.addAll(this.options.lore().stream()
-                                .map(holder::setPlaceholders)
-                                .map(StringUtils::color)
-                                .map(line -> line.split("\n"))
-                                .flatMap(Arrays::stream)
-                                .map(line -> line.split("\\\\n"))
-                                .flatMap(Arrays::stream)
-                                .collect(Collectors.toList()));
-                        break;
-                }
-            } else {
-                lore.addAll(this.options.lore().stream()
-                        .map(holder::setPlaceholders)
-                        .map(StringUtils::color)
-                        .map(line -> line.split("\n"))
-                        .flatMap(Arrays::stream)
-                        .map(line -> line.split("\\\\n"))
-                        .flatMap(Arrays::stream)
-                        .collect(Collectors.toList()));
+            // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+            List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
+            switch (this.options.loreAppendMode()) {
+                case IGNORE: // DM lore is not added at all
+                    lore.addAll(itemLore);
+                    break;
+                case TOP: // DM lore is added at the top
+                    lore.addAll(this.options.lore().stream()
+                            .map(holder::setPlaceholders)
+                            .map(StringUtils::color)
+                            .map(line -> line.split("\n"))
+                            .flatMap(Arrays::stream)
+                            .map(line -> line.split("\\\\n"))
+                            .flatMap(Arrays::stream)
+                            .collect(Collectors.toList()));
+                    lore.addAll(itemLore);
+                    break;
+                case BOTTOM: // DM lore is bottom at the bottom
+                    lore.addAll(itemLore);
+                    lore.addAll(this.options.lore().stream()
+                            .map(holder::setPlaceholders)
+                            .map(StringUtils::color)
+                            .map(line -> line.split("\n"))
+                            .flatMap(Arrays::stream)
+                            .map(line -> line.split("\\\\n"))
+                            .flatMap(Arrays::stream)
+                            .collect(Collectors.toList()));
+                    break;
+                case OVERRIDE: // Lore from DM overrides the lore from the item
+                    lore.addAll(this.options.lore().stream()
+                            .map(holder::setPlaceholders)
+                            .map(StringUtils::color)
+                            .map(line -> line.split("\n"))
+                            .flatMap(Arrays::stream)
+                            .map(line -> line.split("\\\\n"))
+                            .flatMap(Arrays::stream)
+                            .collect(Collectors.toList()));
+                    break;
             }
             itemMeta.setLore(lore);
         }

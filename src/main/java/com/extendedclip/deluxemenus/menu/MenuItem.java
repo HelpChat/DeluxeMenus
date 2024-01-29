@@ -228,36 +228,15 @@ public class MenuItem {
                     lore.addAll(itemLore);
                     break;
                 case TOP: // DM lore is added at the top
-                    lore.addAll(this.options.lore().stream()
-                            .map(holder::setPlaceholders)
-                            .map(StringUtils::color)
-                            .map(line -> line.split("\n"))
-                            .flatMap(Arrays::stream)
-                            .map(line -> line.split("\\\\n"))
-                            .flatMap(Arrays::stream)
-                            .collect(Collectors.toList()));
+                    lore.addAll(getMenuItemLore(holder, this.options.lore()));
                     lore.addAll(itemLore);
                     break;
                 case BOTTOM: // DM lore is bottom at the bottom
                     lore.addAll(itemLore);
-                    lore.addAll(this.options.lore().stream()
-                            .map(holder::setPlaceholders)
-                            .map(StringUtils::color)
-                            .map(line -> line.split("\n"))
-                            .flatMap(Arrays::stream)
-                            .map(line -> line.split("\\\\n"))
-                            .flatMap(Arrays::stream)
-                            .collect(Collectors.toList()));
+                    lore.addAll(getMenuItemLore(holder, this.options.lore()));
                     break;
                 case OVERRIDE: // Lore from DM overrides the lore from the item
-                    lore.addAll(this.options.lore().stream()
-                            .map(holder::setPlaceholders)
-                            .map(StringUtils::color)
-                            .map(line -> line.split("\n"))
-                            .flatMap(Arrays::stream)
-                            .map(line -> line.split("\\\\n"))
-                            .flatMap(Arrays::stream)
-                            .collect(Collectors.toList()));
+                    lore.addAll(getMenuItemLore(holder, this.options.lore()));
                     break;
             }
             itemMeta.setLore(lore);
@@ -402,6 +381,17 @@ public class MenuItem {
         return DeluxeMenus.getInstance()
                 .getItemHook(hookName)
                 .map(itemHook -> itemHook.getItem(args));
+    }
+
+    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        return lore.stream()
+                .map(holder::setPlaceholders)
+                .map(StringUtils::color)
+                .map(line -> line.split("\n"))
+                .flatMap(Arrays::stream)
+                .map(line -> line.split("\\\\n"))
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toList());
     }
 
     public @NotNull MenuItemOptions options() {

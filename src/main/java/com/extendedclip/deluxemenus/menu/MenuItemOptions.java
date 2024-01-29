@@ -217,7 +217,7 @@ public class MenuItemOptions {
         return ignoreLore;
     }
 
-    public LoreAppendMode originalItemLore() {
+    public LoreAppendMode loreAppendMode() {
         return loreAppendMode;
     }
 

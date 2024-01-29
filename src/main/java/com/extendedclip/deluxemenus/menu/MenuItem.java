@@ -225,7 +225,7 @@ public class MenuItem {
             if (itemMeta.hasLore()) {
                 // ItemMeta.getLore is nullable, but we check if it hasLore beforehand. This *should* check for nullability, but just in case...
                 List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
-                switch (this.options.originalItemLore()) {
+                switch (this.options.loreAppendMode()) {
                     case IGNORE: // DM lore is not added at all
                         lore.addAll(itemLore);
                         break;

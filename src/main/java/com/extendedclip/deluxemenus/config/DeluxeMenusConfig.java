@@ -740,8 +740,9 @@ public class DeluxeMenusConfig {
       if (c.contains(currentPath + "lore_append_mode")) {
         String loreAppendMode = c.getString(currentPath + "lore_append_mode", "OVERRIDE").toUpperCase();
         try {
-          builder.loreAppendMode(LoreAppendMode.valueOf(loreAppendMode.toUpperCase()));
+          builder.loreAppendMode(LoreAppendMode.valueOf(loreAppendMode));
         } catch (IllegalArgumentException | NullPointerException ignored) {
+          builder.loreAppendMode(LoreAppendMode.OVERRIDE); // Defaults to override in case of invalid append mode
           DeluxeMenus.debug(
                   DebugLevel.HIGHEST,
                   Level.WARNING,

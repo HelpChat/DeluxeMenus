@@ -69,10 +69,10 @@ public class MenuItem {
 
         final String finalMaterial = lowercaseStringMaterial;
         final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
-            .stream()
-            .filter(x -> finalMaterial.startsWith(x.getPrefix()))
-            .findFirst()
-            .orElse(null);
+                .stream()
+                .filter(x -> finalMaterial.startsWith(x.getPrefix()))
+                .findFirst()
+                .orElse(null);
 
         if (pluginHook != null) {
             itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
@@ -213,34 +213,31 @@ public class MenuItem {
             itemMeta.setDisplayName(StringUtils.color(displayName));
         }
 
-        // This removes all lore from the item if the option is enabled. Useful if you have a hooked item with lore that you don't want.
-        if (this.options.ignoreLore()) {
-            itemMeta.setLore(new ArrayList<>());
+        List<String> lore = new ArrayList<>();
+        // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
+        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
+        // Ensures backwards compadibility with how hooked items are currently handled
+        LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
+        if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) mode = LoreAppendMode.IGNORE;
+        switch (mode) {
+            case IGNORE: // DM lore is not added at all
+                lore.addAll(itemLore);
+                break;
+            case TOP: // DM lore is added at the top
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(itemLore);
+                break;
+            case BOTTOM: // DM lore is bottom at the bottom
+                lore.addAll(itemLore);
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
+            case OVERRIDE: // Lore from DM overrides the lore from the item
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
         }
 
-        if (!this.options.lore().isEmpty()) {
-            List<String> lore = new ArrayList<>();
-            // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
-            // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
-            List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
-            switch (this.options.loreAppendMode()) {
-                case IGNORE: // DM lore is not added at all
-                    lore.addAll(itemLore);
-                    break;
-                case TOP: // DM lore is added at the top
-                    lore.addAll(getMenuItemLore(holder, this.options.lore()));
-                    lore.addAll(itemLore);
-                    break;
-                case BOTTOM: // DM lore is bottom at the bottom
-                    lore.addAll(itemLore);
-                    lore.addAll(getMenuItemLore(holder, this.options.lore()));
-                    break;
-                case OVERRIDE: // Lore from DM overrides the lore from the item
-                    lore.addAll(getMenuItemLore(holder, this.options.lore()));
-                    break;
-            }
-            itemMeta.setLore(lore);
-        }
+        itemMeta.setLore(lore);
 
         if (!this.options.itemFlags().isEmpty()) {
             for (final ItemFlag flag : this.options.itemFlags()) {

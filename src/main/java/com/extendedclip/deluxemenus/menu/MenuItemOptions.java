@@ -43,7 +43,7 @@ public class MenuItemOptions {
 
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
-    private final boolean ignoreLore;
+    private final boolean hasLore;
     private LoreAppendMode loreAppendMode;
 
     private final String nbtString;
@@ -78,7 +78,7 @@ public class MenuItemOptions {
         this.dynamicAmount = builder.dynamicAmount;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
-        this.ignoreLore = builder.ignoreLore;
+        this.hasLore = builder.hasLore;
         this.loreAppendMode = builder.loreAppendMode;
         this.baseColor = builder.baseColor;
         this.headType = builder.headType;
@@ -213,12 +213,12 @@ public class MenuItemOptions {
         return loreHasPlaceholders;
     }
 
-    public boolean ignoreLore() {
-        return ignoreLore;
+    public boolean hasLore() {
+        return hasLore;
     }
 
-    public LoreAppendMode loreAppendMode() {
-        return loreAppendMode;
+    public @NotNull Optional<LoreAppendMode> loreAppendMode() {
+        return Optional.ofNullable(loreAppendMode);
     }
 
     public @NotNull Optional<String> nbtString() {
@@ -310,7 +310,7 @@ public class MenuItemOptions {
                 .dynamicAmount(this.dynamicAmount)
                 .displayName(this.displayName)
                 .lore(this.lore)
-                .ignoreLore(this.ignoreLore)
+                .hasLore(this.hasLore)
                 .loreAppendMode(this.loreAppendMode)
                 .baseColor(this.baseColor)
                 .headType(this.headType)
@@ -374,7 +374,7 @@ public class MenuItemOptions {
 
         private boolean displayNameHasPlaceholders;
         private boolean loreHasPlaceholders;
-        private boolean ignoreLore;
+        private boolean hasLore;
         private LoreAppendMode loreAppendMode;
 
         private String nbtString;
@@ -543,8 +543,8 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder ignoreLore(final boolean ignoreLore) {
-            this.ignoreLore = ignoreLore;
+        public MenuItemOptionsBuilder hasLore(final boolean hasLore) {
+            this.hasLore = hasLore;
             return this;
         }
 

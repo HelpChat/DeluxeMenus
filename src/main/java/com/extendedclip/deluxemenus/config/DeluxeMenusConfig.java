@@ -722,7 +722,7 @@ public class DeluxeMenusConfig {
               .customModelData(c.getString(currentPath + "model_data", null))
               .displayName(c.getString(currentPath + "display_name"))
               .lore(c.getStringList(currentPath + "lore"))
-              .ignoreLore(c.getBoolean(currentPath + "ignore_lore", false))
+              .hasLore(c.contains(currentPath + "lore"))
               .rgb(c.getString(currentPath + "rgb", null))
               .unbreakable(c.getBoolean(currentPath + "unbreakable", false))
               .updatePlaceholders(c.getBoolean(currentPath + "update", false))

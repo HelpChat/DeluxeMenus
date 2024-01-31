@@ -173,13 +173,17 @@ public class DeluxeMenusCommands implements CommandExecutor {
         return true;
       }
 
+      final ClickActionTask actionTask = new ClickActionTask(
+              plugin,
+              target.getUniqueId(),
+              action.getType(),
+              action.getExecutable(),
+              holder.getTypedArgs(),
+              true
+      );
+
       if (action.hasDelay()) {
-        new ClickActionTask(
-            plugin,
-            target.getName(),
-            action.getType(),
-            action.getExecutable()
-        ).runTaskLater(plugin, action.getDelay(holder));
+        actionTask.runTaskLater(plugin, action.getDelay(holder));
 
         plugin.sms(
             sender,
@@ -189,12 +193,7 @@ public class DeluxeMenusCommands implements CommandExecutor {
         return true;
       }
 
-      new ClickActionTask(
-          plugin,
-          target.getName(),
-          action.getType(),
-          action.getExecutable()
-      ).runTask(plugin);
+      actionTask.runTask(plugin);
 
       plugin.sms(
           sender,

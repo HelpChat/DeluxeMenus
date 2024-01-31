@@ -108,7 +108,7 @@ public class ClickAction {
       return 0;
     }
 
-    final var parsed = Longs.tryParse(holder.setPlaceholders(delay));
+    final var parsed = Longs.tryParse(holder.setPlaceholdersAndArguments(delay));
     return parsed == null ? 0 : parsed;
   }
 
@@ -125,7 +125,7 @@ public class ClickAction {
       return true;
     }
 
-    final Double parsedChance = Doubles.tryParse(holder.setPlaceholders(this.chance));
+    final Double parsedChance = Doubles.tryParse(holder.setPlaceholdersAndArguments(this.chance));
     if (parsedChance == null) {
       return false;
     }

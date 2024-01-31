@@ -42,9 +42,10 @@ public class Menu extends Command {
   private List<String> args;
   private List<RequirementList> argRequirements;
   private String argUsageMessage;
+  private boolean parsePlaceholdersInArguments;
 
   public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size, List<String> menuCommands, boolean registerCommand, List<String> args, List<RequirementList> argRequirements) {
+      int size, List<String> menuCommands, boolean registerCommand, List<String> args, List<RequirementList> argRequirements, boolean parsePlaceholdersInArguments) {
     super(menuCommands.get(0));
     this.menuName = menuName;
     this.menuTitle = StringUtils.color(menuTitle);
@@ -54,6 +55,7 @@ public class Menu extends Command {
     this.registersCommand = registerCommand;
     this.args = args;
     this.argRequirements = argRequirements;
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
     if (registerCommand) {
       if (menuCommands.size() > 1) {
         this.setAliases(menuCommands.subList(1, menuCommands.size()));
@@ -64,12 +66,13 @@ public class Menu extends Command {
   }
 
   public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size) {
+      int size, boolean parsePlaceholdersInArguments) {
     super(menuName);
     this.menuName = menuName;
     this.menuTitle = StringUtils.color(menuTitle);
     this.items = items;
     this.size = size;
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
     menus.put(this.menuName, this);
   }
 
@@ -376,6 +379,7 @@ public class Menu extends Command {
       holder.setPlaceholderPlayer(placeholderPlayer);
     }
     holder.setTypedArgs(args);
+    holder.parsePlaceholdersInArguments(this.parsePlaceholdersInArguments);
 
     if (!this.handleArgRequirements(holder)) {
       return;
@@ -431,7 +435,7 @@ public class Menu extends Command {
         this.openHandler.onClick(holder);
       }
 
-      String title = StringUtils.color(holder.setPlaceholders(this.menuTitle));
+      String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.menuTitle));
 
       Inventory inventory;
 
@@ -573,5 +577,13 @@ public class Menu extends Command {
 
   public void setArgUsageMessage(String argUsageMessage) {
     this.argUsageMessage = argUsageMessage;
+  }
+
+  public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+  }
+
+  public boolean parsePlaceholdersInArguments() {
+    return parsePlaceholdersInArguments;
   }
 }

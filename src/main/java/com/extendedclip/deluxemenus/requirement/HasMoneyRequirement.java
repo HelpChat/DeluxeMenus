@@ -23,11 +23,11 @@ public class HasMoneyRequirement extends Requirement {
 
     if (placeholder != null) {
       try {
-        String expected = holder.setPlaceholders(placeholder);
+        String expected = holder.setPlaceholdersAndArguments(placeholder);
         amount = Double.parseDouble(expected);
       } catch (final NumberFormatException exception) {
         DeluxeMenus.printStacktrace(
-            "Invalid amount found for has money requirement: " + holder.setPlaceholders(placeholder),
+            "Invalid amount found for has money requirement: " + holder.setPlaceholdersAndArguments(placeholder),
             exception
         );
       }

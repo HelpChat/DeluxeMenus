@@ -25,7 +25,11 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -50,7 +54,7 @@ public class MenuItem {
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
         if (ItemUtils.isPlaceholderMaterial(lowercaseStringMaterial)) {
-            stringMaterial = holder.setPlaceholders(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
 
@@ -69,13 +73,13 @@ public class MenuItem {
 
         final String finalMaterial = lowercaseStringMaterial;
         final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
-                .stream()
-                .filter(x -> finalMaterial.startsWith(x.getPrefix()))
-                .findFirst()
-                .orElse(null);
+            .stream()
+            .filter(x -> finalMaterial.startsWith(x.getPrefix()))
+            .findFirst()
+            .orElse(null);
 
         if (pluginHook != null) {
-            itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
+            itemStack = pluginHook.getItem(holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length())));
         }
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {
@@ -135,7 +139,7 @@ public class MenuItem {
 
             if (meta != null) {
                 if (this.options.rgb().isPresent()) {
-                    final String rgbString = holder.setPlaceholders(this.options.rgb().get());
+                    final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
                     final String[] parts = rgbString.split(",");
 
                     try {
@@ -162,7 +166,7 @@ public class MenuItem {
         short data = this.options.data();
 
         if (this.options.placeholderData().isPresent()) {
-            final String parsedData = holder.setPlaceholders(this.options.placeholderData().get());
+            final String parsedData = holder.setPlaceholdersAndArguments(this.options.placeholderData().get());
             try {
                 data = Short.parseShort(parsedData);
             } catch (final NumberFormatException exception) {
@@ -183,7 +187,7 @@ public class MenuItem {
 
         if (this.options.dynamicAmount().isPresent()) {
             try {
-                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholders(this.options.dynamicAmount().get()));
+                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholdersAndArguments(this.options.dynamicAmount().get()));
                 amount = Math.max(dynamicAmount, 1);
             } catch (final NumberFormatException ignored) {
             }
@@ -202,14 +206,14 @@ public class MenuItem {
 
         if (this.options.customModelData().isPresent() && VersionHelper.IS_CUSTOM_MODEL_DATA) {
             try {
-                final int modelData = Integer.parseInt(holder.setPlaceholders(this.options.customModelData().get()));
+                final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get()));
                 itemMeta.setCustomModelData(modelData);
             } catch (final Exception ignored) {
             }
         }
 
         if (this.options.displayName().isPresent()) {
-            final String displayName = holder.setPlaceholders(this.options.displayName().get());
+            final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
             itemMeta.setDisplayName(StringUtils.color(displayName));
         }
 
@@ -266,7 +270,7 @@ public class MenuItem {
         }
 
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholders(this.options.rgb().get());
+            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
             final String[] parts = rgbString.split(",");
             final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 
@@ -282,7 +286,7 @@ public class MenuItem {
                 );
             }
         } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholders(this.options.rgb().get());
+            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
             final String[] parts = rgbString.split(",");
             final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
 
@@ -320,7 +324,7 @@ public class MenuItem {
 
         if (NbtProvider.isAvailable()) {
             if (this.options.nbtString().isPresent()) {
-                final String tag = holder.setPlaceholders(this.options.nbtString().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtString().get());
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
@@ -328,7 +332,7 @@ public class MenuItem {
             }
 
             if (this.options.nbtInt().isPresent()) {
-                final String tag = holder.setPlaceholders(this.options.nbtInt().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -336,7 +340,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtStrings()) {
-                final String tag = holder.setPlaceholders(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
@@ -344,7 +348,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtInts()) {
-                final String tag = holder.setPlaceholders(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -382,7 +386,7 @@ public class MenuItem {
 
     private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
         return lore.stream()
-                .map(holder::setPlaceholders)
+                .map(holder::setPlaceholdersAndArguments)
                 .map(StringUtils::color)
                 .map(line -> line.split("\n"))
                 .flatMap(Arrays::stream)

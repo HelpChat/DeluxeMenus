@@ -590,10 +590,12 @@ public class DeluxeMenusConfig {
       return;
     }
 
+    final boolean argumentsSupportPlaceholders = c.getBoolean(pre + "arguments_support_placeholders", false);
+
     Menu menu;
 
     if (openCommands.isEmpty()) {
-      menu = new Menu(key, title, items, size);
+      menu = new Menu(key, title, items, size, argumentsSupportPlaceholders);
     } else {
       boolean registerCommand = c.getBoolean(pre + "register_command", false);
       List<String> args = new ArrayList<>();
@@ -621,7 +623,7 @@ public class DeluxeMenusConfig {
           args.add(c.getString(pre + "args"));
         }
       }
-      menu = new Menu(key, title, items, size, openCommands, registerCommand, args, argRequirements);
+      menu = new Menu(key, title, items, size, openCommands, registerCommand, args, argRequirements, argumentsSupportPlaceholders);
       menu.setArgUsageMessage(c.getString(pre + "args_usage_message", null));
     }
 
@@ -1482,22 +1484,21 @@ public class DeluxeMenusConfig {
               continue;
             }
 
+            final ClickActionTask actionTask = new ClickActionTask(
+                    plugin,
+                    holder.getViewer().getUniqueId(),
+                    action.getType(),
+                    action.getExecutable(),
+                    holder.getTypedArgs(),
+                    holder.parsePlaceholdersInArguments()
+            );
+
             if (action.hasDelay()) {
-              new ClickActionTask(
-                  plugin,
-                  holder.getViewer().getName(),
-                  action.getType(),
-                  holder.setArguments(action.getExecutable())
-              ).runTaskLater(plugin, action.getDelay(holder));
+              actionTask.runTaskLater(plugin, action.getDelay(holder));
               continue;
             }
 
-            new ClickActionTask(
-                plugin,
-                holder.getViewer().getName(),
-                action.getType(),
-                holder.setArguments(action.getExecutable())
-            ).runTask(plugin);
+            actionTask.runTask(plugin);
           }
         }
       };

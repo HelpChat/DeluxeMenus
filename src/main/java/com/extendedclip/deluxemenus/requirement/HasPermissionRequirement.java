@@ -14,7 +14,7 @@ public class HasPermissionRequirement extends Requirement {
 
   @Override
   public boolean evaluate(MenuHolder holder) {
-    String check = holder.setPlaceholders(perm);
+    String check = holder.setPlaceholdersAndArguments(perm);
     if (invert) {
       return !holder.getViewer().hasPermission(check);
     } else {

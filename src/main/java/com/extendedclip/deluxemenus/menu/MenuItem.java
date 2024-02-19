@@ -26,10 +26,12 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -74,7 +76,7 @@ public class MenuItem {
         final String finalMaterial = lowercaseStringMaterial;
         final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
             .stream()
-            .filter(x ->  finalMaterial.startsWith(x.getPrefix()))
+            .filter(x -> finalMaterial.startsWith(x.getPrefix()))
             .findFirst()
             .orElse(null);
 
@@ -217,18 +219,31 @@ public class MenuItem {
             itemMeta.setDisplayName(StringUtils.color(displayName));
         }
 
-        if (!this.options.lore().isEmpty()) {
-            final List<String> lore = this.options.lore().stream()
-                    .map(holder::setPlaceholdersAndArguments)
-                    .map(StringUtils::color)
-                    .map(line -> line.split("\n"))
-                    .flatMap(Arrays::stream)
-                    .map(line -> line.split("\\\\n"))
-                    .flatMap(Arrays::stream)
-                    .collect(Collectors.toList());
-
-            itemMeta.setLore(lore);
+        List<String> lore = new ArrayList<>();
+        // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
+        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
+        // Ensures backwards compadibility with how hooked items are currently handled
+        LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
+        if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) mode = LoreAppendMode.IGNORE;
+        switch (mode) {
+            case IGNORE: // DM lore is not added at all
+                lore.addAll(itemLore);
+                break;
+            case TOP: // DM lore is added at the top
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(itemLore);
+                break;
+            case BOTTOM: // DM lore is bottom at the bottom
+                lore.addAll(itemLore);
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
+            case OVERRIDE: // Lore from DM overrides the lore from the item
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
         }
+
+        itemMeta.setLore(lore);
 
         if (!this.options.itemFlags().isEmpty()) {
             for (final ItemFlag flag : this.options.itemFlags()) {
@@ -369,6 +384,17 @@ public class MenuItem {
         return DeluxeMenus.getInstance()
                 .getItemHook(hookName)
                 .map(itemHook -> itemHook.getItem(args));
+    }
+
+    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        return lore.stream()
+                .map(holder::setPlaceholdersAndArguments)
+                .map(StringUtils::color)
+                .map(line -> line.split("\n"))
+                .flatMap(Arrays::stream)
+                .map(line -> line.split("\\\\n"))
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toList());
     }
 
     public @NotNull MenuItemOptions options() {

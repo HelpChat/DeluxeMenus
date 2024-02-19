@@ -6,10 +6,7 @@ import com.extendedclip.deluxemenus.action.ClickAction;
 import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
-import com.extendedclip.deluxemenus.menu.Menu;
-import com.extendedclip.deluxemenus.menu.MenuHolder;
-import com.extendedclip.deluxemenus.menu.MenuItem;
-import com.extendedclip.deluxemenus.menu.MenuItemOptions;
+import com.extendedclip.deluxemenus.menu.*;
 import com.extendedclip.deluxemenus.requirement.*;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
@@ -20,16 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -736,6 +724,7 @@ public class DeluxeMenusConfig {
               .customModelData(c.getString(currentPath + "model_data", null))
               .displayName(c.getString(currentPath + "display_name"))
               .lore(c.getStringList(currentPath + "lore"))
+              .hasLore(c.contains(currentPath + "lore"))
               .rgb(c.getString(currentPath + "rgb", null))
               .unbreakable(c.getBoolean(currentPath + "unbreakable", false))
               .updatePlaceholders(c.getBoolean(currentPath + "update", false))
@@ -748,6 +737,22 @@ public class DeluxeMenusConfig {
               .nbtStrings(c.getStringList(currentPath + "nbt_strings"))
               .nbtInts(c.getStringList(currentPath + "nbt_ints"))
               .priority(c.getInt(currentPath + "priority", 1));
+
+      // Lore Append Mode
+      if (c.contains(currentPath + "lore_append_mode")) {
+        String loreAppendMode = c.getString(currentPath + "lore_append_mode", "OVERRIDE").toUpperCase();
+        try {
+          builder.loreAppendMode(LoreAppendMode.valueOf(loreAppendMode));
+        } catch (IllegalArgumentException | NullPointerException ignored) {
+          builder.loreAppendMode(LoreAppendMode.OVERRIDE); // Defaults to override in case of invalid append mode
+          DeluxeMenus.debug(
+                  DebugLevel.HIGHEST,
+                  Level.WARNING,
+                  "Lore append mode: " + loreAppendMode + " for item: " + key + " in menu: " + name
+                          + " is not a valid lore append mode!"
+          );
+        }
+      }
 
       // item flags
       if (c.contains(currentPath + "item_flags")) {

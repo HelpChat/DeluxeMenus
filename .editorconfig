@@ -1,0 +1,34 @@
+[*.java]
+indent_style = tab
+tab_width = 4
+end_of_line = crlf
+charset = utf-8
+insert_final_newline = true
+
+ij_java_imports_layout = *,|,javax.**,java.**,|,$*
+ij_java_class_count_to_use_import_on_demand = 9999
+ij_java_names_count_to_use_import_on_demand = 9999
+
+# 'catch (' instead of 'catch('  and so on...
+ij_java_space_before_catch_parentheses = true
+ij_java_space_before_for_parentheses = true
+ij_java_space_before_if_parentheses = true
+ij_java_space_before_switch_parentheses = true
+ij_java_space_before_try_parentheses = true
+ij_java_space_before_while_parentheses = true
+
+ij_java_blank_lines_after_imports = 1 # blank line between last import and class definition
+ij_java_blank_lines_after_class_header = 1
+ij_java_blank_lines_before_class_end = 1 # blank line before closing } of class
+ij_java_blank_lines_around_method = 1
+
+ij_java_doc_enable_formatting = true
+ij_java_doc_align_param_comments = true
+ij_java_doc_align_exception_comments = true
+ij_java_doc_keep_empty_lines = true
+ij_java_doc_add_p_tag_on_empty_lines = true
+
+[*.yml]
+indent_style = space
+indent_size = 2
+charset = utf-8

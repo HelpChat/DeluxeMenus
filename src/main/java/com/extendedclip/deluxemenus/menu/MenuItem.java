@@ -28,10 +28,12 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -56,7 +58,7 @@ public class MenuItem {
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
         if (ItemUtils.isPlaceholderMaterial(lowercaseStringMaterial)) {
-            stringMaterial = holder.setPlaceholders(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
 
@@ -81,7 +83,7 @@ public class MenuItem {
             .orElse(null);
 
         if (pluginHook != null) {
-            itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
+            itemStack = pluginHook.getItem(holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length())));
         }
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {
@@ -141,7 +143,7 @@ public class MenuItem {
 
             if (meta != null) {
                 if (this.options.rgb().isPresent()) {
-                    final String rgbString = holder.setPlaceholders(this.options.rgb().get());
+                    final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
                     final String[] parts = rgbString.split(",");
 
                     try {
@@ -168,7 +170,7 @@ public class MenuItem {
         short data = this.options.data();
 
         if (this.options.placeholderData().isPresent()) {
-            final String parsedData = holder.setPlaceholders(this.options.placeholderData().get());
+            final String parsedData = holder.setPlaceholdersAndArguments(this.options.placeholderData().get());
             try {
                 data = Short.parseShort(parsedData);
             } catch (final NumberFormatException exception) {
@@ -189,7 +191,7 @@ public class MenuItem {
 
         if (this.options.dynamicAmount().isPresent()) {
             try {
-                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholders(this.options.dynamicAmount().get()));
+                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholdersAndArguments(this.options.dynamicAmount().get()));
                 amount = Math.max(dynamicAmount, 1);
             } catch (final NumberFormatException ignored) {
             }
@@ -208,29 +210,42 @@ public class MenuItem {
 
         if (this.options.customModelData().isPresent() && VersionHelper.IS_CUSTOM_MODEL_DATA) {
             try {
-                final int modelData = Integer.parseInt(holder.setPlaceholders(this.options.customModelData().get()));
+                final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get()));
                 itemMeta.setCustomModelData(modelData);
             } catch (final Exception ignored) {
             }
         }
 
         if (this.options.displayName().isPresent()) {
-            final String displayName = holder.setPlaceholders(this.options.displayName().get());
+            final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
             itemMeta.setDisplayName(StringUtils.color(displayName));
         }
 
-        if (!this.options.lore().isEmpty()) {
-            final List<String> lore = this.options.lore().stream()
-                    .map(holder::setPlaceholders)
-                    .map(StringUtils::color)
-                    .map(line -> line.split("\n"))
-                    .flatMap(Arrays::stream)
-                    .map(line -> line.split("\\\\n"))
-                    .flatMap(Arrays::stream)
-                    .collect(Collectors.toList());
-
-            itemMeta.setLore(lore);
+        List<String> lore = new ArrayList<>();
+        // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
+        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
+        // Ensures backwards compadibility with how hooked items are currently handled
+        LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
+        if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) mode = LoreAppendMode.IGNORE;
+        switch (mode) {
+            case IGNORE: // DM lore is not added at all
+                lore.addAll(itemLore);
+                break;
+            case TOP: // DM lore is added at the top
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(itemLore);
+                break;
+            case BOTTOM: // DM lore is bottom at the bottom
+                lore.addAll(itemLore);
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
+            case OVERRIDE: // Lore from DM overrides the lore from the item
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
         }
+
+        itemMeta.setLore(lore);
 
         if (!this.options.itemFlags().isEmpty()) {
             for (final ItemFlag flag : this.options.itemFlags()) {
@@ -259,7 +274,7 @@ public class MenuItem {
         }
 
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholders(this.options.rgb().get());
+            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
             final String[] parts = rgbString.split(",");
             final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 
@@ -275,7 +290,7 @@ public class MenuItem {
                 );
             }
         } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholders(this.options.rgb().get());
+            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
             final String[] parts = rgbString.split(",");
             final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
 
@@ -313,7 +328,7 @@ public class MenuItem {
 
         if (NbtProvider.isAvailable()) {
             if (this.options.nbtString().isPresent()) {
-                final String tag = holder.setPlaceholders(this.options.nbtString().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtString().get());
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
@@ -321,7 +336,7 @@ public class MenuItem {
             }
 
             if (this.options.nbtInt().isPresent()) {
-                final String tag = holder.setPlaceholders(this.options.nbtInt().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -329,7 +344,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtStrings()) {
-                final String tag = holder.setPlaceholders(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
@@ -337,7 +352,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtInts()) {
-                final String tag = holder.setPlaceholders(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -371,6 +386,17 @@ public class MenuItem {
         return DeluxeMenus.getInstance()
                 .getItemHook(hookName)
                 .map(itemHook -> itemHook.getItem(args));
+    }
+
+    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        return lore.stream()
+                .map(holder::setPlaceholdersAndArguments)
+                .map(StringUtils::color)
+                .map(line -> line.split("\n"))
+                .flatMap(Arrays::stream)
+                .map(line -> line.split("\\\\n"))
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toList());
     }
 
     public @NotNull MenuItemOptions options() {

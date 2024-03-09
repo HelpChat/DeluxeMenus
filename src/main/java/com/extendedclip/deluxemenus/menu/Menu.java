@@ -27,6 +27,25 @@ import org.jetbrains.annotations.Nullable;
 
 public class Menu extends Command {
 
+  private static final Map<String, Menu> menus = new HashMap<>();
+  private static final Set<MenuHolder> holders = new HashSet<>();
+  private static final Map<UUID, Menu> lastMenus = new HashMap<>();
+  private static CommandMap commandMap = null;
+  private final String menuName;
+  private final String menuTitle;
+  private final int size;
+  private final Map<Integer, TreeMap<Integer, MenuItem>> items;
+  private InventoryType type;
+  private List<String> menuCommands;
+  private int updateInterval;
+  private RequirementList openRequirements;
+  private ClickHandler openHandler, closeHandler;
+  private boolean registersCommand;
+  // args
+  private List<String> args;
+  private List<RequirementList> argRequirements;
+  private String argUsageMessage;
+  private boolean parsePlaceholdersInArguments;
     private static final Map<String, Menu> menus = new HashMap<>();
     private static final Set<MenuHolder> menuHolders = new HashSet<>();
     private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
@@ -35,6 +54,26 @@ public class Menu extends Command {
     private final MenuOptions options;
     private final Map<Integer, TreeMap<Integer, MenuItem>> items;
 
+  public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
+      int size, List<String> menuCommands, boolean registerCommand, List<String> args, List<RequirementList> argRequirements, boolean parsePlaceholdersInArguments) {
+    super(menuCommands.get(0));
+    this.menuName = menuName;
+    this.menuTitle = StringUtils.color(menuTitle);
+    this.items = items;
+    this.size = size;
+    this.menuCommands = menuCommands;
+    this.registersCommand = registerCommand;
+    this.args = args;
+    this.argRequirements = argRequirements;
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+    if (registerCommand) {
+      if (menuCommands.size() > 1) {
+        this.setAliases(menuCommands.subList(1, menuCommands.size()));
+      }
+      addCommand();
+    }
+    menus.put(this.menuName, this);
+  }
     public Menu(final @NotNull MenuOptions options, final @NotNull Map<Integer, TreeMap<Integer, MenuItem>> items) {
         super(options.commands().isEmpty() ? options.name() : options.commands().get(0));
 
@@ -49,6 +88,16 @@ public class Menu extends Command {
             addCommand();
         }
 
+  public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
+      int size, boolean parsePlaceholdersInArguments) {
+    super(menuName);
+    this.menuName = menuName;
+    this.menuTitle = StringUtils.color(menuTitle);
+    this.items = items;
+    this.size = size;
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+    menus.put(this.menuName, this);
+  }
         menus.put(this.options.name(), this);
     }
 
@@ -337,6 +386,7 @@ public class Menu extends Command {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
         holder.setTypedArgs(args);
+        holder.parsePlaceholdersInArguments(this.parsePlaceholdersInArguments);
 
         if (!this.handleArgRequirements(holder)) {
             return;
@@ -390,7 +440,7 @@ public class Menu extends Command {
 
             this.options.openHandler().ifPresent(h -> h.onClick(holder));
 
-            String title = StringUtils.color(holder.setPlaceholders(this.options.title()));
+            String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
 
             Inventory inventory;
 
@@ -461,4 +511,67 @@ public class Menu extends Command {
     public @NotNull MenuOptions options() {
         return this.options;
     }
+    for (String c : getMenuCommands()) {
+      if (command.equalsIgnoreCase(c)) {
+        return c;
+      }
+    }
+    return null;
+  }
+
+  public RequirementList getOpenRequirements() {
+    return openRequirements;
+  }
+
+  public void setOpenRequirements(RequirementList openRequirements) {
+    this.openRequirements = openRequirements;
+  }
+
+  public InventoryType getInventoryType() {
+    return type;
+  }
+
+  public void setInventoryType(InventoryType type) {
+    this.type = type;
+  }
+
+  public ClickHandler getOpenHandler() {
+    return openHandler;
+  }
+
+  public void setOpenHandler(ClickHandler openHandler) {
+    this.openHandler = openHandler;
+  }
+
+  public ClickHandler getCloseHandler() {
+    return closeHandler;
+  }
+
+  public void setCloseHandler(ClickHandler closeHandler) {
+    this.closeHandler = closeHandler;
+  }
+
+  public boolean registersCommand() {
+    return registersCommand;
+  }
+
+  public List<String> getArgs() {
+    return args;
+  }
+
+  public String getArgUsageMessage() {
+    return argUsageMessage;
+  }
+
+  public void setArgUsageMessage(String argUsageMessage) {
+    this.argUsageMessage = argUsageMessage;
+  }
+
+  public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
+    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+  }
+
+  public boolean parsePlaceholdersInArguments() {
+    return parsePlaceholdersInArguments;
+  }
 }

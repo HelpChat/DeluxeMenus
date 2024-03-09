@@ -17,11 +17,11 @@ public class RegexMatchesRequirement extends Requirement {
 
   @Override
   public boolean evaluate(MenuHolder holder) {
-    String toCheck = holder.setPlaceholders(input);
+    String toCheck = holder.setPlaceholdersAndArguments(input);
     if (invert) {
-      return !pattern.matcher(holder.setPlaceholders(toCheck)).find();
+      return !pattern.matcher(holder.setPlaceholdersAndArguments(toCheck)).find();
     } else {
-      return pattern.matcher(holder.setPlaceholders(toCheck)).find();
+      return pattern.matcher(holder.setPlaceholdersAndArguments(toCheck)).find();
     }
   }
 }

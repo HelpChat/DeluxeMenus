@@ -22,21 +22,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -724,6 +714,7 @@ public class DeluxeMenusConfig {
                     .customModelData(c.getString(currentPath + "model_data", null))
                     .displayName(c.getString(currentPath + "display_name"))
                     .lore(c.getStringList(currentPath + "lore"))
+                    .hasLore(c.contains(currentPath + "lore"))
                     .rgb(c.getString(currentPath + "rgb", null))
                     .unbreakable(c.getBoolean(currentPath + "unbreakable", false))
                     .updatePlaceholders(c.getBoolean(currentPath + "update", false))
@@ -755,25 +746,23 @@ public class DeluxeMenusConfig {
                     }
                 } else {
                     List<ItemFlag> flags = new ArrayList<>();
+                    }}
+      // Lore Append Mode
+      if (c.contains(currentPath + "lore_append_mode")) {
+        String loreAppendMode = c.getString(currentPath + "lore_append_mode", "OVERRIDE").toUpperCase();
+        try {
+          builder.loreAppendMode(LoreAppendMode.valueOf(loreAppendMode));
+        } catch (IllegalArgumentException | NullPointerException ignored) {
+          builder.loreAppendMode(LoreAppendMode.OVERRIDE); // Defaults to override in case of invalid append mode
+          DeluxeMenus.debug(
+                  DebugLevel.HIGHEST,
+                  Level.WARNING,
+                  "Lore append mode: " + loreAppendMode + " for item: " + key + " in menu: " + name
+                          + " is not a valid lore append mode!"
+          );
+        }
+      }
 
-                    for (String flagAsString : c.getStringList(currentPath + "item_flags")) {
-                        try {
-                            flags.add(ItemFlag.valueOf(flagAsString.toUpperCase()));
-                        } catch (Exception ignored) {
-                            DeluxeMenus.debug(
-                                    DebugLevel.HIGHEST,
-                                    Level.WARNING,
-                                    "Item flag: " + flagAsString + " for item: " + key + " in menu: " + name
-                                            + " is not a valid item flag!"
-                            );
-                        }
-                    }
-
-                    if (!flags.isEmpty()) {
-                        builder.itemFlags(flags);
-                    }
-                }
-            }
 
             if (c.contains(currentPath + "data")) {
                 if (c.isInt(currentPath + "data")) {
@@ -1467,26 +1456,25 @@ public class DeluxeMenusConfig {
                             continue;
                         }
 
-                        if (action.hasDelay()) {
-                            new ClickActionTask(
-                                    plugin,
-                                    holder.getViewer().getName(),
-                                    action.getType(),
-                                    holder.setArguments(action.getExecutable())
-                            ).runTaskLater(plugin, action.getDelay(holder));
-                            continue;
-                        }
+            final ClickActionTask actionTask = new ClickActionTask(
+                    plugin,
+                    holder.getViewer().getUniqueId(),
+                    action.getType(),
+                    action.getExecutable(),
+                    holder.getTypedArgs(),
+                    holder.parsePlaceholdersInArguments()
+            );
 
-                        new ClickActionTask(
-                                plugin,
-                                holder.getViewer().getName(),
-                                action.getType(),
-                                holder.setArguments(action.getExecutable())
-                        ).runTask(plugin);
-                    }
-                }
-            };
+            if (action.hasDelay()) {
+              actionTask.runTaskLater(plugin, action.getDelay(holder));
+              continue;
+            }
+
+            actionTask.runTask(plugin);
+          }
         }
+      };
+    }
 
         return handler;
     }

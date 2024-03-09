@@ -43,6 +43,8 @@ public class MenuItemOptions {
 
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
+    private final boolean hasLore;
+    private LoreAppendMode loreAppendMode;
 
     private final String nbtString;
     private final String nbtInt;
@@ -76,6 +78,8 @@ public class MenuItemOptions {
         this.dynamicAmount = builder.dynamicAmount;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
+        this.hasLore = builder.hasLore;
+        this.loreAppendMode = builder.loreAppendMode;
         this.baseColor = builder.baseColor;
         this.headType = builder.headType;
         this.placeholderData = builder.placeholderData;
@@ -209,6 +213,14 @@ public class MenuItemOptions {
         return loreHasPlaceholders;
     }
 
+    public boolean hasLore() {
+        return hasLore;
+    }
+
+    public @NotNull Optional<LoreAppendMode> loreAppendMode() {
+        return Optional.ofNullable(loreAppendMode);
+    }
+
     public @NotNull Optional<String> nbtString() {
         return Optional.ofNullable(nbtString);
     }
@@ -298,6 +310,8 @@ public class MenuItemOptions {
                 .dynamicAmount(this.dynamicAmount)
                 .displayName(this.displayName)
                 .lore(this.lore)
+                .hasLore(this.hasLore)
+                .loreAppendMode(this.loreAppendMode)
                 .baseColor(this.baseColor)
                 .headType(this.headType)
                 .placeholderData(this.placeholderData)
@@ -360,6 +374,8 @@ public class MenuItemOptions {
 
         private boolean displayNameHasPlaceholders;
         private boolean loreHasPlaceholders;
+        private boolean hasLore;
+        private LoreAppendMode loreAppendMode;
 
         private String nbtString;
         private String nbtInt;
@@ -524,6 +540,16 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder updatePlaceholders(final boolean updatePlaceholders) {
             this.updatePlaceholders = updatePlaceholders;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder hasLore(final boolean hasLore) {
+            this.hasLore = hasLore;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder loreAppendMode(final LoreAppendMode loreAppendMode) {
+            this.loreAppendMode = loreAppendMode;
             return this;
         }
 

@@ -90,7 +90,7 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case PLACEHOLDER:
-                holder.setPlaceholders(executable);
+                holder.ifPresent(it -> it.setPlaceholders(executable));
                 break;
 
             case CHAT:
@@ -142,14 +142,14 @@ public class ClickActionTask extends BukkitRunnable {
 
                 final Menu menuToOpen = optionalMenuToOpen.get();
 
-                final List<String> menuArgumentNames = menuToOpen.getArgs();
+                final List<String> menuArgumentNames = menuToOpen.options().arguments();
 
                 String[] passedArgumentValues = null;
                 if (executableParts.length > 1) {
                     passedArgumentValues = executableParts[1].split(" ");
                 }
 
-                if (menuArgumentNames == null || menuArgumentNames.isEmpty()) {
+                if (menuArgumentNames.isEmpty()) {
                     if (passedArgumentValues != null && passedArgumentValues.length > 0) {
                         DeluxeMenus.debug(
                                 DebugLevel.HIGHEST,

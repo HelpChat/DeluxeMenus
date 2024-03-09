@@ -16,6 +16,7 @@ public class MenuOptions {
     private final InventoryType type;
     private final int size;
     private final int updateInterval;
+    private final boolean parsePlaceholdersInArguments;
 
     private final List<String> commands;
     private final boolean registerCommands;
@@ -33,6 +34,7 @@ public class MenuOptions {
         this.type = builder.type;
         this.size = builder.size;
         this.updateInterval = builder.updateInterval;
+        this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
 
         this.commands = builder.commands;
         this.registerCommands = builder.registerCommands;
@@ -67,6 +69,10 @@ public class MenuOptions {
 
     public int updateInterval() {
         return this.updateInterval;
+    }
+
+    public boolean parsePlaceholdersInArguments() {
+        return this.parsePlaceholdersInArguments;
     }
 
     public @NotNull List<@NotNull String> commands() {
@@ -106,6 +112,7 @@ public class MenuOptions {
                 .type(this.type)
                 .size(this.size)
                 .updateInterval(this.updateInterval)
+                .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
@@ -123,6 +130,7 @@ public class MenuOptions {
         private InventoryType type = InventoryType.CHEST;
         private int size = 9;
         private int updateInterval = 10;
+        private boolean parsePlaceholdersInArguments = false;
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
@@ -161,6 +169,11 @@ public class MenuOptions {
 
         public MenuOptionsBuilder updateInterval(final int updateInterval) {
             this.updateInterval = updateInterval;
+            return this;
+        }
+
+        public MenuOptionsBuilder parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
+            this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
             return this;
         }
 

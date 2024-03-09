@@ -6,6 +6,7 @@ import com.extendedclip.deluxemenus.action.ClickAction;
 import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
+import com.extendedclip.deluxemenus.menu.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
@@ -746,7 +747,7 @@ public class DeluxeMenusConfig {
                     }
                 } else {
                     List<ItemFlag> flags = new ArrayList<>();
-                    }}
+                }}
       // Lore Append Mode
       if (c.contains(currentPath + "lore_append_mode")) {
         String loreAppendMode = c.getString(currentPath + "lore_append_mode", "OVERRIDE").toUpperCase();

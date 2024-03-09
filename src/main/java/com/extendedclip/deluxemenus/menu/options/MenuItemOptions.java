@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.menu.options;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
+import com.extendedclip.deluxemenus.menu.LoreAppendMode;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import org.bukkit.DyeColor;
 import org.bukkit.block.banner.Pattern;
@@ -44,7 +45,7 @@ public class MenuItemOptions {
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
     private final boolean hasLore;
-    private LoreAppendMode loreAppendMode;
+    private final LoreAppendMode loreAppendMode;
 
     private final String nbtString;
     private final String nbtInt;

@@ -729,6 +729,22 @@ public class DeluxeMenusConfig {
                     .nbtInts(c.getStringList(currentPath + "nbt_ints"))
                     .priority(c.getInt(currentPath + "priority", 1));
 
+            // Lore Append Mode
+            if (c.contains(currentPath + "lore_append_mode")) {
+                String loreAppendMode = c.getString(currentPath + "lore_append_mode", "OVERRIDE").toUpperCase();
+                try {
+                    builder.loreAppendMode(LoreAppendMode.valueOf(loreAppendMode));
+                } catch (IllegalArgumentException | NullPointerException ignored) {
+                    builder.loreAppendMode(LoreAppendMode.OVERRIDE); // Defaults to override in case of invalid append mode
+                    DeluxeMenus.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Lore append mode: " + loreAppendMode + " for item: " + key + " in menu: " + name
+                                    + " is not a valid lore append mode!"
+                    );
+                }
+            }
+
             // item flags
             if (c.contains(currentPath + "item_flags")) {
                 if (c.isString(currentPath + "item_flags")) {
@@ -747,23 +763,8 @@ public class DeluxeMenusConfig {
                     }
                 } else {
                     List<ItemFlag> flags = new ArrayList<>();
-                }}
-      // Lore Append Mode
-      if (c.contains(currentPath + "lore_append_mode")) {
-        String loreAppendMode = c.getString(currentPath + "lore_append_mode", "OVERRIDE").toUpperCase();
-        try {
-          builder.loreAppendMode(LoreAppendMode.valueOf(loreAppendMode));
-        } catch (IllegalArgumentException | NullPointerException ignored) {
-          builder.loreAppendMode(LoreAppendMode.OVERRIDE); // Defaults to override in case of invalid append mode
-          DeluxeMenus.debug(
-                  DebugLevel.HIGHEST,
-                  Level.WARNING,
-                  "Lore append mode: " + loreAppendMode + " for item: " + key + " in menu: " + name
-                          + " is not a valid lore append mode!"
-          );
-        }
-      }
-
+                }
+            }
 
             if (c.contains(currentPath + "data")) {
                 if (c.isInt(currentPath + "data")) {

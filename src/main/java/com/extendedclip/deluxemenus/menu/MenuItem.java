@@ -10,11 +10,14 @@ import com.extendedclip.deluxemenus.utils.VersionHelper;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.block.Banner;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -22,6 +25,9 @@ import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
@@ -269,6 +275,54 @@ public class MenuItem {
 
         if (this.options.hideUnbreakable()) {
             itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        }
+
+        final Optional<String> trimMaterialName = this.options.trimMaterial();
+        final Optional<String> trimPatternName = this.options.trimPattern();
+        if (ItemUtils.hasArmorMeta(itemStack)) {
+            if (trimMaterialName.isPresent() && trimPatternName.isPresent()) {
+                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.get(NamespacedKey.minecraft(
+                        holder.setPlaceholdersAndArguments(trimMaterialName.get().toLowerCase(Locale.getDefault()))
+                ));
+                final TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.minecraft(
+                        holder.setPlaceholdersAndArguments(trimPatternName.get().toLowerCase(Locale.getDefault()))
+                ));
+
+                if (trimMaterial != null && trimPattern != null) {
+                    final ArmorTrim armorTrim = new ArmorTrim(trimMaterial, trimPattern);
+                    final ArmorMeta armorMeta = (ArmorMeta) itemMeta;
+                    armorMeta.setTrim(armorTrim);
+                    itemStack.setItemMeta(armorMeta);
+                } else {
+                    if (trimMaterial == null) {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Trim material " + trimMaterialName.get() + " is not a valid!"
+                        );
+                    }
+
+                    if (trimPattern == null) {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Trim pattern " + trimPatternName.get() + " is not a valid!"
+                        );
+                    }
+                }
+            } else if (trimMaterialName.isPresent()) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Trim pattern is not set for item with trim material " + trimMaterialName.get()
+                );
+            } else if (trimPatternName.isPresent()) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Trim material is not set for item with trim pattern " + trimPatternName.get()
+                );
+            }
         }
 
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {

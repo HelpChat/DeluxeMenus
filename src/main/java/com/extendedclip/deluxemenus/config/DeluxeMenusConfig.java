@@ -6,22 +6,29 @@ import com.extendedclip.deluxemenus.action.ClickAction;
 import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
-import com.extendedclip.deluxemenus.menu.*;
-import com.extendedclip.deluxemenus.requirement.*;
+import com.extendedclip.deluxemenus.menu.LoreAppendMode;
+import com.extendedclip.deluxemenus.menu.Menu;
+import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.menu.MenuItem;
+import com.extendedclip.deluxemenus.menu.MenuItemOptions;
+import com.extendedclip.deluxemenus.requirement.HasExpRequirement;
+import com.extendedclip.deluxemenus.requirement.HasItemRequirement;
+import com.extendedclip.deluxemenus.requirement.HasMetaRequirement;
+import com.extendedclip.deluxemenus.requirement.HasMoneyRequirement;
+import com.extendedclip.deluxemenus.requirement.HasPermissionRequirement;
+import com.extendedclip.deluxemenus.requirement.InputResultRequirement;
+import com.extendedclip.deluxemenus.requirement.IsNearRequirement;
+import com.extendedclip.deluxemenus.requirement.IsObjectRequirement;
+import com.extendedclip.deluxemenus.requirement.JavascriptRequirement;
+import com.extendedclip.deluxemenus.requirement.RegexMatchesRequirement;
+import com.extendedclip.deluxemenus.requirement.Requirement;
+import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.extendedclip.deluxemenus.requirement.RequirementType;
+import com.extendedclip.deluxemenus.requirement.StringLengthRequirement;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.LocationUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,7 +43,29 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import static com.extendedclip.deluxemenus.utils.Constants.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.PLAYER_ITEMS;
+import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
 
 public class DeluxeMenusConfig {
 
@@ -815,6 +844,11 @@ public class DeluxeMenusConfig {
             }
           }
         }
+      }
+
+      if (VersionHelper.HAS_ARMOR_TRIMS) {
+        builder.trimMaterial(c.getString(currentPath + "trim_material", null));
+        builder.trimPattern(c.getString(currentPath + "trim_pattern", null));
       }
 
       if (c.contains(currentPath + "banner_meta") && c.isList(currentPath + "banner_meta")) {

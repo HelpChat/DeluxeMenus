@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.utils;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
@@ -66,6 +67,10 @@ public final class ItemUtils {
      */
     public static boolean isShield(@NotNull final Material material) {
         return material == Material.SHIELD;
+    }
+
+    public static boolean hasArmorMeta(@NotNull final ItemStack itemStack) {
+        return itemStack.getItemMeta() instanceof ArmorMeta;
     }
 
     /**

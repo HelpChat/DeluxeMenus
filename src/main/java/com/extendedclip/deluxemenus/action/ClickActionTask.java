@@ -350,15 +350,17 @@ public class ClickActionTask extends BukkitRunnable {
                 float volume = 1;
                 float pitch = 1;
 
-                if (!executable.contains(" ") && !isRaw) {
-                    try {
-                        sound = Sound.valueOf(executable.toUpperCase());
-                    } catch (final IllegalArgumentException exception) {
-                        DeluxeMenus.printStacktrace(
-                                "Sound name given for sound action: " + executable + ", is not a valid sound!",
-                                exception
-                        );
-                        break;
+                if (!executable.contains(" ")) {
+                    if (!isRaw) {
+                        try {
+                            sound = Sound.valueOf(executable.toUpperCase());
+                        } catch (final IllegalArgumentException exception) {
+                            DeluxeMenus.printStacktrace(
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!",
+                                    exception
+                            );
+                            break;
+                        }
                     }
                 } else {
                     String[] parts = executable.split(" ", 3);

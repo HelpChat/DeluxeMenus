@@ -346,7 +346,7 @@ public class ClickActionTask extends BukkitRunnable {
                 boolean isRaw = isRaw(actionType);
 
                 Sound sound = null;
-                final String soundName = executable;
+                String soundName = executable;
                 float volume = 1;
                 float pitch = 1;
 
@@ -375,6 +375,8 @@ public class ClickActionTask extends BukkitRunnable {
                             );
                             break;
                         }
+                    } else {
+                        soundName = parts[0];
                     }
 
                     if (parts.length == 3) {

@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Banner;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.type.Light;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -330,13 +331,28 @@ public class MenuItem {
         if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {
             final BlockDataMeta blockDataMeta = (BlockDataMeta) itemStack.getItemMeta();
             final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
-            if (blockData instanceof Levelled) {
-                final Levelled levelled = (Levelled) blockData;
+            if (blockData instanceof Light) {
+                final Light light = (Light) blockData;
                 final String parsedLightLevel = holder.setPlaceholdersAndArguments(this.options.lightLevel().get());
                 try {
-                    final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), levelled.getMaximumLevel());
-                    levelled.setLevel(Math.max(lightLevel, 0));
-                    blockDataMeta.setBlockData(levelled);
+                    final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), light.getMaximumLevel());
+                    light.setLevel(Math.max(lightLevel, 0));
+                    if (lightLevel < 0) {
+                        DeluxeMenus.debug(
+                                DebugLevel.MEDIUM,
+                                Level.WARNING,
+                                "Invalid light level found for light block: " + parsedLightLevel + ". Setting to 0."
+                        );
+                    }
+                    if (lightLevel > light.getMaximumLevel()) {
+                        DeluxeMenus.debug(
+                                DebugLevel.MEDIUM,
+                                Level.WARNING,
+                                "Invalid light level found for light block: " + parsedLightLevel + ". Setting to " + light.getMaximumLevel() + "."
+                        );
+                    }
+
+                    blockDataMeta.setBlockData(light);
                     itemStack.setItemMeta(blockDataMeta);
                 } catch (final Exception exception) {
                     DeluxeMenus.printStacktrace(

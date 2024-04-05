@@ -722,6 +722,7 @@ public class DeluxeMenusConfig {
               .amount(c.getInt(currentPath + "amount", -1))
               .dynamicAmount(c.getString(currentPath + "dynamic_amount", null))
               .customModelData(c.getString(currentPath + "model_data", null))
+              .lightLevel(c.getString(currentPath + "light_level", null))
               .displayName(c.getString(currentPath + "display_name"))
               .lore(c.getStringList(currentPath + "lore"))
               .hasLore(c.contains(currentPath + "lore"))

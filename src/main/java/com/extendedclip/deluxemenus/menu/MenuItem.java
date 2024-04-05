@@ -11,11 +11,14 @@ import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.block.Banner;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
+import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
@@ -322,6 +325,26 @@ public class MenuItem {
 
         if (!(itemMeta instanceof EnchantmentStorageMeta) && !this.options.enchantments().isEmpty()) {
             itemStack.addUnsafeEnchantments(this.options.enchantments());
+        }
+
+        if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {
+            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemStack.getItemMeta();
+            final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
+            if (blockData instanceof Levelled) {
+                final Levelled levelled = (Levelled) blockData;
+                final String parsedLightLevel = holder.setPlaceholdersAndArguments(this.options.lightLevel().get());
+                try {
+                    final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), levelled.getMaximumLevel());
+                    levelled.setLevel(Math.max(lightLevel, 0));
+                    blockDataMeta.setBlockData(levelled);
+                    itemStack.setItemMeta(blockDataMeta);
+                } catch (final Exception exception) {
+                    DeluxeMenus.printStacktrace(
+                            "Invalid light level found for light block: " + parsedLightLevel,
+                            exception
+                    );
+                }
+            }
         }
 
         if (NbtProvider.isAvailable()) {

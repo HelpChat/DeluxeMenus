@@ -23,6 +23,7 @@ public class MenuItemOptions {
     private final int amount;
     private final String customModelData;
     private final String dynamicAmount;
+    private final String lightLevel;
     private final String displayName;
     private final List<String> lore;
     private final DyeColor baseColor;
@@ -76,6 +77,7 @@ public class MenuItemOptions {
         this.amount = builder.amount;
         this.customModelData = builder.customModelData;
         this.dynamicAmount = builder.dynamicAmount;
+        this.lightLevel = builder.lightLevel;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
         this.hasLore = builder.hasLore;
@@ -139,6 +141,10 @@ public class MenuItemOptions {
 
     public @NotNull Optional<String> dynamicAmount() {
         return Optional.ofNullable(dynamicAmount);
+    }
+
+    public @NotNull Optional<String> lightLevel() {
+        return Optional.ofNullable(lightLevel);
     }
 
     public @NotNull Optional<String> displayName() {
@@ -308,6 +314,7 @@ public class MenuItemOptions {
                 .amount(this.amount)
                 .customModelData(this.customModelData)
                 .dynamicAmount(this.dynamicAmount)
+                .lightLevel(this.lightLevel)
                 .displayName(this.displayName)
                 .lore(this.lore)
                 .hasLore(this.hasLore)
@@ -354,6 +361,7 @@ public class MenuItemOptions {
         private int amount;
         private String customModelData;
         private String dynamicAmount;
+        private String lightLevel;
         private String displayName;
         private List<String> lore = Collections.emptyList();
         private DyeColor baseColor;
@@ -426,6 +434,11 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder dynamicAmount(final @Nullable String configDynamicAmount) {
             this.dynamicAmount = configDynamicAmount;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder lightLevel(final @Nullable String lightLevel) {
+            this.lightLevel = lightLevel;
             return this;
         }
 

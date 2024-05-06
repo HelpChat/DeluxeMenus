@@ -31,6 +31,9 @@ public class MenuItemOptions {
     private final String placeholderData;
     private final String rgb;
 
+    private final String trimMaterial;
+    private final String trimPattern;
+
     private final Map<Enchantment, Integer> enchantments;
     private final List<PotionEffect> potionEffects;
     private final List<Pattern> bannerMeta;
@@ -45,7 +48,7 @@ public class MenuItemOptions {
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
     private final boolean hasLore;
-    private LoreAppendMode loreAppendMode;
+    private final LoreAppendMode loreAppendMode;
 
     private final String nbtString;
     private final String nbtInt;
@@ -86,6 +89,8 @@ public class MenuItemOptions {
         this.headType = builder.headType;
         this.placeholderData = builder.placeholderData;
         this.rgb = builder.rgb;
+        this.trimMaterial = builder.trimMaterial;
+        this.trimPattern = builder.trimPattern;
         this.enchantments = builder.enchantments;
         this.potionEffects = builder.potionEffects;
         this.bannerMeta = builder.bannerMeta;
@@ -173,6 +178,14 @@ public class MenuItemOptions {
 
     public @NotNull Optional<String> rgb() {
         return Optional.ofNullable(rgb);
+    }
+
+    public @NotNull Optional<String> trimMaterial() {
+        return Optional.ofNullable(trimMaterial);
+    }
+
+    public @NotNull Optional<String> trimPattern() {
+        return Optional.ofNullable(trimPattern);
     }
 
     public @NotNull Map<Enchantment, Integer> enchantments() {
@@ -323,6 +336,8 @@ public class MenuItemOptions {
                 .headType(this.headType)
                 .placeholderData(this.placeholderData)
                 .rgb(this.rgb)
+                .trimMaterial(this.trimMaterial)
+                .trimPattern(this.trimPattern)
                 .enchantments(this.enchantments)
                 .potionEffects(this.potionEffects)
                 .bannerMeta(this.bannerMeta)
@@ -368,6 +383,9 @@ public class MenuItemOptions {
         private HeadType headType;
         private String placeholderData;
         private String rgb;
+
+        private String trimMaterial;
+        private String trimPattern;
 
         private Map<Enchantment, Integer> enchantments = Collections.emptyMap();
         private List<PotionEffect> potionEffects = Collections.emptyList();
@@ -473,6 +491,16 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder rgb(final @Nullable String rgb) {
             this.rgb = rgb;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder trimMaterial(final @Nullable String trimMaterial) {
+            this.trimMaterial = trimMaterial;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder trimPattern(final @Nullable String trimPattern) {
+            this.trimPattern = trimPattern;
             return this;
         }
 

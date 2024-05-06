@@ -277,16 +277,13 @@ public class MenuItem {
             itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         }
 
-        final Optional<String> trimMaterialName = this.options.trimMaterial();
-        final Optional<String> trimPatternName = this.options.trimPattern();
         if (ItemUtils.hasArmorMeta(itemStack)) {
+            final Optional<String> trimMaterialName = this.options.trimMaterial();
+            final Optional<String> trimPatternName = this.options.trimPattern();
+
             if (trimMaterialName.isPresent() && trimPatternName.isPresent()) {
-                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.get(NamespacedKey.minecraft(
-                        holder.setPlaceholdersAndArguments(trimMaterialName.get().toLowerCase(Locale.getDefault()))
-                ));
-                final TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.minecraft(
-                        holder.setPlaceholdersAndArguments(trimPatternName.get().toLowerCase(Locale.getDefault()))
-                ));
+                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.match(holder.setPlaceholdersAndArguments(trimMaterialName.get()));
+                final TrimPattern trimPattern = Registry.TRIM_PATTERN.match(holder.setPlaceholdersAndArguments(trimPatternName.get()));
 
                 if (trimMaterial != null && trimPattern != null) {
                     final ArmorTrim armorTrim = new ArmorTrim(trimMaterial, trimPattern);

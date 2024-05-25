@@ -23,11 +23,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -42,11 +42,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,10 +52,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLAYER_ITEMS;
@@ -814,12 +805,12 @@ public class DeluxeMenusConfig {
                 }
             }
 
-      if (VersionHelper.HAS_ARMOR_TRIMS) {
-        builder.trimMaterial(c.getString(currentPath + "trim_material", null));
-        builder.trimPattern(c.getString(currentPath + "trim_pattern", null));
-      }
+            if (VersionHelper.HAS_ARMOR_TRIMS) {
+                builder.trimMaterial(c.getString(currentPath + "trim_material", null));
+                builder.trimPattern(c.getString(currentPath + "trim_pattern", null));
+            }
 
-      if (c.contains(currentPath + "banner_meta") && c.isList(currentPath + "banner_meta")) {
+            if (c.contains(currentPath + "banner_meta") && c.isList(currentPath + "banner_meta")) {
 
                 List<org.bukkit.block.banner.Pattern> bannerMeta = new ArrayList<>();
 
@@ -1486,25 +1477,25 @@ public class DeluxeMenusConfig {
                             continue;
                         }
 
-            final ClickActionTask actionTask = new ClickActionTask(
-                    plugin,
-                    holder.getViewer().getUniqueId(),
-                    action.getType(),
-                    action.getExecutable(),
-                    holder.getTypedArgs(),
-                    holder.parsePlaceholdersInArguments()
-            );
+                        final ClickActionTask actionTask = new ClickActionTask(
+                                plugin,
+                                holder.getViewer().getUniqueId(),
+                                action.getType(),
+                                action.getExecutable(),
+                                holder.getTypedArgs(),
+                                holder.parsePlaceholdersInArguments()
+                        );
 
-            if (action.hasDelay()) {
-              actionTask.runTaskLater(plugin, action.getDelay(holder));
-              continue;
-            }
+                        if (action.hasDelay()) {
+                            actionTask.runTaskLater(plugin, action.getDelay(holder));
+                            continue;
+                        }
 
-            actionTask.runTask(plugin);
-          }
+                        actionTask.runTask(plugin);
+                    }
+                }
+            };
         }
-      };
-    }
 
         return handler;
     }

@@ -238,7 +238,7 @@ public class ClickActionTask extends BukkitRunnable {
             case REFRESH:
                 if (holder.isEmpty()) {
                     DeluxeMenus.debug(
-                            DebugLevel.HIGHEST,
+                            DebugLevel.MEDIUM,
                             Level.WARNING,
                             player.getName() + " does not have menu open! Nothing to refresh!"
                     );

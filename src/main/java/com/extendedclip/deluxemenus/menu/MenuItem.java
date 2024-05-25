@@ -12,18 +12,28 @@ import com.extendedclip.deluxemenus.utils.VersionHelper;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.block.Banner;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.type.Light;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BannerMeta;
+import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
@@ -273,6 +283,51 @@ public class MenuItem {
             itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         }
 
+        if (ItemUtils.hasArmorMeta(itemStack)) {
+            final Optional<String> trimMaterialName = this.options.trimMaterial();
+            final Optional<String> trimPatternName = this.options.trimPattern();
+
+            if (trimMaterialName.isPresent() && trimPatternName.isPresent()) {
+                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.match(holder.setPlaceholdersAndArguments(trimMaterialName.get()));
+                final TrimPattern trimPattern = Registry.TRIM_PATTERN.match(holder.setPlaceholdersAndArguments(trimPatternName.get()));
+
+                if (trimMaterial != null && trimPattern != null) {
+                    final ArmorTrim armorTrim = new ArmorTrim(trimMaterial, trimPattern);
+                    final ArmorMeta armorMeta = (ArmorMeta) itemMeta;
+                    armorMeta.setTrim(armorTrim);
+                    itemStack.setItemMeta(armorMeta);
+                } else {
+                    if (trimMaterial == null) {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Trim material " + trimMaterialName.get() + " is not a valid!"
+                        );
+                    }
+
+                    if (trimPattern == null) {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Trim pattern " + trimPatternName.get() + " is not a valid!"
+                        );
+                    }
+                }
+            } else if (trimMaterialName.isPresent()) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Trim pattern is not set for item with trim material " + trimMaterialName.get()
+                );
+            } else if (trimPatternName.isPresent()) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Trim material is not set for item with trim pattern " + trimPatternName.get()
+                );
+            }
+        }
+
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {
             final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
             final String[] parts = rgbString.split(",");
@@ -324,6 +379,41 @@ public class MenuItem {
 
         if (!(itemMeta instanceof EnchantmentStorageMeta) && !this.options.enchantments().isEmpty()) {
             itemStack.addUnsafeEnchantments(this.options.enchantments());
+        }
+
+        if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {
+            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemStack.getItemMeta();
+            final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
+            if (blockData instanceof Light) {
+                final Light light = (Light) blockData;
+                final String parsedLightLevel = holder.setPlaceholdersAndArguments(this.options.lightLevel().get());
+                try {
+                    final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), light.getMaximumLevel());
+                    light.setLevel(Math.max(lightLevel, 0));
+                    if (lightLevel < 0) {
+                        DeluxeMenus.debug(
+                                DebugLevel.MEDIUM,
+                                Level.WARNING,
+                                "Invalid light level found for light block: " + parsedLightLevel + ". Setting to 0."
+                        );
+                    }
+                    if (lightLevel > light.getMaximumLevel()) {
+                        DeluxeMenus.debug(
+                                DebugLevel.MEDIUM,
+                                Level.WARNING,
+                                "Invalid light level found for light block: " + parsedLightLevel + ". Setting to " + light.getMaximumLevel() + "."
+                        );
+                    }
+
+                    blockDataMeta.setBlockData(light);
+                    itemStack.setItemMeta(blockDataMeta);
+                } catch (final Exception exception) {
+                    DeluxeMenus.printStacktrace(
+                            "Invalid light level found for light block: " + parsedLightLevel,
+                            exception
+                    );
+                }
+            }
         }
 
         if (NbtProvider.isAvailable()) {

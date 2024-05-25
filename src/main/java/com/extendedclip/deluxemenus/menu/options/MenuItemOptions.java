@@ -24,12 +24,16 @@ public class MenuItemOptions {
     private final int amount;
     private final String customModelData;
     private final String dynamicAmount;
+    private final String lightLevel;
     private final String displayName;
     private final List<String> lore;
     private final DyeColor baseColor;
     private HeadType headType;
     private final String placeholderData;
     private final String rgb;
+
+    private final String trimMaterial;
+    private final String trimPattern;
 
     private final Map<Enchantment, Integer> enchantments;
     private final List<PotionEffect> potionEffects;
@@ -77,6 +81,7 @@ public class MenuItemOptions {
         this.amount = builder.amount;
         this.customModelData = builder.customModelData;
         this.dynamicAmount = builder.dynamicAmount;
+        this.lightLevel = builder.lightLevel;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
         this.hasLore = builder.hasLore;
@@ -85,6 +90,8 @@ public class MenuItemOptions {
         this.headType = builder.headType;
         this.placeholderData = builder.placeholderData;
         this.rgb = builder.rgb;
+        this.trimMaterial = builder.trimMaterial;
+        this.trimPattern = builder.trimPattern;
         this.enchantments = builder.enchantments;
         this.potionEffects = builder.potionEffects;
         this.bannerMeta = builder.bannerMeta;
@@ -142,6 +149,10 @@ public class MenuItemOptions {
         return Optional.ofNullable(dynamicAmount);
     }
 
+    public @NotNull Optional<String> lightLevel() {
+        return Optional.ofNullable(lightLevel);
+    }
+
     public @NotNull Optional<String> displayName() {
         return Optional.ofNullable(displayName);
     }
@@ -168,6 +179,14 @@ public class MenuItemOptions {
 
     public @NotNull Optional<String> rgb() {
         return Optional.ofNullable(rgb);
+    }
+
+    public @NotNull Optional<String> trimMaterial() {
+        return Optional.ofNullable(trimMaterial);
+    }
+
+    public @NotNull Optional<String> trimPattern() {
+        return Optional.ofNullable(trimPattern);
     }
 
     public @NotNull Map<Enchantment, Integer> enchantments() {
@@ -309,6 +328,7 @@ public class MenuItemOptions {
                 .amount(this.amount)
                 .customModelData(this.customModelData)
                 .dynamicAmount(this.dynamicAmount)
+                .lightLevel(this.lightLevel)
                 .displayName(this.displayName)
                 .lore(this.lore)
                 .hasLore(this.hasLore)
@@ -317,6 +337,8 @@ public class MenuItemOptions {
                 .headType(this.headType)
                 .placeholderData(this.placeholderData)
                 .rgb(this.rgb)
+                .trimMaterial(this.trimMaterial)
+                .trimPattern(this.trimPattern)
                 .enchantments(this.enchantments)
                 .potionEffects(this.potionEffects)
                 .bannerMeta(this.bannerMeta)
@@ -355,12 +377,16 @@ public class MenuItemOptions {
         private int amount;
         private String customModelData;
         private String dynamicAmount;
+        private String lightLevel;
         private String displayName;
         private List<String> lore = Collections.emptyList();
         private DyeColor baseColor;
         private HeadType headType;
         private String placeholderData;
         private String rgb;
+
+        private String trimMaterial;
+        private String trimPattern;
 
         private Map<Enchantment, Integer> enchantments = Collections.emptyMap();
         private List<PotionEffect> potionEffects = Collections.emptyList();
@@ -430,6 +456,11 @@ public class MenuItemOptions {
             return this;
         }
 
+        public MenuItemOptionsBuilder lightLevel(final @Nullable String lightLevel) {
+            this.lightLevel = lightLevel;
+            return this;
+        }
+
         public MenuItemOptionsBuilder displayName(final @Nullable String configDisplayName) {
             this.displayName = configDisplayName;
             if (this.displayName != null) {
@@ -461,6 +492,16 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder rgb(final @Nullable String rgb) {
             this.rgb = rgb;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder trimMaterial(final @Nullable String trimMaterial) {
+            this.trimMaterial = trimMaterial;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder trimPattern(final @Nullable String trimPattern) {
+            this.trimPattern = trimPattern;
             return this;
         }
 

@@ -337,6 +337,7 @@ public class Menu extends Command {
         }
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
+        holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
 
         if (!this.handleArgRequirements(holder)) {
             return;

@@ -182,6 +182,7 @@ public class DeluxeMenusCommands implements CommandExecutor {
                     action.getType(),
                     action.getExecutable(),
                     holder.getTypedArgs(),
+                    true,
                     true
                 );
 

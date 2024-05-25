@@ -33,6 +33,7 @@ public class ClickActionTask extends BukkitRunnable {
     // Ugly hack to get around the fact that arguments are not available at task execution time
     private final Map<String, String> arguments;
     private final boolean parsePlaceholdersInArguments;
+    private final boolean parsePlaceholdersAfterArguments;
 
     public ClickActionTask(
             @NotNull final DeluxeMenus plugin,
@@ -40,7 +41,8 @@ public class ClickActionTask extends BukkitRunnable {
             @NotNull final ActionType actionType,
             @NotNull final String exec,
             @NotNull final Map<String, String> arguments,
-            final boolean parsePlaceholdersInArguments
+            final boolean parsePlaceholdersInArguments,
+            final boolean parsePlaceholdersAfterArguments
     ) {
         this.plugin = plugin;
         this.uuid = uuid;
@@ -48,6 +50,7 @@ public class ClickActionTask extends BukkitRunnable {
         this.exec = exec;
         this.arguments = arguments;
         this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+        this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
     }
 
     @Override
@@ -58,7 +61,12 @@ public class ClickActionTask extends BukkitRunnable {
         }
 
         final Optional<MenuHolder> holder = Menu.getMenuHolder(player);
-        final String executable = StringUtils.replacePlaceholdersAndArguments(this.exec, this.arguments, player, this.parsePlaceholdersInArguments);
+        final String executable = StringUtils.replacePlaceholdersAndArguments(
+                this.exec,
+                this.arguments,
+                player,
+                this.parsePlaceholdersInArguments,
+                this.parsePlaceholdersAfterArguments);
 
 
         switch (actionType) {

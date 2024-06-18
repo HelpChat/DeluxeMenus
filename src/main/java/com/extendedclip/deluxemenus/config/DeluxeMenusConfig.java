@@ -739,7 +739,6 @@ public class DeluxeMenusConfig {
                     .hideAttributes(c.getBoolean(currentPath + "hide_attributes", false))
                     .hideUnbreakable(c.getBoolean(currentPath + "hide_unbreakable", false))
                     .hideEnchants(c.getBoolean(currentPath + "hide_enchantments", false))
-                    .hidePotionEffects(c.getBoolean(currentPath + "hide_effects", false))
                     .nbtString(c.getString(currentPath + "nbt_string", null))
                     .nbtInt(c.getString(currentPath + "nbt_int", null))
                     .nbtStrings(c.getStringList(currentPath + "nbt_strings"))
@@ -863,7 +862,6 @@ public class DeluxeMenusConfig {
 
                 if (!bannerMeta.isEmpty()) {
                     builder.bannerMeta(bannerMeta);
-                    builder.hidePotionEffects(true);
                 }
             }
 

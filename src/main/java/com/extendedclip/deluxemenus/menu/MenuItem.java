@@ -269,10 +269,6 @@ public class MenuItem {
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
 
-        if (this.options.hidePotionEffects()) {
-            itemMeta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-        }
-
         if (this.options.unbreakable()) {
             itemMeta.setUnbreakable(true);
         }

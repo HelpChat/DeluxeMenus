@@ -43,7 +43,6 @@ public class MenuItemOptions {
     private final boolean unbreakable;
     private final boolean hideAttributes;
     private final boolean hideEnchants;
-    private final boolean hidePotionEffects;
     private final boolean hideUnbreakable;
 
     private final boolean displayNameHasPlaceholders;
@@ -99,7 +98,6 @@ public class MenuItemOptions {
         this.unbreakable = builder.unbreakable;
         this.hideAttributes = builder.hideAttributes;
         this.hideEnchants = builder.hideEnchants;
-        this.hidePotionEffects = builder.hidePotionEffects;
         this.hideUnbreakable = builder.hideUnbreakable;
         this.displayNameHasPlaceholders = builder.displayNameHasPlaceholders;
         this.loreHasPlaceholders = builder.loreHasPlaceholders;
@@ -215,10 +213,6 @@ public class MenuItemOptions {
 
     public boolean hideEnchants() {
         return hideEnchants;
-    }
-
-    public boolean hidePotionEffects() {
-        return hidePotionEffects;
     }
 
     public boolean hideUnbreakable() {
@@ -346,7 +340,6 @@ public class MenuItemOptions {
                 .unbreakable(this.unbreakable)
                 .hideAttributes(this.hideAttributes)
                 .hideEnchants(this.hideEnchants)
-                .hidePotionEffects(this.hidePotionEffects)
                 .hideUnbreakable(this.hideUnbreakable)
                 .nbtString(this.nbtString)
                 .nbtInt(this.nbtInt)
@@ -396,7 +389,6 @@ public class MenuItemOptions {
         private boolean unbreakable;
         private boolean hideAttributes;
         private boolean hideEnchants;
-        private boolean hidePotionEffects;
         private boolean hideUnbreakable;
 
         private boolean displayNameHasPlaceholders;
@@ -537,11 +529,6 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder hideEnchants(final boolean hideEnchants) {
             this.hideEnchants = hideEnchants;
-            return this;
-        }
-
-        public MenuItemOptionsBuilder hidePotionEffects(final boolean hidePotionEffects) {
-            this.hidePotionEffects = hidePotionEffects;
             return this;
         }
 

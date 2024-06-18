@@ -4,7 +4,6 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 
@@ -93,8 +92,7 @@ public final class ItemUtils {
         final PotionMeta itemMeta = (PotionMeta) itemStack.getItemMeta();
 
         if (itemMeta != null) {
-            final PotionData potionData = new PotionData(PotionType.WATER);
-            itemMeta.setBasePotionData(potionData);
+            itemMeta.setBasePotionType(PotionType.WATER);
             itemStack.setItemMeta(itemMeta);
         }
 

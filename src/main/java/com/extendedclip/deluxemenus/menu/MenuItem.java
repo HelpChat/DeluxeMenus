@@ -116,9 +116,6 @@ public class MenuItem {
         if (ItemUtils.isBanner(itemStack.getType())) {
             final BannerMeta meta = (BannerMeta) itemStack.getItemMeta();
             if (meta != null) {
-                if (this.options.baseColor().isPresent()) {
-                    meta.setBaseColor(this.options.baseColor().get());
-                }
                 if (!this.options.bannerMeta().isEmpty()) {
                     meta.setPatterns(this.options.bannerMeta());
                 }

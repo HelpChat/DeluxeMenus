@@ -666,11 +666,8 @@ public class DeluxeMenusConfig {
             return;
         }
 
-        final boolean argumentsSupportPlaceholders = c.getBoolean(pre + "arguments_support_placeholders", false);
-
-        if (argumentsSupportPlaceholders) {
-            builder.parsePlaceholdersInArguments(argumentsSupportPlaceholders);
-        }
+        builder.parsePlaceholdersInArguments(c.getBoolean(pre + "arguments_support_placeholders", false));
+        builder.parsePlaceholdersAfterArguments(c.getBoolean(pre + "parse_placeholders_after_arguments", false));
 
         // Don't need to register the menu since it's done in the constructor
         new Menu(builder.build(), items);
@@ -1489,7 +1486,8 @@ public class DeluxeMenusConfig {
                                 action.getType(),
                                 action.getExecutable(),
                                 holder.getTypedArgs(),
-                                holder.parsePlaceholdersInArguments()
+                                holder.parsePlaceholdersInArguments(),
+                                holder.parsePlaceholdersAfterArguments()
                         );
 
                         if (action.hasDelay()) {

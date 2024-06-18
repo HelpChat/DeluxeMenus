@@ -2,7 +2,7 @@ api-version: 1.13
 name: DeluxeMenus
 main: com.extendedclip.deluxemenus.DeluxeMenus
 version: ${version}
-authors: [ extended_clip, Glare ]
+authors: [ HelpChat ]
 softdepend: [ PlaceholderAPI, Vault, HeadDatabase, ItemsAdder, Oraxen, ExecutableItems, ExecutableBlocks, Score ]
 description: All in one inventory menu system
 commands:

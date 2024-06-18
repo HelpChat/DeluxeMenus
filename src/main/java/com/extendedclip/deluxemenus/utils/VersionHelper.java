@@ -22,7 +22,7 @@ public final class VersionHelper {
     public static final String NMS_VERSION = PACKAGE_NAME.substring(PACKAGE_NAME.lastIndexOf('.') + 1);
 
     // ArmorTrims
-    private static final int V1_20 = 1200;
+    private static final int V1_19_4 = 1194;
     // PlayerProfile API
     private static final int V1_18_1 = 1181;
     // Mojang obfuscation changes
@@ -46,7 +46,7 @@ public final class VersionHelper {
     /**
      * Checks if the current version includes the ArmorTrims API
      */
-    public static final boolean HAS_ARMOR_TRIMS = CURRENT_VERSION >= V1_20;
+    public static final boolean HAS_ARMOR_TRIMS = CURRENT_VERSION >= V1_19_4;
     /**
      * Checks if current version includes the PlayerProfile API
      */

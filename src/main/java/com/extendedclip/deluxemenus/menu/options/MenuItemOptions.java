@@ -1,7 +1,8 @@
-package com.extendedclip.deluxemenus.menu;
+package com.extendedclip.deluxemenus.menu.options;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
+import com.extendedclip.deluxemenus.menu.LoreAppendMode;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import org.bukkit.DyeColor;
 import org.bukkit.block.banner.Pattern;

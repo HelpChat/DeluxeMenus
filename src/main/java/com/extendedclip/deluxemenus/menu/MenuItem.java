@@ -2,6 +2,8 @@ package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
+import com.extendedclip.deluxemenus.menu.options.HeadType;
+import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
@@ -10,11 +12,9 @@ import com.extendedclip.deluxemenus.utils.VersionHelper;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.block.Banner;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -281,7 +281,7 @@ public class MenuItem {
             itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         }
 
-        if (ItemUtils.hasArmorMeta(itemStack)) {
+        if (VersionHelper.HAS_ARMOR_TRIMS && ItemUtils.hasArmorMeta(itemStack)) {
             final Optional<String> trimMaterialName = this.options.trimMaterial();
             final Optional<String> trimPatternName = this.options.trimPattern();
 

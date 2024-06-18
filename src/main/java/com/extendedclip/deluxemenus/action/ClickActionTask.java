@@ -61,13 +61,17 @@ public class ClickActionTask extends BukkitRunnable {
         }
 
         final Optional<MenuHolder> holder = Menu.getMenuHolder(player);
+        final Player target = holder.isPresent() && holder.get().getPlaceholderPlayer() != null
+                ? holder.get().getPlaceholderPlayer()
+                : player;
+
+
         final String executable = StringUtils.replacePlaceholdersAndArguments(
                 this.exec,
                 this.arguments,
-                player,
+                target,
                 this.parsePlaceholdersInArguments,
                 this.parsePlaceholdersAfterArguments);
-
 
         switch (actionType) {
             case META:
@@ -413,14 +417,14 @@ public class ClickActionTask extends BukkitRunnable {
 
                 switch (actionType) {
                     case BROADCAST_SOUND:
-                        for (final Player target : Bukkit.getOnlinePlayers()) {
-                            target.playSound(target.getLocation(), sound, volume, pitch);
+                        for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
+                            broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
                         }
                         break;
 
                     case BROADCAST_WORLD_SOUND:
-                        for (final Player target : player.getWorld().getPlayers()) {
-                            target.playSound(target.getLocation(), sound, volume, pitch);
+                        for (final Player broadcastTarget : player.getWorld().getPlayers()) {
+                            broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
                         }
                         break;
 

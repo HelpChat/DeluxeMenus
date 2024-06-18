@@ -17,6 +17,7 @@ public class MenuOptions {
     private final int size;
     private final int updateInterval;
     private final boolean parsePlaceholdersInArguments;
+    private final boolean parsePlaceholdersAfterArguments;
 
     private final List<String> commands;
     private final boolean registerCommands;
@@ -35,6 +36,7 @@ public class MenuOptions {
         this.size = builder.size;
         this.updateInterval = builder.updateInterval;
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
+        this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
 
         this.commands = builder.commands;
         this.registerCommands = builder.registerCommands;
@@ -75,6 +77,10 @@ public class MenuOptions {
         return this.parsePlaceholdersInArguments;
     }
 
+    public boolean parsePlaceholdersAfterArguments() {
+        return this.parsePlaceholdersAfterArguments;
+    }
+
     public @NotNull List<@NotNull String> commands() {
         return this.commands;
     }
@@ -113,6 +119,7 @@ public class MenuOptions {
                 .size(this.size)
                 .updateInterval(this.updateInterval)
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
+                .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
@@ -131,6 +138,7 @@ public class MenuOptions {
         private int size = 9;
         private int updateInterval = 10;
         private boolean parsePlaceholdersInArguments = false;
+        private boolean parsePlaceholdersAfterArguments = false;
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
@@ -174,6 +182,11 @@ public class MenuOptions {
 
         public MenuOptionsBuilder parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
             this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
+            return this;
+        }
+
+        public MenuOptionsBuilder parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
+            this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
             return this;
         }
 

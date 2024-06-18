@@ -31,6 +31,7 @@ public class MenuHolder implements InventoryHolder {
     private Inventory inventory;
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
+    private boolean parsePlaceholdersAfterArguments;
     private Map<String, String> typedArgs;
 
     public MenuHolder(Player viewer) {
@@ -91,6 +92,9 @@ public class MenuHolder implements InventoryHolder {
     }
 
     public @NotNull String setPlaceholdersAndArguments(final @NotNull String string) {
+        if (parsePlaceholdersAfterArguments) {
+            return setPlaceholders(setArguments(string));
+        }
         return setArguments(setPlaceholders(string));
     }
 
@@ -318,8 +322,16 @@ public class MenuHolder implements InventoryHolder {
         this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
     }
 
+    public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
+        this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
+    }
+
     public boolean parsePlaceholdersInArguments() {
         return parsePlaceholdersInArguments;
+    }
+
+    public boolean parsePlaceholdersAfterArguments() {
+        return parsePlaceholdersAfterArguments;
     }
 
     public void setPlaceholderPlayer(Player placeholderPlayer) {

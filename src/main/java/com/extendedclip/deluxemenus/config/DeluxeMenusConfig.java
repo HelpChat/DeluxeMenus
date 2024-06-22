@@ -764,10 +764,9 @@ public class DeluxeMenusConfig {
             // item flags
             if (c.contains(currentPath + "item_flags")) {
                 if (c.isString(currentPath + "item_flags")) {
-                    String flagAsString = c.getString(currentPath + "item_flags");
-                    ItemFlag flag;
+                    String flagAsString = c.getString(currentPath + "item_flags", "");
                     try {
-                        flag = ItemFlag.valueOf(flagAsString.toUpperCase());
+                        ItemFlag flag = ItemFlag.valueOf(flagAsString.toUpperCase());
                         builder.itemFlags(Collections.singletonList(flag));
                     } catch (IllegalArgumentException | NullPointerException ignored) {
                         DeluxeMenus.debug(
@@ -779,6 +778,24 @@ public class DeluxeMenusConfig {
                     }
                 } else {
                     List<ItemFlag> flags = new ArrayList<>();
+
+
+                    for (String flagAsString : c.getStringList(currentPath + "item_flags")) {
+                        try {
+                            flags.add(ItemFlag.valueOf(flagAsString.toUpperCase()));
+                        } catch (Exception ignored) {
+                            DeluxeMenus.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Item flag: " + flagAsString + " for item: " + key + " in menu: " + name
+                                            + " is not a valid item flag!"
+                            );
+                        }
+                    }
+
+                    if (!flags.isEmpty()) {
+                        builder.itemFlags(flags);
+                    }
                 }
             }
 

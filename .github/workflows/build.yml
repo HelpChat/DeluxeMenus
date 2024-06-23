@@ -32,7 +32,7 @@ jobs:
     - name: Upload build
       uses: actions/upload-artifact@v4.3.3
       with:
-        name: 'Build ${{ github.sha }}'
+        name: 'DeluxeMenus build PR-${{ github.event.number }} (commit ${{ github.sha }})'
         path: build/libs
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).

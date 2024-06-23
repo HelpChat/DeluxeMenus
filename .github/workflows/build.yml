@@ -29,6 +29,9 @@ jobs:
     - name: Build with Gradle Wrapper
       run: ./gradlew shadowJar
 
+    - name: Set BUILD_NUMBER
+      run: echo "BUILD_NUMBER=PR-${{ github.event.number }}-${{ github.sha }}" >> $GITHUB_ENV
+
     - name: Upload build
       uses: actions/upload-artifact@v4.3.3
       with:

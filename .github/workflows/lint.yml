@@ -28,6 +28,6 @@ jobs:
         uses: super-linter/super-linter@v5.7.2  # x-release-please-version
         env:
           DEFAULT_BRANCH: main
-          EDITORCONFIG_FILE_NAME: .editorconfig
+          #EDITORCONFIG_FILE_NAME: .editorconfig
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

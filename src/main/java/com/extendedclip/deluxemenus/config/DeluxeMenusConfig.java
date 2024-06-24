@@ -27,9 +27,10 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
+  
 import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
 import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
+import com.google.common.base.Enums;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -132,6 +133,18 @@ public class DeluxeMenusConfig {
                     "Something went wrong while creating directory: plugins" + separator + "DeluxeMenus" + separator
                             + "gui_menus"
             );
+        }
+    }
+
+    private List<String> getStringListFromConfig(FileConfiguration config, String path) {
+        if (!config.contains(path)) {
+            return Collections.emptyList();
+        }
+
+        if (config.isList(path)) {
+            return config.getStringList(path);
+        } else {
+            return Collections.singletonList(config.getString(path, ""));
         }
     }
 
@@ -765,23 +778,25 @@ public class DeluxeMenusConfig {
 
             // item flags
             if (c.contains(currentPath + "item_flags")) {
-                if (c.isString(currentPath + "item_flags")) {
-                    String flagAsString = c.getString(currentPath + "item_flags");
-                    ItemFlag flag;
-                    try {
-                        flag = ItemFlag.valueOf(flagAsString.toUpperCase());
-                        builder.itemFlags(Collections.singletonList(flag));
-                    } catch (IllegalArgumentException | NullPointerException ignored) {
+                List<ItemFlag> itemFlags = new ArrayList<>();
+
+                for (String flagAsString : getStringListFromConfig(c, currentPath + "item_flags")) {
+                    ItemFlag flag = Enums.getIfPresent(ItemFlag.class, flagAsString.toUpperCase()).orNull();
+
+                    if (flag == null) {
                         DeluxeMenus.debug(
-                                DebugLevel.HIGHEST,
-                                Level.WARNING,
-                                "Item flag: " + flagAsString + " for item: " + key + " in menu: " + name
-                                        + " is not a valid item flag!"
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Item flag: " + flagAsString + " for item: " + key + " in menu: " + name
+                                + " is not a valid item flag!"
                         );
+                        continue;
                     }
-                } else {
-                    List<ItemFlag> flags = new ArrayList<>();
+
+                    itemFlags.add(flag);
                 }
+
+                builder.itemFlags(itemFlags);
             }
 
             if (c.contains(currentPath + "data")) {

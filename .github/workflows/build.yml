@@ -26,8 +26,19 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
+    - name: Add SHORT_SHA env property with commit short sha
+      run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
     - name: Build with Gradle Wrapper
       run: ./gradlew shadowJar
+      env:
+        BUILD_NUMBER: 'PR-${{ github.event.number }}-${{ env.SHORT_SHA }}'
+
+    - name: Upload build
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: 'DeluxeMenus build PR-${{ github.event.number }}-${{ env.SHORT_SHA }}'
+        path: build/libs
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
     # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.

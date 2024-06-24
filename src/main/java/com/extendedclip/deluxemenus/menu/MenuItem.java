@@ -259,12 +259,10 @@ public class MenuItem {
         }
 
         if (this.options.hideAttributes()) {
+            itemMeta.setAttributeModifiers(null);
             itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         }
 
-        if (this.options.hideEnchants()) {
-            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        }
 
         if (this.options.unbreakable()) {
             itemMeta.setUnbreakable(true);
@@ -363,6 +361,7 @@ public class MenuItem {
                     );
                 }
             }
+
             itemStack.setItemMeta(enchantmentStorageMeta);
         } else {
             itemStack.setItemMeta(itemMeta);
@@ -370,6 +369,12 @@ public class MenuItem {
 
         if (!(itemMeta instanceof EnchantmentStorageMeta) && !this.options.enchantments().isEmpty()) {
             itemStack.addUnsafeEnchantments(this.options.enchantments());
+        }
+
+        if (this.options.hideEnchants()) {
+            ItemMeta meta = itemStack.getItemMeta();
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            itemStack.setItemMeta(meta);
         }
 
         if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {

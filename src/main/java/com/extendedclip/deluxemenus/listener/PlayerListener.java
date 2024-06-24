@@ -12,6 +12,8 @@ import com.google.common.cache.CacheBuilder;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -98,7 +100,7 @@ public class PlayerListener implements Listener {
 
     if (Menu.isInMenu(player)) {
       Menu.closeMenu(player, false);
-      Bukkit.getScheduler().runTaskLater(plugin, () -> {
+      GlobalScheduler.get(plugin).runLater(() -> {
         Menu.cleanInventory(player, plugin.getMenuItemMarker());
         player.updateInventory();
       }, 3L);

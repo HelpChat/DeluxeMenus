@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.dupe;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -53,8 +54,7 @@ public class DupeFixer implements Listener {
 
     @EventHandler
     private void onLogin(@NotNull final PlayerLoginEvent event) {
-        plugin.getServer().getScheduler().runTaskLater(
-                plugin,
+        GlobalScheduler.get(plugin).runLater(
                 () -> {
                     for (final ItemStack itemStack : event.getPlayer().getInventory().getContents()) {
                         if (itemStack == null) continue;

@@ -28,6 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -1488,12 +1490,14 @@ public class DeluxeMenusConfig {
                                 holder.parsePlaceholdersAfterArguments()
                         );
 
+                        EntityScheduler scheduler = EntityScheduler.get(plugin, holder.getViewer());
+
                         if (action.hasDelay()) {
-                            actionTask.runTaskLater(plugin, action.getDelay(holder));
+                            scheduler.runLater(actionTask, action.getDelay(holder));
                             continue;
                         }
 
-                        actionTask.runTask(plugin);
+                        scheduler.run(actionTask);
                     }
                 }
             };

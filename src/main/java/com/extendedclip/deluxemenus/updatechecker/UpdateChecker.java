@@ -9,6 +9,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+
+import io.github.projectunified.minelib.scheduler.async.AsyncScheduler;
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -16,7 +19,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 public class UpdateChecker implements Listener {
@@ -34,21 +36,11 @@ public class UpdateChecker implements Listener {
   public UpdateChecker(final @NotNull DeluxeMenus instance) {
     plugin = instance;
 
-    new BukkitRunnable() {
-      @Override
-      public void run() {
-        if (check()) {
-          new BukkitRunnable() {
-
-            @Override
-            public void run() {
-              register();
-            }
-          }.runTask(plugin);
-        }
+    AsyncScheduler.get(plugin).run(() -> {
+      if (check()) {
+        GlobalScheduler.get(plugin).run(this::register);
       }
-
-    }.runTaskAsynchronously(plugin);
+    });
   }
 
   private void register() {

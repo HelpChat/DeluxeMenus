@@ -3,13 +3,14 @@ package com.extendedclip.deluxemenus.menu;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-import org.bukkit.Bukkit;
+import io.github.projectunified.minelib.scheduler.async.AsyncScheduler;
+import io.github.projectunified.minelib.scheduler.common.task.Task;
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +28,7 @@ public class MenuHolder implements InventoryHolder {
     private Player placeholderPlayer;
     private String menuName;
     private Set<MenuItem> activeItems;
-    private BukkitTask updateTask = null;
+    private Task updateTask = null;
     private Inventory inventory;
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
@@ -50,7 +51,7 @@ public class MenuHolder implements InventoryHolder {
         return viewer.getName();
     }
 
-    public BukkitTask getUpdateTask() {
+    public Task getUpdateTask() {
         return updateTask;
     }
 
@@ -135,7 +136,7 @@ public class MenuHolder implements InventoryHolder {
 
         stopPlaceholderUpdate();
 
-        Bukkit.getScheduler().runTaskAsynchronously(DeluxeMenus.getInstance(), () -> {
+        AsyncScheduler.get(DeluxeMenus.getInstance()).run(() -> {
 
             final Set<MenuItem> active = new HashSet<>();
 
@@ -173,7 +174,7 @@ public class MenuHolder implements InventoryHolder {
                 Menu.closeMenu(getViewer(), true);
             }
 
-            Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
+            GlobalScheduler.get(DeluxeMenus.getInstance()).run(() -> {
 
                 boolean update = false;
 
@@ -221,7 +222,7 @@ public class MenuHolder implements InventoryHolder {
             stopPlaceholderUpdate();
         }
 
-        updateTask = new BukkitRunnable() {
+        updateTask = AsyncScheduler.get(DeluxeMenus.getInstance()).runTimer(new Runnable() {
 
             @Override
             public void run() {
@@ -286,7 +287,7 @@ public class MenuHolder implements InventoryHolder {
                 }
             }
 
-        }.runTaskTimerAsynchronously(DeluxeMenus.getInstance(), 20L,
+        }, 20L,
                 20L * Menu.getMenuByName(menuName)
                         .map(Menu::options)
                         .map(MenuOptions::updateInterval)

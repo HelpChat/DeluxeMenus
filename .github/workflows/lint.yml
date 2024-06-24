@@ -27,7 +27,8 @@ jobs:
       - name: Super-linter
         uses: super-linter/super-linter@v5.7.2  # x-release-please-version
         env:
-          DEFAULT_BRANCH: main
-          #EDITORCONFIG_FILE_NAME: .editorconfig
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Will parse the entire repository and find all files to validate across all types.
+          # NOTE: When set to false, only new or edited files will be parsed for validation.
+          VALIDATE_ALL_CODEBASE: false

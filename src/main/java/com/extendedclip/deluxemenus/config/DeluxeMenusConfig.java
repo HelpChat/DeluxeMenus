@@ -27,9 +27,8 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-  
-import io.github.projectunified.minelib.scheduler.entity.EntityScheduler;
-import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
+
+import io.github.projectunified.minelib.scheduler.common.scheduler.Scheduler;
 import com.google.common.base.Enums;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -1505,7 +1504,7 @@ public class DeluxeMenusConfig {
                                 holder.parsePlaceholdersAfterArguments()
                         );
 
-                        EntityScheduler scheduler = EntityScheduler.get(plugin, holder.getViewer());
+                        Scheduler scheduler = action.getType().getScheduler().getScheduler(holder.getViewer());
 
                         if (action.hasDelay()) {
                             scheduler.runLater(actionTask, action.getDelay(holder));

@@ -1117,13 +1117,14 @@ public class DeluxeMenusConfig {
                 continue;
             }
 
-            RequirementType type = RequirementType.getType(c.getString(rPath + ".type"));
+            String stringType = c.getString(rPath + ".type");
+            RequirementType type = RequirementType.getType(stringType);
 
             if (type == null) {
                 DeluxeMenus.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
-                        "Requirement type at path: " + rPath + " is not a valid requirement type!"
+                        "Requirement type '" + stringType + "' at path '" + rPath + "' is not valid!"
                 );
                 continue;
             }

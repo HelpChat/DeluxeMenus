@@ -38,6 +38,10 @@ dependencies {
     implementation(libs.nashorn)
     implementation(libs.adventure.platform)
     implementation(libs.adventure.minimessage)
+    implementation(libs.minelib.scheduler.global)
+    implementation(libs.minelib.scheduler.async)
+    implementation(libs.minelib.scheduler.entity)
+    implementation(libs.minelib.scheduler.canceller)
 
     compileOnly("org.jetbrains:annotations:23.0.0")
 }
@@ -47,6 +51,7 @@ tasks {
         relocate("org.objectweb.asm", "com.extendedclip.deluxemenus.libs.asm")
         relocate("org.openjdk.nashorn", "com.extendedclip.deluxemenus.libs.nashorn")
         relocate("net.kyori", "com.extendedclip.deluxemenus.libs.adventure")
+        relocate("io.github.projectunified.minelib", "com.extendedclip.deluxemenus.libs.minelib")
         archiveFileName.set("DeluxeMenus-${rootProject.version}.jar")
     }
     java {

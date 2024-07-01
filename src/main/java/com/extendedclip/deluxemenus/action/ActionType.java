@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 public enum ActionType {
   META("[meta]", "Handle meta for a player",
       "- '[meta] <set/remove/add/subtract/switch> <key> <value type> <value>'"),
-  CONSOLE("[console]", "Execute a command from the console",
+  CONSOLE(ActionScheduler.GLOBAL, "[console]", "Execute a command from the console",
       "- '[console] <command with no slash>'"),
   PLAYER("[player]", "Execute a command for the menu viewer",
       "- '[player] <command with no slash>'"),
@@ -52,14 +52,20 @@ public enum ActionType {
   private static final Map<String, ActionType> BY_NAME = Arrays.stream(values())
       .collect(Collectors.toMap(e -> e.name().toUpperCase(Locale.ROOT), Function.identity()));
 
+  private final ActionScheduler scheduler;
   private final String identifier;
   private final String description;
   private final String usage;
 
-  ActionType(@NotNull final String identifier, @NotNull final String description, @NotNull final String usage) {
+  ActionType(@NotNull final ActionScheduler scheduler, @NotNull final String identifier, @NotNull final String description, @NotNull final String usage) {
+    this.scheduler = scheduler;
     this.identifier = identifier;
     this.description = description;
     this.usage = usage;
+  }
+
+  ActionType(@NotNull final String identifier, @NotNull final String description, @NotNull final String usage) {
+    this(ActionScheduler.PLAYER, identifier, description, usage);
   }
 
   /**
@@ -116,6 +122,10 @@ public enum ActionType {
     }
 
     return builder.toString();
+  }
+
+  public @NotNull ActionScheduler getScheduler() {
+    return scheduler;
   }
 
   public @NotNull String getIdentifier() {

@@ -665,7 +665,7 @@ public class DeluxeMenusConfig {
         }
 
         final int updateInterval = c.getInt(pre + "update_interval", 10);
-        builder.updateInterval(updateInterval > 1 ? updateInterval : 10);
+        builder.updateInterval(updateInterval >= 1 ? updateInterval : 10);
 
         Map<Integer, TreeMap<Integer, MenuItem>> items = loadMenuItems(c, key, mainConfig);
 

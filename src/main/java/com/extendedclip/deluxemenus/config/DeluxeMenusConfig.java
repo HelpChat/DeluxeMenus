@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Enums;
+import com.google.common.primitives.Ints;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -1543,7 +1544,7 @@ public class DeluxeMenusConfig {
                 DeluxeMenus.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
-                        "Found 'data' and 'damage' option for item: " + itemKey + " in menu: " + menuName +
+                        "Found 'data' and 'damage' options for item: " + itemKey + " in menu: " + menuName +
                                 ". 'data' option is deprecated and will be ignored. Using 'damage' instead."
                 );
             }
@@ -1557,7 +1558,7 @@ public class DeluxeMenusConfig {
             key = "damage";
         }
 
-        if (!ItemUtils.isPlaceholderOption(damageValue)) {
+        if (!ItemUtils.isPlaceholderOption(damageValue) && Ints.tryParse(damageValue) == null) {
             DeluxeMenus.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
@@ -1572,7 +1573,7 @@ public class DeluxeMenusConfig {
         }
 
         final String[] parts = damageValue.split("-", 2);
-        if (parts.length < 2 || !containsPlaceholders(parts[1])) {
+        if (parts.length >= 2 && !containsPlaceholders(parts[1])) {
             DeluxeMenus.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
@@ -1583,6 +1584,6 @@ public class DeluxeMenusConfig {
             return;
         }
 
-        builder.damage(parts[1]);
+        builder.damage(parts.length == 1 ? parts[0] : parts[1]);
     }
 }

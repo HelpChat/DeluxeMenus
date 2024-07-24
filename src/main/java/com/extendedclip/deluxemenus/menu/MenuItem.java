@@ -9,6 +9,7 @@ import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+import com.google.common.collect.ImmutableMultimap;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
@@ -394,7 +395,7 @@ public class MenuItem {
                 itemMeta.addItemFlags(flag);
 
                 if (flag == ItemFlag.HIDE_ATTRIBUTES && VersionHelper.HAS_DATA_COMPONENTS) {
-                    itemMeta.setAttributeModifiers(null);
+                    itemMeta.setAttributeModifiers(ImmutableMultimap.of());
                 }
             }
         }

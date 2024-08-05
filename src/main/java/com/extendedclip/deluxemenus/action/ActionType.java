@@ -32,7 +32,7 @@ public enum ActionType {
   CLOSE("[close]", "Close the viewers open menu", "- '[close]"),
   REFRESH("[refresh]", "Refresh items in the current menu view", "- '[refresh]"),
   BROADCAST_SOUND("[broadcastsound]", "Broadcast a sound to the server", "- '[broadcastsound]"),
-  BROADCAST_RAW_SOUND("[rawsound]", "Broadcast a RAW sound to the server", "- '[rawsound]"),
+  BROADCAST_RAW_SOUND("[broadcastrawsound]", "Broadcast a RAW sound to the server", "- '[broadcastrawsound]"),
   BROADCAST_WORLD_SOUND("[broadcastsoundworld]", "Broadcast a sound to the player's world", "- '[broadcastsoundworld]"),
   BROADCAST_WORLD_RAW_SOUND("[rawsoundworld]", "Broadcast a RAW sound to the player's world", "- '[rawsoundworld]"),
   PLAY_SOUND("[sound]", "Play a sound for a the specific player", "- '[sound]"),

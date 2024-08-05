@@ -413,28 +413,22 @@ public class ClickActionTask extends BukkitRunnable {
                     }
                 }
 
-                if (isRaw) {
-                    switch (actionType) {
-                        case BROADCAST_WORLD_RAW_SOUND:
-                            for (final Player target : player.getWorld().getPlayers()) {
-                                target.playSound(target.getLocation(), soundName, volume, pitch);
-                            }
-                            break;
-
-                        case BROADCAST_RAW_SOUND:
-                            for (final Player target : Bukkit.getOnlinePlayers()) {
-                                target.playSound(target.getLocation(), soundName, volume, pitch);
-                            }
-                            break;
-
-                        case PLAY_RAW_SOUND:
-                            player.playSound(player.getLocation(), soundName, volume, pitch);
-                            break;
-                    }
-                    break;
-                }
-
                 switch (actionType) {
+                    case BROADCAST_WORLD_RAW_SOUND:
+                        for (final Player target : player.getWorld().getPlayers()) {
+                            target.playSound(target.getLocation(), soundName, volume, pitch);
+                        }
+                        break;
+
+                    case BROADCAST_RAW_SOUND:
+                        for (final Player target : Bukkit.getOnlinePlayers()) {
+                            target.playSound(target.getLocation(), soundName, volume, pitch);
+                        }
+                        break;
+
+                    case PLAY_RAW_SOUND:
+                        player.playSound(player.getLocation(), soundName, volume, pitch);
+                        break;
                     case BROADCAST_SOUND:
                         for (final Player target : Bukkit.getOnlinePlayers()) {
                             target.playSound(target.getLocation(), sound, volume, pitch);

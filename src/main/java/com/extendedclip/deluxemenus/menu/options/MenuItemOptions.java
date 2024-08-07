@@ -1,7 +1,8 @@
-package com.extendedclip.deluxemenus.menu;
+package com.extendedclip.deluxemenus.menu.options;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
+import com.extendedclip.deluxemenus.menu.LoreAppendMode;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import org.bukkit.DyeColor;
 import org.bukkit.block.banner.Pattern;
@@ -11,40 +12,42 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class MenuItemOptions {
 
     private final String material;
-    private final short data;
+    private final String damage;
     private final int amount;
     private final String customModelData;
     private final String dynamicAmount;
+    private final String lightLevel;
     private final String displayName;
     private final List<String> lore;
     private final DyeColor baseColor;
     private HeadType headType;
-    private final String placeholderData;
     private final String rgb;
+
+    private final String trimMaterial;
+    private final String trimPattern;
 
     private final Map<Enchantment, Integer> enchantments;
     private final List<PotionEffect> potionEffects;
     private final List<Pattern> bannerMeta;
-    private final List<ItemFlag> itemFlags;
+    private final Set<ItemFlag> itemFlags = new HashSet<>();
 
     private final boolean unbreakable;
-    private final boolean hideAttributes;
-    private final boolean hideEnchants;
-    private final boolean hidePotionEffects;
-    private final boolean hideUnbreakable;
 
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
     private final boolean hasLore;
-    private LoreAppendMode loreAppendMode;
+    private final LoreAppendMode loreAppendMode;
 
     private final String nbtString;
     private final String nbtInt;
@@ -72,27 +75,25 @@ public class MenuItemOptions {
 
     private MenuItemOptions(final @NotNull MenuItemOptionsBuilder builder) {
         this.material = builder.material;
-        this.data = builder.data;
+        this.damage = builder.damage;
         this.amount = builder.amount;
         this.customModelData = builder.customModelData;
         this.dynamicAmount = builder.dynamicAmount;
+        this.lightLevel = builder.lightLevel;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
         this.hasLore = builder.hasLore;
         this.loreAppendMode = builder.loreAppendMode;
         this.baseColor = builder.baseColor;
         this.headType = builder.headType;
-        this.placeholderData = builder.placeholderData;
         this.rgb = builder.rgb;
+        this.trimMaterial = builder.trimMaterial;
+        this.trimPattern = builder.trimPattern;
         this.enchantments = builder.enchantments;
         this.potionEffects = builder.potionEffects;
         this.bannerMeta = builder.bannerMeta;
-        this.itemFlags = builder.itemFlags;
+        this.itemFlags.addAll(builder.itemFlags);
         this.unbreakable = builder.unbreakable;
-        this.hideAttributes = builder.hideAttributes;
-        this.hideEnchants = builder.hideEnchants;
-        this.hidePotionEffects = builder.hidePotionEffects;
-        this.hideUnbreakable = builder.hideUnbreakable;
         this.displayNameHasPlaceholders = builder.displayNameHasPlaceholders;
         this.loreHasPlaceholders = builder.loreHasPlaceholders;
         this.nbtString = builder.nbtString;
@@ -125,8 +126,8 @@ public class MenuItemOptions {
         return material;
     }
 
-    public short data() {
-        return data;
+    public @NotNull Optional<String> damage() {
+        return Optional.ofNullable(damage);
     }
 
     public int amount() {
@@ -139,6 +140,10 @@ public class MenuItemOptions {
 
     public @NotNull Optional<String> dynamicAmount() {
         return Optional.ofNullable(dynamicAmount);
+    }
+
+    public @NotNull Optional<String> lightLevel() {
+        return Optional.ofNullable(lightLevel);
     }
 
     public @NotNull Optional<String> displayName() {
@@ -161,12 +166,16 @@ public class MenuItemOptions {
         return Optional.ofNullable(headType);
     }
 
-    public @NotNull Optional<String> placeholderData() {
-        return Optional.ofNullable(placeholderData);
-    }
-
     public @NotNull Optional<String> rgb() {
         return Optional.ofNullable(rgb);
+    }
+
+    public @NotNull Optional<String> trimMaterial() {
+        return Optional.ofNullable(trimMaterial);
+    }
+
+    public @NotNull Optional<String> trimPattern() {
+        return Optional.ofNullable(trimPattern);
     }
 
     public @NotNull Map<Enchantment, Integer> enchantments() {
@@ -181,28 +190,12 @@ public class MenuItemOptions {
         return bannerMeta;
     }
 
-    public @NotNull List<ItemFlag> itemFlags() {
+    public @NotNull Set<ItemFlag> itemFlags() {
         return itemFlags;
     }
 
     public boolean unbreakable() {
         return unbreakable;
-    }
-
-    public boolean hideAttributes() {
-        return hideAttributes;
-    }
-
-    public boolean hideEnchants() {
-        return hideEnchants;
-    }
-
-    public boolean hidePotionEffects() {
-        return hidePotionEffects;
-    }
-
-    public boolean hideUnbreakable() {
-        return hideUnbreakable;
     }
 
     public boolean displayNameHasPlaceholders() {
@@ -304,27 +297,25 @@ public class MenuItemOptions {
     public @NotNull MenuItemOptionsBuilder asBuilder() {
         return MenuItemOptions.builder()
                 .material(this.material)
-                .data(this.data)
+                .damage(this.damage)
                 .amount(this.amount)
                 .customModelData(this.customModelData)
                 .dynamicAmount(this.dynamicAmount)
+                .lightLevel(this.lightLevel)
                 .displayName(this.displayName)
                 .lore(this.lore)
                 .hasLore(this.hasLore)
                 .loreAppendMode(this.loreAppendMode)
                 .baseColor(this.baseColor)
                 .headType(this.headType)
-                .placeholderData(this.placeholderData)
                 .rgb(this.rgb)
+                .trimMaterial(this.trimMaterial)
+                .trimPattern(this.trimPattern)
                 .enchantments(this.enchantments)
                 .potionEffects(this.potionEffects)
                 .bannerMeta(this.bannerMeta)
                 .itemFlags(this.itemFlags)
                 .unbreakable(this.unbreakable)
-                .hideAttributes(this.hideAttributes)
-                .hideEnchants(this.hideEnchants)
-                .hidePotionEffects(this.hidePotionEffects)
-                .hideUnbreakable(this.hideUnbreakable)
                 .nbtString(this.nbtString)
                 .nbtInt(this.nbtInt)
                 .nbtStrings(this.nbtStrings)
@@ -350,27 +341,26 @@ public class MenuItemOptions {
     public static class MenuItemOptionsBuilder {
 
         private String material;
-        private short data;
+        private String damage;
         private int amount;
         private String customModelData;
         private String dynamicAmount;
+        private String lightLevel;
         private String displayName;
         private List<String> lore = Collections.emptyList();
         private DyeColor baseColor;
         private HeadType headType;
-        private String placeholderData;
         private String rgb;
+
+        private String trimMaterial;
+        private String trimPattern;
 
         private Map<Enchantment, Integer> enchantments = Collections.emptyMap();
         private List<PotionEffect> potionEffects = Collections.emptyList();
         private List<Pattern> bannerMeta = Collections.emptyList();
-        private List<ItemFlag> itemFlags = Collections.emptyList();
+        private final Set<ItemFlag> itemFlags = new HashSet<>();
 
         private boolean unbreakable;
-        private boolean hideAttributes;
-        private boolean hideEnchants;
-        private boolean hidePotionEffects;
-        private boolean hideUnbreakable;
 
         private boolean displayNameHasPlaceholders;
         private boolean loreHasPlaceholders;
@@ -409,8 +399,8 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder data(final short configData) {
-            this.data = configData;
+        public MenuItemOptionsBuilder damage(final @Nullable String configDamage) {
+            this.damage = configDamage;
             return this;
         }
 
@@ -426,6 +416,11 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder dynamicAmount(final @Nullable String configDynamicAmount) {
             this.dynamicAmount = configDynamicAmount;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder lightLevel(final @Nullable String lightLevel) {
+            this.lightLevel = lightLevel;
             return this;
         }
 
@@ -453,13 +448,18 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder placeholderData(final @Nullable String placeholderData) {
-            this.placeholderData = placeholderData;
+        public MenuItemOptionsBuilder rgb(final @Nullable String rgb) {
+            this.rgb = rgb;
             return this;
         }
 
-        public MenuItemOptionsBuilder rgb(final @Nullable String rgb) {
-            this.rgb = rgb;
+        public MenuItemOptionsBuilder trimMaterial(final @Nullable String trimMaterial) {
+            this.trimMaterial = trimMaterial;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder trimPattern(final @Nullable String trimPattern) {
+            this.trimPattern = trimPattern;
             return this;
         }
 
@@ -478,8 +478,8 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder itemFlags(final @NotNull List<ItemFlag> itemFlags) {
-            this.itemFlags = itemFlags;
+        public MenuItemOptionsBuilder itemFlags(final @NotNull Collection<ItemFlag> itemFlags) {
+            this.itemFlags.addAll(itemFlags);
             return this;
         }
 
@@ -488,23 +488,36 @@ public class MenuItemOptions {
             return this;
         }
 
+        /**
+         * @deprecated Use {@link #itemFlags(Collection)} with {@link ItemFlag#HIDE_ATTRIBUTES}
+         */
+        @Deprecated()
         public MenuItemOptionsBuilder hideAttributes(final boolean hideAttributes) {
-            this.hideAttributes = hideAttributes;
+            if (hideAttributes) {
+                this.itemFlags.add(ItemFlag.HIDE_ATTRIBUTES);
+            }
             return this;
         }
 
+        /**
+         * @deprecated Use {@link #itemFlags(Collection)} with {@link ItemFlag#HIDE_ENCHANTS}
+         */
+        @Deprecated
         public MenuItemOptionsBuilder hideEnchants(final boolean hideEnchants) {
-            this.hideEnchants = hideEnchants;
+            if (hideEnchants) {
+                this.itemFlags.add(ItemFlag.HIDE_ENCHANTS);
+            }
             return this;
         }
 
-        public MenuItemOptionsBuilder hidePotionEffects(final boolean hidePotionEffects) {
-            this.hidePotionEffects = hidePotionEffects;
-            return this;
-        }
-
+        /**
+         * @deprecated Use {@link #itemFlags(Collection)} with {@link ItemFlag#HIDE_UNBREAKABLE}
+         */
+        @Deprecated
         public MenuItemOptionsBuilder hideUnbreakable(final boolean hideUnbreakable) {
-            this.hideUnbreakable = hideUnbreakable;
+            if (hideUnbreakable) {
+                this.itemFlags.add(ItemFlag.HIDE_UNBREAKABLE);
+            }
             return this;
         }
 

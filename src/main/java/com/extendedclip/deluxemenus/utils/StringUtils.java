@@ -38,9 +38,15 @@ public class StringUtils {
 
     @NotNull
     public static String replacePlaceholdersAndArguments(@NotNull String input, final @Nullable Map<String, String> arguments,
-                                                         final @Nullable Player player, boolean parsePlaceholdersInsideArguments) {
+                                                         final @Nullable Player player,
+                                                         final boolean parsePlaceholdersInsideArguments,
+                                                         final boolean parsePlaceholdersAfterArguments) {
         if (player == null) {
             return replaceArguments(input, arguments, null, parsePlaceholdersInsideArguments);
+        }
+
+        if (parsePlaceholdersAfterArguments) {
+            return replacePlaceholders(replaceArguments(input, arguments, player, parsePlaceholdersInsideArguments), player);
         }
 
         return replaceArguments(replacePlaceholders(input, player), arguments, player, parsePlaceholdersInsideArguments);

@@ -1,15 +1,17 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
+import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
+
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+
 import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -21,573 +23,443 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class Menu extends Command {
 
-  private static final Map<String, Menu> menus = new HashMap<>();
-  private static final Set<MenuHolder> holders = new HashSet<>();
-  private static final Map<UUID, Menu> lastMenus = new HashMap<>();
-  private static CommandMap commandMap = null;
-  private final String menuName;
-  private final String menuTitle;
-  private final int size;
-  private final Map<Integer, TreeMap<Integer, MenuItem>> items;
-  private InventoryType type;
-  private List<String> menuCommands;
-  private int updateInterval;
-  private RequirementList openRequirements;
-  private ClickHandler openHandler, closeHandler;
-  private boolean registersCommand;
-  // args
-  private List<String> args;
-  private List<RequirementList> argRequirements;
-  private String argUsageMessage;
-  private boolean parsePlaceholdersInArguments;
+    private static final Map<String, Menu> menus = new HashMap<>();
+    private static final Set<MenuHolder> menuHolders = new HashSet<>();
+    private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
+    private static CommandMap commandMap = null;
 
-  public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size, List<String> menuCommands, boolean registerCommand, List<String> args, List<RequirementList> argRequirements, boolean parsePlaceholdersInArguments) {
-    super(menuCommands.get(0));
-    this.menuName = menuName;
-    this.menuTitle = StringUtils.color(menuTitle);
-    this.items = items;
-    this.size = size;
-    this.menuCommands = menuCommands;
-    this.registersCommand = registerCommand;
-    this.args = args;
-    this.argRequirements = argRequirements;
-    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
-    if (registerCommand) {
-      if (menuCommands.size() > 1) {
-        this.setAliases(menuCommands.subList(1, menuCommands.size()));
-      }
-      addCommand();
-    }
-    menus.put(this.menuName, this);
-  }
+    private final MenuOptions options;
+    private final Map<Integer, TreeMap<Integer, MenuItem>> items;
 
-  public Menu(String menuName, String menuTitle, Map<Integer, TreeMap<Integer, MenuItem>> items,
-      int size, boolean parsePlaceholdersInArguments) {
-    super(menuName);
-    this.menuName = menuName;
-    this.menuTitle = StringUtils.color(menuTitle);
-    this.items = items;
-    this.size = size;
-    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
-    menus.put(this.menuName, this);
-  }
+    public Menu(final @NotNull MenuOptions options, final @NotNull Map<Integer, TreeMap<Integer, MenuItem>> items) {
+        super(options.commands().isEmpty() ? options.name() : options.commands().get(0));
 
-  public static void unload(String menu) {
-    for (Player p : Bukkit.getOnlinePlayers()) {
-      if (inMenu(p, menu)) {
-        closeMenu(p, true);
-      }
-    }
-    Menu m = Menu.getMenu(menu);
-    if (m == null) {
-      return;
-    }
+        this.options = options;
+        this.items = items;
 
-    m.removeCommand();
-    menus.remove(menu);
-  }
+        if (this.options.registerCommands()) {
+            if (this.options.commands().size() > 1) {
+                this.setAliases(this.options.commands().subList(1, this.options.commands().size()));
+            }
 
-  public static void unload() {
-    for (Player p : Bukkit.getOnlinePlayers()) {
-      if (inMenu(p)) {
-        closeMenu(p, true);
-      }
-    }
-    if (Menu.getAllMenus() != null) {
-      for (Menu menu : Menu.getAllMenus()) {
-        menu.removeCommand();
-      }
-    }
-    menus.clear();
-    holders.clear();
-    lastMenus.clear();
-  }
-
-  public static void unloadForShutdown() {
-    for (Player player : Bukkit.getOnlinePlayers()) {
-      if (inMenu(player)) {
-        closeMenuForShutdown(player);
-      }
-    }
-    menus.clear();
-  }
-
-  public static int getLoadedMenuSize() {
-    return menus.size();
-  }
-
-  public static Menu getMenu(Player p) {
-    return getOpenMenu(p);
-  }
-
-  public static Collection<Menu> getAllMenus() {
-    return !menus.isEmpty() ? menus.values() : null;
-  }
-
-  public static Menu getMenu(String menuName) {
-    for (Entry<String, Menu> e : menus.entrySet()) {
-      if (e.getKey().equalsIgnoreCase(menuName)) {
-        return e.getValue();
-      }
-    }
-    return null;
-  }
-
-  public static Menu getMenuByCommand(String command) {
-    for (Menu m : menus.values()) {
-      if (m.getMenuCommandUsed(command) != null) {
-        return m;
-      }
-    }
-    return null;
-  }
-
-  public static boolean isMenuCommand(String command) {
-    return getMenuByCommand(command) != null;
-  }
-
-  public static boolean inMenu(Player p) {
-    return holders.stream().anyMatch(h -> h.getViewerName().equals(p.getName()));
-  }
-
-  public static boolean inMenu(Player p, String menu) {
-    return holders.stream().anyMatch(h -> h.getMenuName().equals(menu) && h.getViewerName().equals(p.getName()));
-  }
-
-  public static MenuHolder getMenuHolder(Player p) {
-    return holders.stream().filter(h -> h.getViewerName().equals(p.getName())).findFirst()
-        .orElse(null);
-  }
-
-  public static Menu getOpenMenu(Player p) {
-    MenuHolder h = getMenuHolder(p);
-    return h == null ? null : h.getMenu();
-  }
-  public static Menu getLastMenu(Player p) {
-    return lastMenus.get(p.getUniqueId());
-  }
-
-  public static void cleanInventory(Player player, @NotNull final MenuItemMarker marker) {
-    if (player == null) {
-      return;
-    }
-    for (final ItemStack itemStack : player.getInventory().getContents()) {
-      if (itemStack == null) continue;
-      if (!marker.isMarked(itemStack)) continue;
-
-      DeluxeMenus.debug(
-              DebugLevel.LOWEST,
-              Level.INFO,
-                "Found a DeluxeMenus item in a player's inventory. Removing it."
-      );
-      player.getInventory().remove(itemStack);
-    }
-    player.updateInventory();
-  }
-
-  public static void closeMenu(final Player p, boolean close, boolean executeCloseActions) {
-
-    MenuHolder holder = getMenuHolder(p);
-    if (holder == null) {
-      return;
-    }
-
-    holder.stopPlaceholderUpdate();
-
-    if (executeCloseActions) {
-      if (holder.getMenu().getCloseHandler() != null) {
-        holder.getMenu().getCloseHandler().onClick(holder);
-      }
-    }
-
-    if (close) {
-      Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
-        p.closeInventory();
-        cleanInventory(p, DeluxeMenus.getInstance().getMenuItemMarker());
-      });
-    }
-    holders.remove(holder);
-    lastMenus.put(p.getUniqueId(), holder.getMenu());
-  }
-
-  public static void closeMenuForShutdown(final Player p) {
-    MenuHolder holder = getMenuHolder(p);
-    if (holder == null) {
-      return;
-    }
-
-    holder.stopPlaceholderUpdate();
-
-    p.closeInventory();
-    cleanInventory(p, DeluxeMenus.getInstance().getMenuItemMarker());
-  }
-
-  public static void closeMenu(final Player p, boolean close) {
-    closeMenu(p, close, false);
-  }
-
-  private void addCommand() {
-    if (commandMap == null) {
-      try {
-        final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-        f.setAccessible(true);
-        commandMap = (CommandMap) f.get(Bukkit.getServer());
-      } catch (Exception e) {
-        e.printStackTrace();
-        return;
-      }
-    }
-    boolean registered = commandMap.register("DeluxeMenus", this);
-    if (registered) {
-      DeluxeMenus.debug(
-          DebugLevel.LOW,
-          Level.INFO,
-          "Registered command: " + this.getName() + " for menu: " + this.getMenuName()
-      );
-    }
-  }
-
-  private void removeCommand() {
-    if (commandMap != null && this.registersCommand()) {
-      Field cMap;
-      Field knownCommands;
-      try {
-        cMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-        cMap.setAccessible(true);
-        knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
-        knownCommands.setAccessible(true);
-        ((Map<String, Command>) knownCommands.get((SimpleCommandMap) cMap.get(Bukkit.getServer())))
-            .remove(this.getName());
-        boolean unregistered = this.unregister((CommandMap) cMap.get(Bukkit.getServer()));
-        this.unregister(commandMap);
-        if (unregistered) {
-          DeluxeMenus.debug(
-              DebugLevel.HIGH,
-              Level.INFO,
-              "Successfully unregistered command: " + this.getName()
-          );
-        } else {
-          DeluxeMenus.debug(
-              DebugLevel.HIGHEST,
-              Level.WARNING,
-              "Failed to unregister command: " + this.getName()
-          );
+            addCommand();
         }
-      } catch (Exception ex) {
-        ex.printStackTrace();
-      }
-    }
-  }
-
-  @Override
-  public boolean execute(CommandSender sender, String commandLabel, String[] typedArgs) {
-    if (!(sender instanceof Player)) {
-      Msg.msg(sender, "Menus can only be opened by players!");
-      return true;
+        menus.put(this.options.name(), this);
     }
 
-    Map<String, String> argMap = null;
+    public static void unload(final @NotNull String name) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (isInMenu(p, name)) {
+                closeMenu(p, true);
+            }
+        }
 
-    if (!this.args.isEmpty()) {
-      DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "has args");
-      if (typedArgs.length < this.args.size()) {
-        if (this.argUsageMessage != null) {
-          Msg.msg(sender, this.argUsageMessage);
+        Optional<Menu> menu = Menu.getMenuByName(name);
+        if (menu.isEmpty()) {
+            return;
+        }
+
+        menu.get().removeCommand();
+        menus.remove(name);
+    }
+
+    public static void unload() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (isInMenu(p)) {
+                closeMenu(p, true);
+            }
+        }
+        for (Menu menu : Menu.getAllMenus()) {
+            menu.removeCommand();
+        }
+        menus.clear();
+        menuHolders.clear();
+        lastOpenedMenus.clear();
+    }
+
+    public static void unloadForShutdown() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (isInMenu(player)) {
+                closeMenuForShutdown(player);
+            }
+        }
+        menus.clear();
+    }
+
+    public static int getLoadedMenuSize() {
+        return menus.size();
+    }
+
+    public static @NotNull Collection<Menu> getAllMenus() {
+        return menus.values();
+    }
+
+    public static @NotNull Optional<Menu> getMenuByName(final @NotNull String name) {
+        return menus.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase(name)).findFirst().map(Entry::getValue);
+    }
+
+    public static @NotNull Optional<Menu> getMenuByCommand(final @NotNull String command) {
+        return menus.values().stream().filter(m -> m.getMenuCommandUsed(command).isPresent()).findFirst();
+    }
+
+    public static boolean isMenuCommand(final @NotNull String command) {
+        return getMenuByCommand(command).isPresent();
+    }
+
+    public static boolean isInMenu(final @NotNull Player player) {
+        return menuHolders.stream().anyMatch(h -> h.getViewerName().equals(player.getName()));
+    }
+
+    public static boolean isInMenu(final @NotNull Player player, final @NotNull String menu) {
+        return menuHolders.stream().anyMatch(h -> h.getMenuName().equals(menu) && h.getViewerName().equals(player.getName()));
+    }
+
+    public static Optional<MenuHolder> getMenuHolder(final @NotNull Player player) {
+        return menuHolders.stream().filter(h -> h.getViewerName().equals(player.getName())).findFirst();
+    }
+
+    public static Optional<Menu> getOpenMenu(final @NotNull Player player) {
+        return getMenuHolder(player).flatMap(MenuHolder::getMenu);
+    }
+
+    public static Optional<Menu> getLastMenu(final @NotNull Player player) {
+        return Optional.ofNullable(lastOpenedMenus.get(player.getUniqueId()));
+    }
+
+    public static void cleanInventory(final @NotNull Player player, final @NotNull MenuItemMarker marker) {
+        for (final ItemStack itemStack : player.getInventory().getContents()) {
+            if (itemStack == null) continue;
+            if (!marker.isMarked(itemStack)) continue;
+
+            DeluxeMenus.debug(
+                    DebugLevel.LOWEST,
+                    Level.INFO,
+                    "Found a DeluxeMenus item in a player's inventory. Removing it."
+            );
+            player.getInventory().remove(itemStack);
+        }
+        player.updateInventory();
+    }
+
+    public static void closeMenu(final @NotNull Player player, final boolean close, final boolean executeCloseActions) {
+        Optional<MenuHolder> optionalHolder = getMenuHolder(player);
+        if (optionalHolder.isEmpty()) {
+            return;
+        }
+
+        MenuHolder holder = optionalHolder.get();
+
+        holder.stopPlaceholderUpdate();
+
+        if (executeCloseActions) {
+            holder.getMenu().map(Menu::options).map(MenuOptions::closeHandler).flatMap(h -> h).ifPresent(h -> h.onClick(holder));
+        }
+
+        if (close) {
+            Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
+                player.closeInventory();
+                cleanInventory(player, DeluxeMenus.getInstance().getMenuItemMarker());
+            });
+        }
+        menuHolders.remove(holder);
+        lastOpenedMenus.put(player.getUniqueId(), holder.getMenu().orElse(null));
+    }
+
+    public static void closeMenuForShutdown(final @NotNull Player player) {
+        getMenuHolder(player).ifPresent(MenuHolder::stopPlaceholderUpdate);
+
+        player.closeInventory();
+        cleanInventory(player, DeluxeMenus.getInstance().getMenuItemMarker());
+    }
+
+    public static void closeMenu(final @NotNull Player player, final boolean close) {
+        closeMenu(player, close, false);
+    }
+
+    private void addCommand() {
+        if (commandMap == null) {
+            try {
+                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+                f.setAccessible(true);
+                commandMap = (CommandMap) f.get(Bukkit.getServer());
+            } catch (final @NotNull Exception exception) {
+                DeluxeMenus.printStacktrace(
+                        "Something went wrong while trying to register command: " + this.getName(),
+                        exception
+                );
+                return;
+            }
+        }
+        boolean registered = commandMap.register("DeluxeMenus", this);
+        if (registered) {
+            DeluxeMenus.debug(
+                    DebugLevel.LOW,
+                    Level.INFO,
+                    "Registered command: " + this.getName() + " for menu: " + this.options.name()
+            );
+        }
+    }
+
+    private void removeCommand() {
+        if (commandMap != null && this.options.registerCommands()) {
+            Field cMap;
+            Field knownCommands;
+            try {
+                cMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+                cMap.setAccessible(true);
+                knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
+                knownCommands.setAccessible(true);
+                ((Map<String, Command>) knownCommands.get((SimpleCommandMap) cMap.get(Bukkit.getServer())))
+                        .remove(this.getName());
+                boolean unregistered = this.unregister((CommandMap) cMap.get(Bukkit.getServer()));
+                this.unregister(commandMap);
+                if (unregistered) {
+                    DeluxeMenus.debug(
+                            DebugLevel.HIGH,
+                            Level.INFO,
+                            "Successfully unregistered command: " + this.getName()
+                    );
+                } else {
+                    DeluxeMenus.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Failed to unregister command: " + this.getName()
+                    );
+                }
+            } catch (final @NotNull Exception exception) {
+                DeluxeMenus.printStacktrace(
+                        "Something went wrong while trying to unregister command: " + this.getName(),
+                        exception
+                );
+            }
+        }
+    }
+
+    @Override
+    public boolean execute(final @NotNull CommandSender sender, final @NotNull String commandLabel, final @NotNull String[] typedArgs) {
+        if (!(sender instanceof Player)) {
+            Msg.msg(sender, "Menus can only be opened by players!");
+            return true;
+        }
+
+        Map<String, String> argMap = null;
+
+        if (!this.options.arguments().isEmpty()) {
+            DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "has args");
+            if (typedArgs.length < this.options.arguments().size()) {
+                if (this.options.argumentsUsageMessage().isPresent()) {
+                    Msg.msg(sender, this.options.argumentsUsageMessage().get());
+                }
+                return true;
+            }
+            argMap = new HashMap<>();
+            int index = 0;
+            for (String arg : this.options.arguments()) {
+                if (index + 1 == this.options.arguments().size()) {
+                    String last = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
+                    DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + last);
+                    argMap.put(arg, last);
+                } else {
+                    argMap.put(arg, typedArgs[index]);
+                    DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + typedArgs[index]);
+                }
+                index++;
+            }
+        }
+
+        Player player = (Player) sender;
+        DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "opening menu: " + this.options.name());
+        openMenu(player, argMap, null);
+        return true;
+    }
+
+    private boolean hasOpenBypassPerm(final @NotNull Player viewer) {
+        return viewer.hasPermission("deluxemenus.openrequirement.bypass." + this.options.name())
+                || viewer.hasPermission("deluxemenus.openrequirement.bypass.*");
+    }
+
+    private boolean handleOpenRequirements(final @NotNull MenuHolder holder) {
+        if (this.options.openRequirements().isEmpty()) {
+            return true;
+        }
+
+        final RequirementList openRequirements = this.options.openRequirements().get();
+        if (openRequirements.getRequirements() == null) {
+            return true;
+        }
+
+        if (holder.getViewer() != null && this.hasOpenBypassPerm(holder.getViewer())) {
+            return true;
+        }
+
+        if (!openRequirements.evaluate(holder)) {
+            if (openRequirements.getDenyHandler() != null) {
+                openRequirements.getDenyHandler().onClick(holder);
+            }
+            return false;
         }
         return true;
-      }
-      argMap = new HashMap<>();
-      int index = 0;
-      for (String arg : this.args) {
-        if (index + 1 == this.args.size()) {
-          String last = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
-          DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + last);
-          argMap.put(arg, last);
-        } else {
-          argMap.put(arg, typedArgs[index]);
-          DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + typedArgs[index]);
-        }
-        index++;
-      }
     }
 
-    Player player = (Player) sender;
-    DeluxeMenus.debug(DebugLevel.LOWEST, Level.INFO, "opening menu: " + this.menuName);
-    openMenu(player, argMap, null);
-    return true;
-  }
-
-  private boolean hasOpenBypassPerm(Player viewer) {
-    return viewer.hasPermission("deluxemenus.openrequirement.bypass." + menuName)
-        || viewer.hasPermission("deluxemenus.openrequirement.bypass.*");
-  }
-
-  private boolean handleOpenRequirements(MenuHolder holder) {
-    if (openRequirements == null || openRequirements.getRequirements() == null) {
-      return true;
-    }
-
-    if (holder.getViewer() != null && this.hasOpenBypassPerm(holder.getViewer())) {
-      return true;
-    }
-
-    if (!openRequirements.evaluate(holder)) {
-      if (openRequirements.getDenyHandler() != null) {
-        openRequirements.getDenyHandler().onClick(holder);
-      }
-      return false;
-    }
-    return true;
-  }
-
-  private boolean handleArgRequirements(MenuHolder holder) {
-    if (argRequirements == null) {
-      return true;
-    }
-
-    for (RequirementList rl : argRequirements) {
-      if (rl.getRequirements() == null) {
-        continue;
-      }
-
-      if (!rl.evaluate(holder)) {
-        if (rl.getDenyHandler() != null) {
-          rl.getDenyHandler().onClick(holder);
-        }
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  public void openMenu(final Player viewer) {
-    openMenu(viewer, null, null);
-  }
-
-  public void openMenu(final Player viewer, final Map<String, String> args, final Player placeholderPlayer) {
-    if (menuTitle == null || items == null || items.size() <= 0) {
-      return;
-    }
-
-    final MenuHolder holder = new MenuHolder(viewer);
-    if (placeholderPlayer != null) {
-      holder.setPlaceholderPlayer(placeholderPlayer);
-    }
-    holder.setTypedArgs(args);
-    holder.parsePlaceholdersInArguments(this.parsePlaceholdersInArguments);
-
-    if (!this.handleArgRequirements(holder)) {
-      return;
-    }
-
-    if (!this.handleOpenRequirements(holder)) {
-      return;
-    }
-
-    Bukkit.getScheduler().runTaskAsynchronously(DeluxeMenus.getInstance(), () -> {
-
-      Set<MenuItem> activeItems = new HashSet<>();
-
-      for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
-
-        for (MenuItem item : entry.getValue().values()) {
-
-          int slot = item.options().slot();
-
-          if (slot >= size) {
-            DeluxeMenus.debug(
-                DebugLevel.HIGHEST,
-                Level.WARNING,
-                "Item set to slot " + slot + " for menu: " + menuName + " exceeds the inventory size!",
-                "This item will not be added to the menu!"
-            );
-            continue;
-          }
-
-          if (item.options().viewRequirements().isPresent()) {
-
-            if (item.options().viewRequirements().get().evaluate(holder)) {
-
-              activeItems.add(item);
-              break;
+    private boolean handleArgRequirements(final @NotNull MenuHolder holder) {
+        for (RequirementList rl : this.options.argumentRequirements()) {
+            if (rl.getRequirements() == null) {
+                continue;
             }
-          } else {
 
-            activeItems.add(item);
-            break;
-          }
-        }
-      }
-
-      if (activeItems.isEmpty()) {
-        return;
-      }
-
-      holder.setMenuName(menuName);
-      holder.setActiveItems(activeItems);
-
-      if (this.openHandler != null) {
-        this.openHandler.onClick(holder);
-      }
-
-      String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.menuTitle));
-
-      Inventory inventory;
-
-      if (type != null) {
-        inventory = Bukkit.createInventory(holder, type, title);
-      } else {
-        inventory = Bukkit.createInventory(holder, size, title);
-      }
-
-      holder.setInventory(inventory);
-
-      boolean update = false;
-
-      for (MenuItem item : activeItems) {
-
-        ItemStack iStack = item.getItemStack(holder);
-
-        if (iStack == null) {
-          continue;
+            if (!rl.evaluate(holder)) {
+                if (rl.getDenyHandler() != null) {
+                    rl.getDenyHandler().onClick(holder);
+                }
+                return false;
+            }
         }
 
-        iStack = DeluxeMenus.getInstance().getMenuItemMarker().mark(iStack);
-
-        int slot = item.options().slot();
-
-        if (slot >= size) {
-          DeluxeMenus.debug(
-              DebugLevel.HIGHEST,
-              Level.WARNING,
-              "Item set to slot " + slot + " for menu: " + menuName + " exceeds the inventory size!",
-              "This item will not be added to the menu!"
-          );
-          continue;
-        }
-
-        if (item.options().updatePlaceholders()) {
-          update = true;
-        }
-
-        inventory.setItem(item.options().slot(), iStack);
-      }
-
-      final boolean updatePlaceholders = update;
-
-      Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
-        if (inMenu(holder.getViewer())) {
-          closeMenu(holder.getViewer(), false);
-        }
-
-        viewer.openInventory(inventory);
-        holders.add(holder);
-
-        if (updatePlaceholders) {
-          holder.startUpdatePlaceholdersTask();
-        }
-      });
-    });
-  }
-
-  public String getMenuTitle() {
-    return menuTitle;
-  }
-
-  public String getMenuName() {
-    return this.menuName;
-  }
-
-  public List<String> getMenuCommands() {
-    return this.menuCommands;
-  }
-
-  public Map<Integer, TreeMap<Integer, MenuItem>> getMenuItems() {
-    return this.items;
-  }
-
-  public int getSize() {
-    return this.size;
-  }
-
-  public int getUpdateInterval() {
-    return updateInterval >= 1 ? updateInterval : 10;
-  }
-
-  public void setUpdateInterval(int updateInterval) {
-    this.updateInterval = updateInterval;
-  }
-
-  public String getMenuCommandUsed(String command) {
-    if (getMenuCommands() == null) {
-      return null;
+        return true;
     }
-    for (String c : getMenuCommands()) {
-      if (command.equalsIgnoreCase(c)) {
-        return c;
-      }
+
+    public void openMenu(final @NotNull Player viewer) {
+        openMenu(viewer, null, null);
     }
-    return null;
-  }
 
-  public RequirementList getOpenRequirements() {
-    return openRequirements;
-  }
+    public void openMenu(final @NotNull Player viewer, final @Nullable Map<String, String> args, final @Nullable Player placeholderPlayer) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
 
-  public void setOpenRequirements(RequirementList openRequirements) {
-    this.openRequirements = openRequirements;
-  }
+        final MenuHolder holder = new MenuHolder(viewer);
+        if (placeholderPlayer != null) {
+            holder.setPlaceholderPlayer(placeholderPlayer);
+        }
+        holder.setTypedArgs(args);
+        holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
+        holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
 
-  public InventoryType getInventoryType() {
-    return type;
-  }
+        if (!this.handleArgRequirements(holder)) {
+            return;
+        }
 
-  public void setInventoryType(InventoryType type) {
-    this.type = type;
-  }
+        if (!this.handleOpenRequirements(holder)) {
+            return;
+        }
 
-  public ClickHandler getOpenHandler() {
-    return openHandler;
-  }
+        Bukkit.getScheduler().runTaskAsynchronously(DeluxeMenus.getInstance(), () -> {
 
-  public void setOpenHandler(ClickHandler openHandler) {
-    this.openHandler = openHandler;
-  }
+            Set<MenuItem> activeItems = new HashSet<>();
 
-  public ClickHandler getCloseHandler() {
-    return closeHandler;
-  }
+            for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
 
-  public void setCloseHandler(ClickHandler closeHandler) {
-    this.closeHandler = closeHandler;
-  }
+                for (MenuItem item : entry.getValue().values()) {
 
-  public boolean registersCommand() {
-    return registersCommand;
-  }
+                    int slot = item.options().slot();
 
-  public List<String> getArgs() {
-    return args;
-  }
+                    if (slot >= this.options.size()) {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
+                                "This item will not be added to the menu!"
+                        );
+                        continue;
+                    }
 
-  public String getArgUsageMessage() {
-    return argUsageMessage;
-  }
+                    if (item.options().viewRequirements().isPresent()) {
 
-  public void setArgUsageMessage(String argUsageMessage) {
-    this.argUsageMessage = argUsageMessage;
-  }
+                        if (item.options().viewRequirements().get().evaluate(holder)) {
 
-  public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
-    this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
-  }
+                            activeItems.add(item);
+                            break;
+                        }
+                    } else {
 
-  public boolean parsePlaceholdersInArguments() {
-    return parsePlaceholdersInArguments;
-  }
+                        activeItems.add(item);
+                        break;
+                    }
+                }
+            }
+
+            if (activeItems.isEmpty()) {
+                return;
+            }
+
+            holder.setMenuName(this.options.name());
+            holder.setActiveItems(activeItems);
+
+            this.options.openHandler().ifPresent(h -> h.onClick(holder));
+
+            String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
+
+            Inventory inventory;
+
+            if (this.options.type() != InventoryType.CHEST) {
+                inventory = Bukkit.createInventory(holder, this.options.type(), title);
+            } else {
+                inventory = Bukkit.createInventory(holder, this.options.size(), title);
+            }
+
+            holder.setInventory(inventory);
+
+            boolean update = false;
+
+            for (MenuItem item : activeItems) {
+
+                ItemStack iStack = item.getItemStack(holder);
+
+                if (iStack == null) {
+                    continue;
+                }
+
+                iStack = DeluxeMenus.getInstance().getMenuItemMarker().mark(iStack);
+
+                int slot = item.options().slot();
+
+                if (slot >= this.options.size()) {
+                    DeluxeMenus.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
+                            "This item will not be added to the menu!"
+                    );
+                    continue;
+                }
+
+                if (item.options().updatePlaceholders()) {
+                    update = true;
+                }
+
+                inventory.setItem(item.options().slot(), iStack);
+            }
+
+            final boolean updatePlaceholders = update;
+
+            Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
+                if (isInMenu(holder.getViewer())) {
+                    closeMenu(holder.getViewer(), false);
+                }
+
+                viewer.openInventory(inventory);
+                menuHolders.add(holder);
+
+                if (updatePlaceholders) {
+                    holder.startUpdatePlaceholdersTask();
+                }
+            });
+        });
+    }
+
+    public @NotNull Map<Integer, TreeMap<Integer, MenuItem>> getMenuItems() {
+        return this.items;
+    }
+
+    public @NotNull Optional<String> getMenuCommandUsed(final @NotNull String command) {
+        return this.options.commands().stream().filter(c -> c.equalsIgnoreCase(command)).findFirst();
+    }
+
+    public @NotNull MenuOptions options() {
+        return this.options;
+    }
 }

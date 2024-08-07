@@ -429,14 +429,14 @@ public class ClickActionTask extends BukkitRunnable {
 
                 switch (actionType) {
                     case BROADCAST_WORLD_RAW_SOUND:
-                        for (final Player target : player.getWorld().getPlayers()) {
-                            target.playSound(target.getLocation(), soundName, volume, pitch);
+                        for (final Player broadcastTarget : player.getWorld().getPlayers()) {
+                            broadcastTarget.playSound(broadcastTarget.getLocation(), soundName, volume, pitch);
                         }
                         break;
 
                     case BROADCAST_RAW_SOUND:
-                        for (final Player target : Bukkit.getOnlinePlayers()) {
-                            target.playSound(target.getLocation(), soundName, volume, pitch);
+                        for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
+                            broadcastTarget.playSound(broadcastTarget.getLocation(), soundName, volume, pitch);
                         }
                         break;
 

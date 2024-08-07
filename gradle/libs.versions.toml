@@ -14,6 +14,7 @@ score = "4.23.10.8"
 nashorn = "15.4"
 adventure-platform = "4.3.3"
 adventure-minimessage = "4.17.0"
+minelib = "1.2.1"
 
 [libraries]
 # Compile only
@@ -31,3 +32,7 @@ score = { module = "com.github.Ssomar-Developement:SCore", version.ref = "score"
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }
 adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
 adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
+minelib-scheduler-global = { module = "io.github.projectunified:minelib-scheduler-global", version.ref = "minelib" }
+minelib-scheduler-async = { module = "io.github.projectunified:minelib-scheduler-async", version.ref = "minelib" }
+minelib-scheduler-entity = { module = "io.github.projectunified:minelib-scheduler-entity", version.ref = "minelib" }
+minelib-scheduler-canceller = { module = "io.github.projectunified:minelib-scheduler-canceller", version.ref = "minelib" }

@@ -25,6 +25,7 @@ import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -66,7 +67,7 @@ public class MenuItem {
         String stringMaterial = this.options.material();
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
-        if (ItemUtils.isPlaceholderMaterial(lowercaseStringMaterial)) {
+        if (ItemUtils.isPlaceholderOption(lowercaseStringMaterial)) {
             stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
@@ -173,22 +174,23 @@ public class MenuItem {
             return itemStack;
         }
 
-        short data = this.options.data();
-
-        if (this.options.placeholderData().isPresent()) {
-            final String parsedData = holder.setPlaceholdersAndArguments(this.options.placeholderData().get());
+        if (this.options.damage().isPresent()) {
+            final String parsedDamage = holder.setPlaceholdersAndArguments(this.options.damage().get());
             try {
-                data = Short.parseShort(parsedData);
+                int damage = Integer.parseInt(parsedDamage);
+                if (damage > 0) {
+                    final ItemMeta meta = itemStack.getItemMeta();
+                    if (meta instanceof Damageable) {
+                        ((Damageable) meta).setDamage(damage);
+                        itemStack.setItemMeta(meta);
+                    }
+                }
             } catch (final NumberFormatException exception) {
                 DeluxeMenus.printStacktrace(
-                        "Invalid placeholder data found: " + parsedData + ".",
+                        "Invalid damage found: " + parsedDamage + ".",
                         exception
                 );
             }
-        }
-
-        if (data > 0) {
-            itemStack.setDurability(data);
         }
 
         if (this.options.amount() != -1) {

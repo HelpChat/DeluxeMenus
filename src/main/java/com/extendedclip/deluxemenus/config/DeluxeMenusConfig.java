@@ -15,6 +15,7 @@ import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.*;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
+import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.LocationUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 
 import io.github.projectunified.minelib.scheduler.common.scheduler.Scheduler;
 import com.google.common.base.Enums;
+import com.google.common.primitives.Ints;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -802,30 +804,7 @@ public class DeluxeMenusConfig {
                 builder.itemFlags(itemFlags);
             }
 
-            if (c.contains(currentPath + "data")) {
-                if (c.isInt(currentPath + "data")) {
-                    builder.data((short) c.getInt(currentPath + "data"));
-                } else {
-                    String dataString = c.getString(currentPath + "data", "");
-                    if (dataString.startsWith("placeholder-")) {
-                        String[] parts = dataString.split("-", 2);
-                        if (parts.length < 2) {
-                            DeluxeMenus.debug(
-                                    DebugLevel.HIGHEST,
-                                    Level.WARNING,
-                                    "Placeholder for data in item: " + key + " in menu " + name + " is not the valid format!",
-                                    "Valid format: placeholder-<placeholder>",
-                                    "Skipping item: " + key
-                            );
-                            continue;
-                        }
-
-                        if (containsPlaceholders(parts[1])) {
-                            builder.placeholderData(parts[1]);
-                        }
-                    }
-                }
-            }
+            addDamageOptionToBuilder(c, currentPath, key, name, builder);
 
             if (VersionHelper.HAS_ARMOR_TRIMS) {
                 builder.trimMaterial(c.getString(currentPath + "trim_material", null));
@@ -1567,5 +1546,73 @@ public class DeluxeMenusConfig {
 
     public File getMenuDirector() {
         return menuDirectory;
+    }
+
+    public void addDamageOptionToBuilder(FileConfiguration c, String currentPath, String itemKey, String menuName,
+                                         MenuItemOptions.MenuItemOptionsBuilder builder) {
+        boolean damageOptionIsPresent = false;
+        String damageValue = null;
+
+        String key = "damage";
+        if (c.contains(currentPath + key)) {
+            damageOptionIsPresent = true;
+            damageValue = c.getString(currentPath + key, "");
+        }
+
+        key = "data";
+        if (c.contains(currentPath + key)) {
+            if (!damageOptionIsPresent) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Found 'data' option for item: " + itemKey + " in menu: " + menuName+ ". This option " +
+                                "is deprecated and will be removed soon. Please use 'damage' instead."
+                );
+                damageValue = c.getString(currentPath + key, "");
+            } else {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Found 'data' and 'damage' options for item: " + itemKey + " in menu: " + menuName +
+                                ". 'data' option is deprecated and will be ignored. Using 'damage' instead."
+                );
+            }
+        }
+
+        if (damageValue == null) {
+            return;
+        }
+
+        if (damageOptionIsPresent) {
+            key = "damage";
+        }
+
+        if (!ItemUtils.isPlaceholderOption(damageValue) && Ints.tryParse(damageValue) == null) {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "Found invalid value for '" + key + "' option for item: " + itemKey + " in menu: " +
+                        menuName + ".",
+                "The correct formats for '" + key + "' are:",
+                "  -> <number>",
+                "  -> placeholder-<placeholder>",
+                "Ignoring the invalid value."
+            );
+            return;
+        }
+
+        final String[] parts = damageValue.split("-", 2);
+        if (parts.length >= 2 && !containsPlaceholders(parts[1])) {
+            DeluxeMenus.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "Could not find placeholder for '" + key + "' option for item: " + itemKey + " in menu: " +
+                        menuName + ".",
+                "Ignoring the invalid value."
+            );
+            return;
+        }
+
+        builder.damage(parts.length == 1 ? parts[0] : parts[1]);
     }
 }

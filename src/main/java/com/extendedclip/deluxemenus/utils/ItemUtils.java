@@ -7,6 +7,8 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
@@ -18,13 +20,13 @@ public final class ItemUtils {
     }
 
     /**
-     * Checks if the string starts with the substring "placeholder-". The check is case-sensitive.
+     * Checks if the string starts with the substring "placeholder-". The check is case-insensitive.
      *
      * @param material The string to check
      * @return true if the string starts with "placeholder-", false otherwise
      */
-    public static boolean isPlaceholderMaterial(@NotNull final String material) {
-        return material.startsWith(PLACEHOLDER_PREFIX);
+    public static boolean isPlaceholderOption(@NotNull final String material) {
+        return material.toLowerCase(Locale.ROOT).startsWith(PLACEHOLDER_PREFIX);
     }
 
     /**

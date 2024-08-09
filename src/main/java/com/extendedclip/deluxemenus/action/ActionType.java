@@ -34,7 +34,7 @@ public enum ActionType {
   BROADCAST_SOUND("[broadcastsound]", "Broadcast a sound to the server", "- '[broadcastsound]"),
   BROADCAST_RAW_SOUND("[broadcastrawsound]", "Broadcast a RAW sound to the server", "- '[broadcastrawsound]"),
   BROADCAST_WORLD_SOUND("[broadcastsoundworld]", "Broadcast a sound to the player's world", "- '[broadcastsoundworld]"),
-  BROADCAST_WORLD_RAW_SOUND("[rawsoundworld]", "Broadcast a RAW sound to the player's world", "- '[rawsoundworld]"),
+  BROADCAST_WORLD_RAW_SOUND("[broadcastrawsoundworld]", "Broadcast a RAW sound to the player's world", "- '[broadcastrawsoundworld]"),
   PLAY_SOUND("[sound]", "Play a sound for a the specific player", "- '[sound]"),
   PLAY_RAW_SOUND("[rawsound]", "Play a RAW sound for a the specific player", "- '[rawsound]"),
   TAKE_MONEY("[takemoney]", "Take money from a player (requires Vault)", "- '[takemoney] <amount>"),

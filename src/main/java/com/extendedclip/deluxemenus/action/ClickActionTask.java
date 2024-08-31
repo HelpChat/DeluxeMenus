@@ -352,33 +352,45 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case BROADCAST_SOUND:
+            case BROADCAST_RAW_SOUND:
             case BROADCAST_WORLD_SOUND:
+            case BROADCAST_WORLD_RAW_SOUND:
+            case PLAY_RAW_SOUND:
             case PLAY_SOUND:
-                final Sound sound;
+                boolean isRaw = isRaw(actionType);
+
+                Sound sound = null;
+                String soundName = executable;
                 float volume = 1;
                 float pitch = 1;
 
                 if (!executable.contains(" ")) {
-                    try {
-                        sound = Sound.valueOf(executable.toUpperCase());
-                    } catch (final IllegalArgumentException exception) {
-                        DeluxeMenus.printStacktrace(
-                                "Sound name given for sound action: " + executable + ", is not a valid sound!",
-                                exception
-                        );
-                        break;
+                    if (!isRaw) {
+                        try {
+                            sound = Sound.valueOf(executable.toUpperCase());
+                        } catch (final IllegalArgumentException exception) {
+                            DeluxeMenus.printStacktrace(
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!",
+                                    exception
+                            );
+                            break;
+                        }
                     }
                 } else {
                     String[] parts = executable.split(" ", 3);
 
-                    try {
-                        sound = Sound.valueOf(parts[0].toUpperCase());
-                    } catch (final IllegalArgumentException exception) {
-                        DeluxeMenus.printStacktrace(
-                                "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
-                                exception
-                        );
-                        break;
+                    if (!isRaw) {
+                        try {
+                            sound = Sound.valueOf(parts[0].toUpperCase());
+                        } catch (final IllegalArgumentException exception) {
+                            DeluxeMenus.printStacktrace(
+                                    "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
+                                    exception
+                            );
+                            break;
+                        }
+                    } else {
+                        soundName = parts[0];
                     }
 
                     if (parts.length == 3) {
@@ -416,6 +428,21 @@ public class ClickActionTask extends BukkitRunnable {
                 }
 
                 switch (actionType) {
+                    case BROADCAST_WORLD_RAW_SOUND:
+                        for (final Player broadcastTarget : player.getWorld().getPlayers()) {
+                            broadcastTarget.playSound(broadcastTarget.getLocation(), soundName, volume, pitch);
+                        }
+                        break;
+
+                    case BROADCAST_RAW_SOUND:
+                        for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
+                            broadcastTarget.playSound(broadcastTarget.getLocation(), soundName, volume, pitch);
+                        }
+                        break;
+
+                    case PLAY_RAW_SOUND:
+                        player.playSound(player.getLocation(), soundName, volume, pitch);
+                        break;
                     case BROADCAST_SOUND:
                         for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
                             broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
@@ -438,4 +465,9 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
         }
     }
+
+    private boolean isRaw(ActionType actionType) {
+        return actionType == ActionType.PLAY_RAW_SOUND || actionType == ActionType.BROADCAST_RAW_SOUND || actionType == ActionType.BROADCAST_WORLD_RAW_SOUND;
+    }
+
 }

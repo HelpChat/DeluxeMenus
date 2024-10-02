@@ -917,69 +917,7 @@ public class DeluxeMenusConfig {
                 }
             }
 
-            if (c.contains(currentPath + "enchantments")) {
-                List<String> enchantments = c.getStringList(currentPath + "enchantments");
-
-                if (!enchantments.isEmpty()) {
-
-                    Map<Enchantment, Integer> enchants = new HashMap<>();
-
-                    for (String e : enchantments) {
-
-                        if (e.contains(";")) {
-                            String[] parts = e.split(";");
-
-                            if (parts.length == 2) {
-
-                                Enchantment enc = Enchantment.getByName(parts[0].toUpperCase());
-                                int level = 1;
-
-                                if (enc != null) {
-                                    try {
-                                        level = Integer.parseInt(parts[1]);
-                                    } catch (NumberFormatException ex) {
-                                        DeluxeMenus.debug(
-                                                DebugLevel.HIGHEST,
-                                                Level.WARNING,
-                                                "Enchantment level is incorrect for item " + key + " in menu " + name + "!"
-                                        );
-                                    }
-
-                                    enchants.put(enc, level);
-
-                                } else {
-                                    DeluxeMenus.debug(
-                                            DebugLevel.HIGHEST,
-                                            Level.WARNING,
-                                            "Enchantment " + parts[0] + " for item " + key + " in menu " + name
-                                                    + " is not a valid enchantment name!"
-                                    );
-                                }
-
-                            } else {
-                                DeluxeMenus.debug(
-                                        DebugLevel.HIGHEST,
-                                        Level.WARNING,
-                                        "Enchantment format is incorrect for item " + key + " in GUI " + name + "!",
-                                        "Correct format: - '<Enchantment name>;<level>"
-                                );
-                            }
-
-                        } else {
-                            DeluxeMenus.debug(
-                                    DebugLevel.HIGHEST,
-                                    Level.WARNING,
-                                    "Enchantment format is incorrect for item " + key + " in GUI " + name + "!",
-                                    "Correct format: - '<Enchantment name>;<level>"
-                            );
-                        }
-
-                    }
-                    if (!enchants.isEmpty()) {
-                        builder.enchantments(enchants);
-                    }
-                }
-            }
+            addEnchantmentsOptionToBuilder(c, currentPath, key, name, builder);
 
             if (c.contains(currentPath + "view_requirement")) {
                 builder.viewRequirements(this.getRequirements(c, currentPath + "view_requirement"));
@@ -1548,8 +1486,67 @@ public class DeluxeMenusConfig {
         return menuDirectory;
     }
 
-    public void addDamageOptionToBuilder(FileConfiguration c, String currentPath, String itemKey, String menuName,
-                                         MenuItemOptions.MenuItemOptionsBuilder builder) {
+    public void addEnchantmentsOptionToBuilder(final FileConfiguration c, final String currentPath,
+                                               final String itemKey, final String menuName,
+                                               final MenuItemOptions.MenuItemOptionsBuilder builder) {
+        if (!c.contains(currentPath + "enchantments")) {
+            return;
+        }
+
+        final List<String> configEnchantments = c.getStringList(currentPath + "enchantments");
+        final Map<Enchantment, Integer> parsedEnchantments = new HashMap<>();
+
+        for (final String configEnchantment : configEnchantments) {
+            if (configEnchantment == null || !configEnchantment.contains(";")) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Enchantment format '" + configEnchantment + "' is incorrect for item " + itemKey +
+                                " in GUI " + menuName + "!",
+                        "Correct format: - '<Enchantment name>;<level>"
+                );
+                continue;
+            }
+
+            String[] parts = configEnchantment.split(";", 2);
+            if (parts.length != 2 || parts[0] == null || parts[1] == null) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Enchantment format '" + configEnchantment + "' is incorrect for item " + itemKey +
+                                " in GUI " + menuName + "!",
+                        "Correct format: - '<Enchantment name>;<level>"
+                );
+                continue;
+            }
+
+            final Enchantment enchantment = Enchantment.getByName(parts[0].strip().toUpperCase());
+            if (enchantment == null) {
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Enchantment '" + parts[0].strip() + "' for item " + itemKey +
+                                " in menu " + menuName + " is not a valid enchantment name!"
+                );
+            }
+
+            Integer level = Ints.tryParse(parts[1].strip());
+            if (level == null) {
+                level = 1;
+                DeluxeMenus.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Enchantment level '" + parts[1].strip() + "' is incorrect for item " + itemKey +
+                                " in menu " + menuName + "!"
+                );
+            }
+            parsedEnchantments.put(enchantment, level);
+        }
+        builder.enchantments(parsedEnchantments);
+    }
+
+    public void addDamageOptionToBuilder(final FileConfiguration c, final String currentPath, final String itemKey,
+                                         final String menuName, final MenuItemOptions.MenuItemOptionsBuilder builder) {
         boolean damageOptionIsPresent = false;
         String damageValue = null;
 

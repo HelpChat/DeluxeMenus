@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.github.projectunified.minelib.scheduler.common.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -186,8 +187,10 @@ public class DeluxeMenusCommands implements CommandExecutor {
                     true
                 );
 
+            Scheduler scheduler = action.getType().getScheduler().getScheduler(holder.getViewer());
+
             if (action.hasDelay()) {
-                actionTask.runTaskLater(plugin, action.getDelay(holder));
+                scheduler.runLater(actionTask, action.getDelay(holder));
 
                 plugin.sms(
                         sender,
@@ -197,7 +200,7 @@ public class DeluxeMenusCommands implements CommandExecutor {
                 return true;
             }
 
-            actionTask.runTask(plugin);
+            scheduler.run(actionTask);
 
             plugin.sms(
                     sender,

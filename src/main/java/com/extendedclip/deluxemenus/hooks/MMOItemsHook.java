@@ -4,13 +4,14 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -42,17 +43,19 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
 
         ItemStack mmoItem = null;
         try {
-            mmoItem = Bukkit.getScheduler().callSyncMethod(DeluxeMenus.getInstance(), () -> {
+            CompletableFuture<ItemStack> future = new CompletableFuture<>();
+            GlobalScheduler.get(DeluxeMenus.getInstance()).run(() -> {
                 ItemStack item = MMOItems.plugin.getItem(itemType, splitArgs[1]);
 
                 if (item == null) {
-                    return new ItemStack(Material.STONE, 1);
+                    future.complete(new ItemStack(Material.STONE, 1));
+                    return;
                 }
 
                 cache.put(arguments[0], item);
-
-                return item;
-            }).get();
+                future.complete(item);
+            });
+            mmoItem = future.get();
         } catch (InterruptedException | ExecutionException e) {
             DeluxeMenus.debug(DebugLevel.HIGHEST, Level.SEVERE, "Error getting MMOItem synchronously.");
         }

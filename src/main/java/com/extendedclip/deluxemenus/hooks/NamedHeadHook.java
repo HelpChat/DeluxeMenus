@@ -48,18 +48,7 @@ public class NamedHeadHook implements ItemHook, Listener, SimpleCache {
         if (arguments.length == 0) {
             return false;
         }
-        if (!(item.getItemMeta() instanceof SkullMeta)) return false;
-        final SkullMeta headMeta = (SkullMeta) item.getItemMeta();
-
-        String owner;
-        if (!VersionHelper.IS_SKULL_OWNER_LEGACY) {
-            if (headMeta.getOwningPlayer() == null) return false;
-            owner = headMeta.getOwningPlayer().getName();
-        } else {
-            owner = headMeta.getOwner();
-            if (owner == null) return false;
-        }
-        return arguments[0].equalsIgnoreCase(owner);
+        return arguments[0].equalsIgnoreCase(SkullUtils.getSkullOwner(item));
     }
 
     @EventHandler(ignoreCancelled = true)

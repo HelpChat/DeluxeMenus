@@ -30,7 +30,7 @@ public class HasItemRequirement extends Requirement {
     if (material == null) {
       pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
               .stream()
-              .filter(x -> materialName.startsWith(x.getPrefix()))
+              .filter(x -> materialName.toLowerCase().startsWith(x.getPrefix()))
               .findFirst()
               .orElse(null);
       if (pluginHook == null) return invert;

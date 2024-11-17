@@ -24,8 +24,8 @@ public class HasItemRequirement extends Requirement {
 
   @Override
   public boolean evaluate(MenuHolder holder) {
-    String materialName = holder.setPlaceholdersAndArguments(wrapper.getMaterial()).toUpperCase();
-    Material material = DeluxeMenus.MATERIALS.get(materialName);
+    String materialName = holder.setPlaceholdersAndArguments(wrapper.getMaterial());
+    Material material = DeluxeMenus.MATERIALS.get(materialName.toUpperCase());
     ItemHook pluginHook = null;
     if (material == null) {
       pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
@@ -68,8 +68,10 @@ public class HasItemRequirement extends Requirement {
   private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material, ItemHook pluginHook) {
     if (itemToCheck == null || itemToCheck.getType() == Material.AIR) return false;
 
-    if (pluginHook != null && !pluginHook.isItem(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length())))) return false;
-    if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
+    if (pluginHook != null) {
+      if (!pluginHook.isItem(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length())))) return false;
+    }
+    else if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
     if (wrapper.hasData() && itemToCheck.getDurability() != wrapper.getData()) return false;
 
     ItemMeta metaToCheck = itemToCheck.getItemMeta();

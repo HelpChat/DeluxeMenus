@@ -37,7 +37,7 @@ public class TextureHeadHook implements ItemHook, SimpleCache {
     if (arguments.length == 0) {
       return false;
     }
-    ItemStack skull = SkullUtils.getSkullByBase64EncodedTextureUrl(arguments[0]);
+    ItemStack skull = cache.computeIfAbsent(arguments[0], key -> SkullUtils.getSkullByBase64EncodedTextureUrl(SkullUtils.getEncoded(key))).clone();
     return Bukkit.getItemFactory().equals(item.getItemMeta(), skull.getItemMeta());
   }
 

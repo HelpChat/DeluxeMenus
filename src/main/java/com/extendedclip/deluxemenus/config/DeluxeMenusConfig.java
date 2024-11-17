@@ -1155,7 +1155,23 @@ public class DeluxeMenusConfig {
                             );
                             minimum = -1;
                         }
-                        req = new HasPermissionsRequirement(c.getStringList(rPath + ".permissions"), minimum, invert);
+                        List<String> permissions = c.getStringList(rPath + ".permissions");
+                        if (permissions.isEmpty()) {
+                            DeluxeMenus.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Has Permissions requirement at path: " + rPath + " has no permissions to check. Ignoring..."
+                            );
+                            break;
+                        } else if (minimum > permissions.size()) {
+                            DeluxeMenus.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Has Permissions requirement at path: " + rPath + " has a minimum higher than the amount of permissions. Using "+permissions.size()+" instead"
+                            );
+                            minimum = permissions.size();
+                        }
+                        req = new HasPermissionsRequirement(permissions, minimum, invert);
                     } else {
                         DeluxeMenus.debug(
                                 DebugLevel.HIGHEST,

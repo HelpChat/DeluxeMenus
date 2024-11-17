@@ -18,17 +18,15 @@ public class HasPermissionsRequirement extends Requirement {
 
     @Override
     public boolean evaluate(MenuHolder holder) {
-        int amount = 0;
-        for (String permission : permissions) {
-            String check = holder.setPlaceholdersAndArguments(permission);
-            if (holder.getViewer().hasPermission(check)) {
-                ++amount;
-                continue;
-            }
-            if (minimum == -1) return invert;
-        }
-        if (invert) return permissions.size()-amount >= minimum;
-        return amount >= minimum;
+        final int count = permissions.stream()
+                .map(holder::setPlaceholdersAndArguments)
+                .map(holder.getViewer()::hasPermission)
+                .mapToInt(hasPermission -> hasPermission ? 1 : 0)
+                .sum();
+        return invert
+                ? count + minimum <= permissions.size()
+                : count >= minimum;
     }
+
 
 }

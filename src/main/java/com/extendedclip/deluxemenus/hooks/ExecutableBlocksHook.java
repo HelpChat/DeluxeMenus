@@ -29,7 +29,7 @@ public class ExecutableBlocksHook implements ItemHook, SimpleCache {
   }
 
   @Override
-  public boolean isItem(@NotNull ItemStack item, @NotNull String... arguments) {
+  public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
     return false;
   }
 

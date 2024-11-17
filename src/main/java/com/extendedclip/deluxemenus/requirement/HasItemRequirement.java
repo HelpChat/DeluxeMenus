@@ -69,7 +69,7 @@ public class HasItemRequirement extends Requirement {
     if (itemToCheck == null || itemToCheck.getType() == Material.AIR) return false;
 
     if (pluginHook != null) {
-      if (!pluginHook.isItem(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length())))) return false;
+      if (!pluginHook.itemMatchesIdentifiers(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length())))) return false;
     }
     else if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
     if (wrapper.hasData() && itemToCheck.getDurability() != wrapper.getData()) return false;

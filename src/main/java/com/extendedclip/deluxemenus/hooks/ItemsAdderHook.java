@@ -37,7 +37,7 @@ public class ItemsAdderHook implements ItemHook, SimpleCache {
     }
 
     @Override
-    public boolean isItem(@NotNull ItemStack item, @NotNull String... arguments) {
+    public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
         if (arguments.length == 0) {
             return false;
         }

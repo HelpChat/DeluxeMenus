@@ -1146,12 +1146,21 @@ public class DeluxeMenusConfig {
                 case DOES_NOT_HAVE_PERMISSIONS:
                     if (c.contains(rPath + ".permissions")) {
                         invert = type == RequirementType.DOES_NOT_HAVE_PERMISSIONS;
-                        req = new HasPermissionsRequirement(c.getStringList(rPath + ".permissions"), c.getInt(rPath + ".minimum", -1), invert);
+                        int minimum = -1;
+                        if (c.contains(rPath + ".minimum") && (minimum = c.getInt(rPath + ".minimum")) < 1) {
+                            DeluxeMenus.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Has Permissions requirement at path: " + rPath + " has a minimum lower than 1. All permissions will be checked"
+                            );
+                            minimum = -1;
+                        }
+                        req = new HasPermissionsRequirement(c.getStringList(rPath + ".permissions"), minimum, invert);
                     } else {
                         DeluxeMenus.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
-                                "Has Permission requirement at path: " + rPath + " does not contain a permission: entry"
+                                "Has Permissions requirement at path: " + rPath + " does not contain permissions: entry"
                         );
                     }
                     break;

@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.StringUtils;
@@ -25,8 +26,14 @@ public class HasItemRequirement extends Requirement {
   public boolean evaluate(MenuHolder holder) {
     String materialName = holder.setPlaceholdersAndArguments(wrapper.getMaterial()).toUpperCase();
     Material material = DeluxeMenus.MATERIALS.get(materialName);
+    ItemHook pluginHook = null;
     if (material == null) {
-      return invert;
+      pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+              .stream()
+              .filter(x -> materialName.startsWith(x.getPrefix()))
+              .findFirst()
+              .orElse(null);
+      if (pluginHook == null) return invert;
     }
 
     if (material == Material.AIR) return invert == (holder.getViewer().getInventory().firstEmpty() == -1);
@@ -37,20 +44,20 @@ public class HasItemRequirement extends Requirement {
 
     int total = 0;
     for (ItemStack itemToCheck: inventory) {
-      if (!isRequiredItem(itemToCheck, holder, material)) continue;
+      if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
       total += itemToCheck.getAmount();
     }
 
     if (offHand != null) {
       for (ItemStack itemToCheck: offHand) {
-        if (!isRequiredItem(itemToCheck, holder, material)) continue;
+        if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
         total += itemToCheck.getAmount();
       }
     }
 
     if (armor != null) {
       for (ItemStack itemToCheck: armor) {
-        if (!isRequiredItem(itemToCheck, holder, material)) continue;
+        if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
         total += itemToCheck.getAmount();
       }
     }
@@ -58,8 +65,10 @@ public class HasItemRequirement extends Requirement {
     return invert == (total < wrapper.getAmount());
   }
 
-  private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material) {
+  private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material, ItemHook pluginHook) {
     if (itemToCheck == null || itemToCheck.getType() == Material.AIR) return false;
+
+    if (pluginHook != null && !pluginHook.isItem(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length())))) return false;
     if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
     if (wrapper.hasData() && itemToCheck.getDurability() != wrapper.getData()) return false;
 

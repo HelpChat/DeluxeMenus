@@ -29,6 +29,11 @@ public class ExecutableBlocksHook implements ItemHook, SimpleCache {
   }
 
   @Override
+  public boolean isItem(@NotNull ItemStack item, @NotNull String... arguments) {
+    return false;
+  }
+
+  @Override
   public String getPrefix() {
     return "executableblocks-";
   }

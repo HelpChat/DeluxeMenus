@@ -46,7 +46,7 @@ public enum RequirementType {
   DOES_NOT_HAVE_PERMISSIONS(
           Arrays.asList("!has permissions", "!has perms", "!haspermissions", "!hasperms", "!perms"),
           "Checks if a player does not have a set amount of permission",
-          Collections.singletonList("permissions")),
+          Arrays.asList("permissions", "minimum")),
   STRING_CONTAINS(Arrays.asList("string contains", "stringcontains", "contains"),
       "Checks if a string contains another string", Arrays.asList("input", "output")),
   STRING_DOES_NOT_CONTAIN(Arrays.asList("!string contains", "!stringcontains", "!contains"),

@@ -6,7 +6,6 @@ import com.extendedclip.deluxemenus.utils.SkullUtils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,8 +36,7 @@ public class TextureHeadHook implements ItemHook, SimpleCache {
     if (arguments.length == 0) {
       return false;
     }
-    ItemStack skull = cache.computeIfAbsent(arguments[0], key -> SkullUtils.getSkullByBase64EncodedTextureUrl(SkullUtils.getEncoded(key))).clone();
-    return Bukkit.getItemFactory().equals(item.getItemMeta(), skull.getItemMeta());
+    return arguments[0].equals(SkullUtils.getTextureFromSkull(item));
   }
 
   @Override

@@ -1142,6 +1142,19 @@ public class DeluxeMenusConfig {
                         );
                     }
                     break;
+                case HAS_PERMISSIONS:
+                case DOES_NOT_HAVE_PERMISSIONS:
+                    if (c.contains(rPath + ".permissions")) {
+                        invert = type == RequirementType.DOES_NOT_HAVE_PERMISSIONS;
+                        req = new HasPermissionsRequirement(c.getStringList(rPath + ".permissions"), c.getInt(rPath + ".minimum", -1), invert);
+                    } else {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Has Permission requirement at path: " + rPath + " does not contain a permission: entry"
+                        );
+                    }
+                    break;
                 case JAVASCRIPT:
                     if (c.contains(rPath + ".expression")) {
                         req = new JavascriptRequirement(c.getString(rPath + ".expression"));

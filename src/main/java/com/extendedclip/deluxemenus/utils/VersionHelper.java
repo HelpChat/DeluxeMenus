@@ -21,7 +21,7 @@ public final class VersionHelper {
     private static final String PACKAGE_NAME = Bukkit.getServer().getClass().getPackage().getName();
     public static final String NMS_VERSION = PACKAGE_NAME.substring(PACKAGE_NAME.lastIndexOf('.') + 1);
 
-    // Tooltip Visibility, Style & Rarity
+    // Tooltip Style & Item Model
     private static final int V1_21_2 = 1_21_2;
     // Data components
     private static final int V1_20_5 = 1_20_5;
@@ -47,7 +47,7 @@ public final class VersionHelper {
     private static final boolean IS_PAPER = checkPaper();
 
     /**
-     * Checks if the current version includes the ArmorTrims API
+     * Checks if the current version includes the setTooltipStyle and setItemModel
      */
     public static final boolean HAS_TOOLTIP_STYLE = CURRENT_VERSION >= V1_21_2;
 

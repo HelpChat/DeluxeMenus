@@ -762,7 +762,12 @@ public class DeluxeMenusConfig {
                     .nbtInt(c.getString(currentPath + "nbt_int", null))
                     .nbtStrings(c.getStringList(currentPath + "nbt_strings"))
                     .nbtInts(c.getStringList(currentPath + "nbt_ints"))
-                    .priority(c.getInt(currentPath + "priority", 1));
+                    .priority(c.getInt(currentPath + "priority", 1))
+                    .hideTooltip(c.getString(currentPath + "hide_tooltip", null))
+                    .enchantmentGlintOverride(c.getString(currentPath + "enchantment_glint_override", null))
+                    .rarity(c.getString(currentPath + "rarity", null))
+                    .tooltipStyle(c.getString(currentPath + "tooltip_style", null))
+                    .itemModel(c.getString(currentPath + "item_model", null));
 
             // Lore Append Mode
             if (c.contains(currentPath + "lore_append_mode")) {

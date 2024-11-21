@@ -1142,6 +1142,44 @@ public class DeluxeMenusConfig {
                         );
                     }
                     break;
+                case HAS_PERMISSIONS:
+                case DOES_NOT_HAVE_PERMISSIONS:
+                    if (c.contains(rPath + ".permissions")) {
+                        invert = type == RequirementType.DOES_NOT_HAVE_PERMISSIONS;
+                        int minimum = -1;
+                        if (c.contains(rPath + ".minimum") && (minimum = c.getInt(rPath + ".minimum")) < 1) {
+                            DeluxeMenus.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Has Permissions requirement at path: " + rPath + " has a minimum lower than 1. All permissions will be checked"
+                            );
+                            minimum = -1;
+                        }
+                        List<String> permissions = c.getStringList(rPath + ".permissions");
+                        if (permissions.isEmpty()) {
+                            DeluxeMenus.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Has Permissions requirement at path: " + rPath + " has no permissions to check. Ignoring..."
+                            );
+                            break;
+                        } else if (minimum > permissions.size()) {
+                            DeluxeMenus.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Has Permissions requirement at path: " + rPath + " has a minimum higher than the amount of permissions. Using "+permissions.size()+" instead"
+                            );
+                            minimum = permissions.size();
+                        }
+                        req = new HasPermissionsRequirement(permissions, minimum, invert);
+                    } else {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Has Permissions requirement at path: " + rPath + " does not contain permissions: entry"
+                        );
+                    }
+                    break;
                 case JAVASCRIPT:
                     if (c.contains(rPath + ".expression")) {
                         req = new JavascriptRequirement(c.getString(rPath + ".expression"));

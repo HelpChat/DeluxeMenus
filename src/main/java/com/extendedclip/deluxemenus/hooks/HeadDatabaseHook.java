@@ -33,6 +33,14 @@ public class HeadDatabaseHook implements ItemHook {
   }
 
   @Override
+  public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+    if (arguments.length == 0) {
+      return false;
+    }
+    return arguments[0].equalsIgnoreCase(api.getItemID(item));
+  }
+
+  @Override
   public String getPrefix() {
     return "hdb-";
   }

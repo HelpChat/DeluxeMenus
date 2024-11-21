@@ -80,6 +80,41 @@ public class SkullUtils {
     return head;
   }
 
+  public static String getTextureFromSkull(ItemStack item) {
+    if (!(item.getItemMeta() instanceof SkullMeta)) return null;
+    SkullMeta meta = (SkullMeta) item.getItemMeta();
+
+    if (VersionHelper.HAS_PLAYER_PROFILES) {
+      PlayerProfile profile = meta.getOwnerProfile();
+      if (profile == null) return null;
+
+      URL url = profile.getTextures().getSkin();
+      if (url == null) return null;
+
+      return url.toString().substring("https://textures.minecraft.net/texture/".length()-1);
+    }
+
+    GameProfile profile;
+    try {
+      final Field profileField = meta.getClass().getDeclaredField("profile");
+      profileField.setAccessible(true);
+      profile = (GameProfile) profileField.get(meta);
+    } catch (final NoSuchFieldException | IllegalArgumentException | IllegalAccessException exception) {
+      DeluxeMenus.printStacktrace(
+              "Failed to get base64 texture url from head item",
+              exception
+      );
+      return null;
+    }
+
+    for (Property property : profile.getProperties().get("textures")) {
+      if (property.getName().equals("textures")) {
+        return decodeSkinUrl(property.getValue());
+      }
+    }
+    return null;
+  }
+
 
   /**
    * Get the skull from a player name
@@ -108,6 +143,18 @@ public class SkullUtils {
 
     head.setItemMeta(headMeta);
     return head;
+  }
+
+  public static String getSkullOwner(ItemStack skull) {
+    if (skull == null || !(skull.getItemMeta() instanceof SkullMeta)) return null;
+    SkullMeta meta = (SkullMeta) skull.getItemMeta();
+
+    if (!VersionHelper.IS_SKULL_OWNER_LEGACY) {
+      if (meta.getOwningPlayer() == null) return null;
+      return meta.getOwningPlayer().getName();
+    }
+
+    return meta.getOwner();
   }
 
   /**
@@ -164,7 +211,7 @@ public class SkullUtils {
    * @return the url of the texture if found, otherwise {@code null}
    */
   @Nullable
-  private static String decodeSkinUrl(@NotNull final String base64Texture) {
+  public static String decodeSkinUrl(@NotNull final String base64Texture) {
     final String decoded = new String(Base64.getDecoder().decode(base64Texture));
     final JsonObject object = GSON.fromJson(decoded, JsonObject.class);
 

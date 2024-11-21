@@ -61,6 +61,16 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
     }
 
     @Override
+    public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+        if (arguments.length == 0) {
+            return false;
+        }
+        String[] splitArgs = arguments[0].split(":");
+        if (splitArgs.length != 2) return false;
+        return splitArgs[0].equalsIgnoreCase(MMOItems.getTypeName(item)) && splitArgs[1].equalsIgnoreCase(MMOItems.getID(item));
+    }
+
+    @Override
     public String getPrefix() {
         return "mmoitems-";
     }

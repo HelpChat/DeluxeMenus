@@ -6,10 +6,14 @@ import com.extendedclip.deluxemenus.utils.SkullUtils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.extendedclip.deluxemenus.utils.VersionHelper;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 
 public class NamedHeadHook implements ItemHook, Listener, SimpleCache {
@@ -37,6 +41,14 @@ public class NamedHeadHook implements ItemHook, Listener, SimpleCache {
         }
 
         return DeluxeMenus.getInstance().getHead().clone();
+    }
+
+    @Override
+    public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+        if (arguments.length == 0) {
+            return false;
+        }
+        return arguments[0].equalsIgnoreCase(SkullUtils.getSkullOwner(item));
     }
 
     @EventHandler(ignoreCancelled = true)

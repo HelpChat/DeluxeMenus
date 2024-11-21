@@ -32,6 +32,14 @@ public class TextureHeadHook implements ItemHook, SimpleCache {
   }
 
   @Override
+  public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+    if (arguments.length == 0) {
+      return false;
+    }
+    return arguments[0].equals(SkullUtils.getTextureFromSkull(item));
+  }
+
+  @Override
   public String getPrefix() {
     return "texture-";
   }

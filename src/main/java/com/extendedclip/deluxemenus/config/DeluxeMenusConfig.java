@@ -1056,9 +1056,14 @@ public class DeluxeMenusConfig {
                 case DOES_NOT_HAVE_ITEM:
                     ItemWrapper wrapper = new ItemWrapper();
                     if (c.contains(rPath + ".material")) {
+                        String materialName = c.getString(rPath + ".material");
                         try {
-                            if (!containsPlaceholders(c.getString(rPath + ".material")))
-                                Material.valueOf(c.getString(rPath + ".material").toUpperCase());
+                            if (!containsPlaceholders(materialName) && plugin.getItemHooks().values()
+                                    .stream()
+                                    .filter(x -> materialName.toLowerCase().startsWith(x.getPrefix()))
+                                    .findFirst()
+                                    .orElse(null) == null)
+                                Material.valueOf(materialName.toUpperCase());
                         } catch (Exception ex) {
                             DeluxeMenus.debug(
                                     DebugLevel.HIGHEST,
@@ -1067,7 +1072,7 @@ public class DeluxeMenusConfig {
                             );
                             break;
                         }
-                        wrapper.setMaterial(c.getString(rPath + ".material"));
+                        wrapper.setMaterial(materialName);
                     } else {
                         DeluxeMenus.debug(
                                 DebugLevel.HIGHEST,

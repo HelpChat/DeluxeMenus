@@ -32,6 +32,19 @@ public class BaseHeadHook implements ItemHook, SimpleCache {
   }
 
   @Override
+  public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+    if (arguments.length == 0) {
+      return false;
+    }
+    String itemTexture = SkullUtils.getTextureFromSkull(item);
+    String texture = SkullUtils.decodeSkinUrl(arguments[0]);
+    if (itemTexture == null || texture == null) return false;
+
+    texture = texture.substring("https://textures.minecraft.net/texture/".length()-1);
+    return texture.equals(itemTexture);
+  }
+
+  @Override
   public String getPrefix() {
     return "basehead-";
   }

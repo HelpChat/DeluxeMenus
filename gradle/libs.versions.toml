@@ -13,7 +13,7 @@ score = "4.23.10.8"
 
 # Implementation
 nashorn = "15.4"
-adventure-platform = "4.3.3"
+adventure-platform = "4.3.4"
 adventure-minimessage = "4.17.0"
 
 [libraries]

@@ -37,6 +37,12 @@ public class MenuItemOptions {
     private final String trimMaterial;
     private final String trimPattern;
 
+    private final String hideTooltip;
+    private final String enchantmentGlintOverride;
+    private final String rarity;
+    private final String tooltipStyle;
+    private final String itemModel;
+
     private final Map<Enchantment, Integer> enchantments;
     private final List<PotionEffect> potionEffects;
     private final List<Pattern> bannerMeta;
@@ -89,6 +95,11 @@ public class MenuItemOptions {
         this.rgb = builder.rgb;
         this.trimMaterial = builder.trimMaterial;
         this.trimPattern = builder.trimPattern;
+        this.hideTooltip = builder.hideTooltip;
+        this.enchantmentGlintOverride = builder.enchantmentGlintOverride;
+        this.rarity = builder.rarity;
+        this.tooltipStyle = builder.tooltipStyle;
+        this.itemModel = builder.itemModel;
         this.enchantments = builder.enchantments;
         this.potionEffects = builder.potionEffects;
         this.bannerMeta = builder.bannerMeta;
@@ -176,6 +187,26 @@ public class MenuItemOptions {
 
     public @NotNull Optional<String> trimPattern() {
         return Optional.ofNullable(trimPattern);
+    }
+
+    public @NotNull Optional<String> hideTooltip() {
+        return Optional.ofNullable(hideTooltip);
+    }
+
+    public @NotNull Optional<String> enchantmentGlintOverride() {
+        return Optional.ofNullable(enchantmentGlintOverride);
+    }
+
+    public @NotNull Optional<String> rarity() {
+        return Optional.ofNullable(rarity);
+    }
+
+    public @NotNull Optional<String> tooltipStyle() {
+        return Optional.ofNullable(tooltipStyle);
+    }
+
+    public @NotNull Optional<String> itemModel() {
+        return Optional.ofNullable(itemModel);
     }
 
     public @NotNull Map<Enchantment, Integer> enchantments() {
@@ -311,6 +342,11 @@ public class MenuItemOptions {
                 .rgb(this.rgb)
                 .trimMaterial(this.trimMaterial)
                 .trimPattern(this.trimPattern)
+                .hideTooltip(this.hideTooltip)
+                .enchantmentGlintOverride(this.enchantmentGlintOverride)
+                .rarity(this.rarity)
+                .tooltipStyle(this.tooltipStyle)
+                .itemModel(this.itemModel)
                 .enchantments(this.enchantments)
                 .potionEffects(this.potionEffects)
                 .bannerMeta(this.bannerMeta)
@@ -354,6 +390,12 @@ public class MenuItemOptions {
 
         private String trimMaterial;
         private String trimPattern;
+
+        private String hideTooltip;
+        private String enchantmentGlintOverride;
+        private String rarity;
+        private String tooltipStyle;
+        private String itemModel;
 
         private Map<Enchantment, Integer> enchantments = Collections.emptyMap();
         private List<PotionEffect> potionEffects = Collections.emptyList();
@@ -460,6 +502,31 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder trimPattern(final @Nullable String trimPattern) {
             this.trimPattern = trimPattern;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder hideTooltip(final @Nullable String hideTooltip) {
+            this.hideTooltip = hideTooltip;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder enchantmentGlintOverride(final @Nullable String enchantmentGlintOverride) {
+            this.enchantmentGlintOverride = enchantmentGlintOverride;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder rarity(final @Nullable String rarity) {
+            this.rarity = rarity;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder tooltipStyle(final @Nullable String tooltipStyle) {
+            this.tooltipStyle = tooltipStyle;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder itemModel(final @Nullable String itemModel) {
+            this.itemModel = itemModel;
             return this;
         }
 

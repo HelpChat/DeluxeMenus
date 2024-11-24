@@ -50,9 +50,11 @@ public class MenuItemOptions {
     private final LoreAppendMode loreAppendMode;
 
     private final String nbtString;
+    private final String nbtByte;
     private final String nbtShort;
     private final String nbtInt;
     private final List<String> nbtStrings;
+    private final List<String> nbtBytes;
     private final List<String> nbtShorts;
     private final List<String> nbtInts;
 
@@ -99,9 +101,11 @@ public class MenuItemOptions {
         this.displayNameHasPlaceholders = builder.displayNameHasPlaceholders;
         this.loreHasPlaceholders = builder.loreHasPlaceholders;
         this.nbtString = builder.nbtString;
+        this.nbtByte = builder.nbtByte;
         this.nbtShort = builder.nbtShort;
         this.nbtInt = builder.nbtInt;
         this.nbtStrings = builder.nbtStrings;
+        this.nbtBytes = builder.nbtBytes;
         this.nbtShorts = builder.nbtShorts;
         this.nbtInts = builder.nbtInts;
         this.slot = builder.slot;
@@ -222,6 +226,10 @@ public class MenuItemOptions {
         return Optional.ofNullable(nbtString);
     }
 
+    public @NotNull Optional<String> nbtByte() {
+        return Optional.ofNullable(nbtByte);
+    }
+
     public @NotNull Optional<String> nbtShort() {
         return Optional.ofNullable(nbtShort);
     }
@@ -232,6 +240,10 @@ public class MenuItemOptions {
 
     public @NotNull List<String> nbtStrings() {
         return nbtStrings;
+    }
+
+    public @NotNull List<String> nbtBytes() {
+        return nbtBytes;
     }
 
     public @NotNull List<String> nbtShorts() {
@@ -329,9 +341,11 @@ public class MenuItemOptions {
                 .itemFlags(this.itemFlags)
                 .unbreakable(this.unbreakable)
                 .nbtString(this.nbtString)
+                .nbtByte(this.nbtByte)
                 .nbtShort(this.nbtShort)
                 .nbtInt(this.nbtInt)
                 .nbtStrings(this.nbtStrings)
+                .nbtBytes(this.nbtBytes)
                 .nbtShorts(this.nbtShorts)
                 .nbtInts(this.nbtInts)
                 .slot(this.slot)
@@ -382,9 +396,11 @@ public class MenuItemOptions {
         private LoreAppendMode loreAppendMode;
 
         private String nbtString;
+        private String nbtByte;
         private String nbtShort;
         private String nbtInt;
         private List<String> nbtStrings = Collections.emptyList();
+        private List<String> nbtBytes = Collections.emptyList();
         private List<String> nbtShorts = Collections.emptyList();
         private List<String> nbtInts = Collections.emptyList();
 
@@ -542,6 +558,11 @@ public class MenuItemOptions {
             return this;
         }
 
+        public MenuItemOptionsBuilder nbtByte(final @Nullable String nbtByte) {
+            this.nbtByte = nbtByte;
+            return this;
+        }
+
         public MenuItemOptionsBuilder nbtShort(final @Nullable String nbtShort) {
             this.nbtShort = nbtShort;
             return this;
@@ -554,6 +575,11 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder nbtStrings(final @NotNull List<String> nbtStrings) {
             this.nbtStrings = nbtStrings;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtBytes(final @NotNull List<String> nbtBytes) {
+            this.nbtBytes = nbtBytes;
             return this;
         }
 

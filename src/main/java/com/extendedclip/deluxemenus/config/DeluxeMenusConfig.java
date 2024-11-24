@@ -759,8 +759,10 @@ public class DeluxeMenusConfig {
                     .hideUnbreakable(c.getBoolean(currentPath + "hide_unbreakable", false))
                     .hideEnchants(c.getBoolean(currentPath + "hide_enchantments", false))
                     .nbtString(c.getString(currentPath + "nbt_string", null))
+                    .nbtShort(c.getString(currentPath + "nbt_short", null))
                     .nbtInt(c.getString(currentPath + "nbt_int", null))
                     .nbtStrings(c.getStringList(currentPath + "nbt_strings"))
+                    .nbtShorts(c.getStringList(currentPath + "nbt_shorts"))
                     .nbtInts(c.getStringList(currentPath + "nbt_ints"))
                     .priority(c.getInt(currentPath + "priority", 1));
 

@@ -15,6 +15,7 @@ public final class NbtProvider {
     private static Method getStringMethod;
     private static Method setStringMethod;
     private static Method setBooleanMethod;
+    private static Method setShortMethod;
     private static Method setIntMethod;
     private static Method removeTagMethod;
     private static Method hasTagMethod;
@@ -36,6 +37,7 @@ public final class NbtProvider {
             getStringMethod = compoundClass.getMethod(VersionConstants.GET_STRING_METHOD_NAME, String.class);
             setStringMethod = compoundClass.getMethod(VersionConstants.SET_STRING_METHOD_NAME, String.class, String.class);
             setBooleanMethod = compoundClass.getMethod(VersionConstants.SET_BOOLEAN_METHOD_NAME, String.class, boolean.class);
+            setShortMethod = compoundClass.getMethod(VersionConstants.SET_SHORT_METHOD_NAME, String.class, short.class);
             setIntMethod = compoundClass.getMethod(VersionConstants.SET_INTEGER_METHOD_NAME, String.class, int.class);
             removeTagMethod = compoundClass.getMethod(VersionConstants.REMOVE_TAG_METHOD_NAME, String.class);
             hasTagMethod = itemStackClass.getMethod(VersionConstants.HAS_TAG_METHOD_NAME);
@@ -116,6 +118,19 @@ public final class NbtProvider {
         return getString(itemCompound, key);
     }
 
+    public static ItemStack setShort(final ItemStack itemStack, final String key, final short value) {
+        if (itemStack == null) return null;
+        if (itemStack.getType() == Material.AIR) return null;
+
+        Object nmsItemStack = asNMSCopy(itemStack);
+        Object itemCompound = hasTag(nmsItemStack) ? getTag(nmsItemStack) : newNBTTagCompound();
+
+        setShort(itemCompound, key, value);
+        setTag(nmsItemStack, itemCompound);
+
+        return asBukkitCopy(nmsItemStack);
+    }
+
     public static ItemStack setInt(final ItemStack itemStack, final String key, final int value) {
         if (itemStack == null) return null;
         if (itemStack.getType() == Material.AIR) return null;
@@ -172,6 +187,13 @@ public final class NbtProvider {
     private static void setBoolean(final Object itemCompound, final String key, final boolean value) {
         try {
             setBooleanMethod.invoke(itemCompound, key, value);
+        } catch (IllegalAccessException | InvocationTargetException ignored) {
+        }
+    }
+
+    private static void setShort(final Object itemCompound, final String key, final short value) {
+        try {
+            setShortMethod.invoke(itemCompound, key, value);
         } catch (IllegalAccessException | InvocationTargetException ignored) {
         }
     }
@@ -299,6 +321,7 @@ public final class NbtProvider {
         private final static String GET_STRING_METHOD_NAME = getStringMethodName();
         private final static String SET_STRING_METHOD_NAME = setStringMethodName();
         private final static String SET_BOOLEAN_METHOD_NAME = setBooleanMethodName();
+        private final static String SET_SHORT_METHOD_NAME = setShortMethodName();
         private final static String SET_INTEGER_METHOD_NAME = setIntegerMethodName();
         private final static String REMOVE_TAG_METHOD_NAME = removeTagMethodName();
         private final static String HAS_TAG_METHOD_NAME = hasTagMethodName();
@@ -318,6 +341,11 @@ public final class NbtProvider {
         private static String setBooleanMethodName() {
             if (VersionHelper.HAS_OBFUSCATED_NAMES) return "a";
             return "setBoolean";
+        }
+
+        private static String setShortMethodName() {
+            if (VersionHelper.HAS_OBFUSCATED_NAMES) return "a";
+            return "setShort";
         }
 
         private static String setIntegerMethodName() {

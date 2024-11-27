@@ -19,6 +19,7 @@ import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import io.github.projectunified.minelib.scheduler.canceller.TaskCanceller;
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -171,7 +172,7 @@ public class DeluxeMenus extends JavaPlugin {
   public void onDisable() {
     Bukkit.getMessenger().unregisterOutgoingPluginChannel(this, "BungeeCord");
 
-    Bukkit.getScheduler().cancelTasks(this);
+    TaskCanceller.get(this).cancelAll();
 
     if (this.adventure != null) {
       this.adventure.close();

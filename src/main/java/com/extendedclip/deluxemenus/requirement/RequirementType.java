@@ -53,6 +53,10 @@ public enum RequirementType {
       "Checks if a string does not contain another string", Arrays.asList("input", "output")),
   STRING_EQUALS(Arrays.asList("string equals", "stringequals", "equals"),
       "Checks if a string equals another string", Arrays.asList("input", "output")),
+  BOOLEAN(Arrays.asList("boolean", "bool"),
+          "Checks if a player has a set amount of permissions", Collections.singletonList("input")),
+  REVERSE_BOOLEAN(Arrays.asList("!boolean", "!bool"),
+          "Checks if a player has a set amount of permissions", Collections.singletonList("input")),
   STRING_DOES_NOT_EQUAL(Arrays.asList("!string equals", "!stringequals", "!equals"),
       "Checks if a string does not equal another string", Arrays.asList("input", "output")),
   STRING_EQUALS_IGNORECASE(

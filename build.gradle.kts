@@ -1,6 +1,6 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version("8.1.1")
+    id("com.gradleup.shadow") version("9.0.0-beta4")
     id("com.github.ben-manes.versions") version "0.48.0"
 }
 
@@ -19,6 +19,7 @@ repositories {
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
     maven("https://jitpack.io")
+    maven("https://repo.nexomc.com/snapshots/")
 }
 
 dependencies {
@@ -30,6 +31,7 @@ dependencies {
     compileOnly(libs.headdb)
     compileOnly(libs.itemsadder)
     compileOnly(libs.oraxen)
+    compileOnly(libs.nexo)
     compileOnly(libs.mythiclib)
     compileOnly(libs.mmoitems)
     compileOnly(libs.score)
@@ -51,8 +53,8 @@ tasks {
         archiveFileName.set("DeluxeMenus-${rootProject.version}.jar")
     }
     java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     processResources {

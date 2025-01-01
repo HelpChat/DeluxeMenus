@@ -16,6 +16,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PersistentMetaHandler {
+
+  private final DeluxeMenus plugin;
+
+  public PersistentMetaHandler(@NotNull final DeluxeMenus plugin) {
+      this.plugin = plugin;
+  }
+
   /**
    * Get a {@link PersistentDataType} from its name.
    *
@@ -50,7 +57,7 @@ public class PersistentMetaHandler {
       final String[] split = key.split(":", 2);
       namespacedKey = new NamespacedKey(split[0], split[1]);
     } else {
-      namespacedKey = new NamespacedKey(DeluxeMenus.getInstance(), key);
+      namespacedKey = new NamespacedKey(plugin, key);
     }
 
     return namespacedKey;
@@ -75,7 +82,7 @@ public class PersistentMetaHandler {
     try {
       namespacedKey = getKey(key);
     } catch (final IllegalArgumentException e) {
-      DeluxeMenus.debug(
+      plugin.debug(
               DebugLevel.HIGHEST,
               Level.WARNING,
               "Failed to get meta value for player " + player.getName() + " with key '" + key + "' and type '" + typeName.toUpperCase(Locale.ROOT) + "'. Reason: " + e.getMessage()
@@ -92,7 +99,7 @@ public class PersistentMetaHandler {
     try {
       result = player.getPersistentDataContainer().get(namespacedKey, type);
     } catch (final IllegalArgumentException e) {
-      DeluxeMenus.debug(
+      plugin.debug(
               DebugLevel.HIGHEST,
               Level.WARNING,
               "Failed to get meta value for player " + player.getName() + " with key '" + key + "' and type '" + typeName.toUpperCase(Locale.ROOT) + "'. Reason: Saved tag can not be converted to type: " + typeName.toUpperCase(Locale.ROOT)
@@ -136,7 +143,7 @@ public class PersistentMetaHandler {
     try {
       namespacedKey = getKey(args[1]);
     } catch (final IllegalArgumentException e) {
-      DeluxeMenus.debug(
+      plugin.debug(
               DebugLevel.HIGHEST,
               Level.WARNING,
               "Failed to set meta value for player " + player.getName() + " with key '" + args[1] + "' and type '" + args[2].toUpperCase(Locale.ROOT) + "'. Reason: " + e.getMessage()

@@ -14,10 +14,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class HasItemRequirement extends Requirement {
 
+  private final DeluxeMenus plugin;
   private final ItemWrapper wrapper;
   private final boolean invert;
 
-  public HasItemRequirement(ItemWrapper wrapper, boolean invert) {
+  public HasItemRequirement(final DeluxeMenus plugin, final ItemWrapper wrapper, final boolean invert) {
+    this.plugin = plugin;
     this.wrapper = wrapper;
     this.invert = invert;
   }
@@ -28,7 +30,7 @@ public class HasItemRequirement extends Requirement {
     Material material = DeluxeMenus.MATERIALS.get(materialName.toUpperCase());
     ItemHook pluginHook = null;
     if (material == null) {
-      pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+      pluginHook = plugin.getItemHooks().values()
               .stream()
               .filter(x -> materialName.toLowerCase().startsWith(x.getPrefix()))
               .findFirst()

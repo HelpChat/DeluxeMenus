@@ -18,6 +18,11 @@ import org.jetbrains.annotations.NotNull;
 public class MMOItemsHook implements ItemHook, SimpleCache {
 
     private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+    private final DeluxeMenus plugin;
+
+    public MMOItemsHook(final @NotNull DeluxeMenus plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public ItemStack getItem(@NotNull final String... arguments) {
@@ -42,7 +47,7 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
 
         ItemStack mmoItem = null;
         try {
-            mmoItem = Bukkit.getScheduler().callSyncMethod(DeluxeMenus.getInstance(), () -> {
+            mmoItem = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
                 ItemStack item = MMOItems.plugin.getItem(itemType, splitArgs[1]);
 
                 if (item == null) {
@@ -54,7 +59,7 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
                 return item;
             }).get();
         } catch (InterruptedException | ExecutionException e) {
-            DeluxeMenus.debug(DebugLevel.HIGHEST, Level.SEVERE, "Error getting MMOItem synchronously.");
+            plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Error getting MMOItem synchronously.");
         }
 
         return mmoItem == null ? new ItemStack(Material.STONE, 1) : mmoItem;

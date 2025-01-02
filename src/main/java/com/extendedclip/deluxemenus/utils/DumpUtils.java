@@ -119,7 +119,7 @@ public final class DumpUtils {
         final var guiMenus = config.getConfigurationSection("gui_menus");
 
         if (guiMenus == null) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "No gui_menus section found in config.yml!"
@@ -131,7 +131,7 @@ public final class DumpUtils {
         final Set<String> keys = guiMenus.getKeys(false);
 
         if (!keys.contains(menuName)) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "File for the " + menuName + " menu is not declared in config.yml!"
@@ -143,7 +143,7 @@ public final class DumpUtils {
         final String fileName = plugin.getConfig().getString("gui_menus." + menuName + ".file");
 
         if (fileName == null) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "File for the " + menuName + " menu is not declared in config.yml!"
@@ -153,7 +153,7 @@ public final class DumpUtils {
         }
 
         if (!fileName.endsWith(".yml")) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "File for the " + menuName + " menu is not declared in config.yml!"
@@ -173,7 +173,7 @@ public final class DumpUtils {
         final var menuFile = new File(plugin.getConfiguration().getMenuDirector(), fileName);
 
         if (!menuFile.exists() || !menuFile.isFile()) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "Could not find the " + fileName + " file in " +
@@ -188,13 +188,13 @@ public final class DumpUtils {
                 builder.append(line).append(System.lineSeparator())
             );
         } catch (final IOException exception) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "Something went wrong while reading the the file: " + fileName
             );
 
-            DeluxeMenus.printStacktrace(
+            plugin.printStacktrace(
                 "Something went wrong while reading the the file: " + fileName,
                 exception
             );
@@ -211,7 +211,7 @@ public final class DumpUtils {
         final File configFile = new File(plugin.getDataFolder(), "config.yml");
 
         if (!configFile.exists() || !configFile.isFile()) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "Could not find the " + configFile + " file in " + plugin.getDataFolder().getPath()
@@ -230,13 +230,13 @@ public final class DumpUtils {
                 builder.append(line).append(System.lineSeparator())
             );
         } catch (final IOException exception) {
-            DeluxeMenus.debug(
+            plugin.debug(
                 DebugLevel.HIGHEST,
                 Level.WARNING,
                 "Something went wrong while reading the the file: " + configFile
             );
 
-            DeluxeMenus.printStacktrace(
+            plugin.printStacktrace(
                 "Something went wrong while reading the the file: " + configFile,
                 exception
             );

@@ -94,7 +94,7 @@ public class OpenCommand extends SubCommand {
         }
 
         if (viewer == null) {
-            plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(args.get(2)).build()));
+            plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(args.get(1)).build()));
             return;
         }
 

@@ -561,38 +561,38 @@ public class DeluxeMenusConfig {
         if (!openCommands.isEmpty()) {
             builder.commands(openCommands);
             builder.registerCommands(c.getBoolean(pre + "register_command", false));
-
-            List<String> argumentNames = new ArrayList<>();
-            List<RequirementList> argumentRequirements = new ArrayList<>();
-
-            if (c.contains(pre + "args")) {
-                // New requirements parsing
-                if (c.isConfigurationSection(pre + "args")) {
-                    Set<String> mapList = c.getConfigurationSection(pre + "args").getKeys(false);
-                    debug("found args");
-                    for (String arg : mapList) {
-                        debug("arg: " + arg);
-                        // If it has requirements, add them
-                        if (c.contains(pre + "args." + arg + ".requirements")) {
-                            debug("arg has requirements: " + arg);
-                            argumentRequirements.add(this.getRequirements(c, pre + "args." + arg));
-                        }
-                        // Always add the arg itself
-                        argumentNames.add(arg);
-                    }
-                    // Old list parsing
-                } else if (c.isList(pre + "args")) {
-                    argumentNames.addAll(c.getStringList(pre + "args"));
-                    // Old singular item parsing
-                } else if (c.isString(pre + "args")) {
-                    argumentNames.add(c.getString(pre + "args"));
-                }
-            }
-
-            builder.arguments(argumentNames);
-            builder.argumentRequirements(argumentRequirements);
-            builder.argumentsUsageMessage(c.getString(pre + "args_usage_message", null));
         }
+
+        List<String> argumentNames = new ArrayList<>();
+        List<RequirementList> argumentRequirements = new ArrayList<>();
+
+        if (c.contains(pre + "args")) {
+            // New requirements parsing
+            if (c.isConfigurationSection(pre + "args")) {
+                Set<String> mapList = c.getConfigurationSection(pre + "args").getKeys(false);
+                debug("found args");
+                for (String arg : mapList) {
+                    debug("arg: " + arg);
+                    // If it has requirements, add them
+                    if (c.contains(pre + "args." + arg + ".requirements")) {
+                        debug("arg has requirements: " + arg);
+                        argumentRequirements.add(this.getRequirements(c, pre + "args." + arg));
+                    }
+                    // Always add the arg itself
+                    argumentNames.add(arg);
+                }
+                // Old list parsing
+            } else if (c.isList(pre + "args")) {
+                argumentNames.addAll(c.getStringList(pre + "args"));
+                // Old singular item parsing
+            } else if (c.isString(pre + "args")) {
+                argumentNames.add(c.getString(pre + "args"));
+            }
+        }
+
+        builder.arguments(argumentNames);
+        builder.argumentRequirements(argumentRequirements);
+        builder.argumentsUsageMessage(c.getString(pre + "args_usage_message", null));
 
         int size = 54;
         if (type == InventoryType.CHEST) {

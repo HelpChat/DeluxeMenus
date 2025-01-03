@@ -6,6 +6,7 @@ import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.utils.AdventureUtils;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
+import com.extendedclip.deluxemenus.utils.SoundUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -360,7 +361,7 @@ public class ClickActionTask extends BukkitRunnable {
 
                 if (!executable.contains(" ")) {
                     try {
-                        sound = Sound.valueOf(executable.toUpperCase());
+                        sound = SoundUtils.getSound(executable.toUpperCase());
                     } catch (final IllegalArgumentException exception) {
                         plugin.printStacktrace(
                                 "Sound name given for sound action: " + executable + ", is not a valid sound!",
@@ -372,7 +373,7 @@ public class ClickActionTask extends BukkitRunnable {
                     String[] parts = executable.split(" ", 3);
 
                     try {
-                        sound = Sound.valueOf(parts[0].toUpperCase());
+                        sound = SoundUtils.getSound(parts[0].toUpperCase());
                     } catch (final IllegalArgumentException exception) {
                         plugin.printStacktrace(
                                 "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",

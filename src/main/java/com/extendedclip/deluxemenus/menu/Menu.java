@@ -1,22 +1,17 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
-import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -24,12 +19,11 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Menu extends Command {
+public class Menu {
 
     private static final Map<String, Menu> menus = new HashMap<>();
     private static final Set<MenuHolder> menuHolders = new HashSet<>();
     private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
-    private static CommandMap commandMap = null;
 
     private final DeluxeMenus plugin;
     private final MenuOptions options;
@@ -37,26 +31,24 @@ public class Menu extends Command {
     // menu path starting from the plugin directory
     private final String path;
 
+    private RegistrableMenuCommand command = null;
+
     public Menu(
             final @NotNull DeluxeMenus plugin,
             final @NotNull MenuOptions options,
             final @NotNull Map<Integer, TreeMap<Integer, MenuItem>> items,
             final @NotNull String path
     ) {
-        super(options.commands().isEmpty() ? options.name() : options.commands().get(0));
-
         this.plugin = plugin;
         this.options = options;
         this.items = items;
         this.path = path;
 
         if (this.options.registerCommands()) {
-            if (this.options.commands().size() > 1) {
-                this.setAliases(this.options.commands().subList(1, this.options.commands().size()));
-            }
-
-            addCommand();
+            this.command = new RegistrableMenuCommand(plugin, this);
+            this.command.register();
         }
+
         menus.put(this.options.name(), this);
     }
 
@@ -67,12 +59,12 @@ public class Menu extends Command {
             }
         }
 
-        Optional<Menu> menu = Menu.getMenuByName(name);
-        if (menu.isEmpty()) {
+        Optional<Menu> optionalMenu = Menu.getMenuByName(name);
+        if (optionalMenu.isEmpty()) {
             return;
         }
 
-        menu.get().removeCommand();
+        optionalMenu.get().unregisterCommand();
         menus.remove(name);
     }
 
@@ -83,11 +75,21 @@ public class Menu extends Command {
             }
         }
         for (Menu menu : Menu.getAllMenus()) {
-            menu.removeCommand();
+            menu.unregisterCommand();
         }
         menus.clear();
         menuHolders.clear();
         lastOpenedMenus.clear();
+    }
+
+    private void unregisterCommand() {
+        if (this.command != null) {
+            this.command.unregister();
+        }
+
+        // WARNING! A reference to the command is stored by CraftBukkit for their `/help` command. There is currently
+        // no way to remove this reference!
+        this.command = null;
     }
 
     public static void unloadForShutdown(final @NotNull DeluxeMenus plugin) {
@@ -206,103 +208,6 @@ public class Menu extends Command {
 
     public static void closeMenu(final @NotNull DeluxeMenus plugin, final @NotNull Player player, final boolean close) {
         closeMenu(plugin, player, close, false);
-    }
-
-    private void addCommand() {
-        if (commandMap == null) {
-            try {
-                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                f.setAccessible(true);
-                commandMap = (CommandMap) f.get(Bukkit.getServer());
-            } catch (final @NotNull Exception exception) {
-                plugin.printStacktrace(
-                        "Something went wrong while trying to register command: " + this.getName(),
-                        exception
-                );
-                return;
-            }
-        }
-        boolean registered = commandMap.register("DeluxeMenus", this);
-        if (registered) {
-            plugin.debug(
-                    DebugLevel.LOW,
-                    Level.INFO,
-                    "Registered command: " + this.getName() + " for menu: " + this.options.name()
-            );
-        }
-    }
-
-    private void removeCommand() {
-        if (commandMap != null && this.options.registerCommands()) {
-            Field cMap;
-            Field knownCommands;
-            try {
-                cMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                cMap.setAccessible(true);
-                knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
-                knownCommands.setAccessible(true);
-                ((Map<String, Command>) knownCommands.get((SimpleCommandMap) cMap.get(Bukkit.getServer())))
-                        .remove(this.getName());
-                boolean unregistered = this.unregister((CommandMap) cMap.get(Bukkit.getServer()));
-                this.unregister(commandMap);
-                if (unregistered) {
-                    plugin.debug(
-                            DebugLevel.HIGH,
-                            Level.INFO,
-                            "Successfully unregistered command: " + this.getName()
-                    );
-                } else {
-                    plugin.debug(
-                            DebugLevel.HIGHEST,
-                            Level.WARNING,
-                            "Failed to unregister command: " + this.getName()
-                    );
-                }
-            } catch (final @NotNull Exception exception) {
-                plugin.printStacktrace(
-                        "Something went wrong while trying to unregister command: " + this.getName(),
-                        exception
-                );
-            }
-        }
-    }
-
-    @Override
-    public boolean execute(final @NotNull CommandSender sender, final @NotNull String commandLabel, final @NotNull String[] typedArgs) {
-        if (!(sender instanceof Player)) {
-            Msg.msg(sender, "Menus can only be opened by players!");
-            return true;
-        }
-
-        Map<String, String> argMap = null;
-
-        if (!this.options.arguments().isEmpty()) {
-            plugin.debug(DebugLevel.LOWEST, Level.INFO, "has args");
-            if (typedArgs.length < this.options.arguments().size()) {
-                if (this.options.argumentsUsageMessage().isPresent()) {
-                    Msg.msg(sender, this.options.argumentsUsageMessage().get());
-                }
-                return true;
-            }
-            argMap = new HashMap<>();
-            int index = 0;
-            for (String arg : this.options.arguments()) {
-                if (index + 1 == this.options.arguments().size()) {
-                    String last = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
-                    plugin.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + last);
-                    argMap.put(arg, last);
-                } else {
-                    argMap.put(arg, typedArgs[index]);
-                    plugin.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + typedArgs[index]);
-                }
-                index++;
-            }
-        }
-
-        Player player = (Player) sender;
-        plugin.debug(DebugLevel.LOWEST, Level.INFO, "opening menu: " + this.options.name());
-        openMenu(player, argMap, null);
-        return true;
     }
 
     private boolean hasOpenBypassPerm(final @NotNull Player viewer) {

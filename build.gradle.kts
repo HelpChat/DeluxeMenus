@@ -1,7 +1,8 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version("8.1.1")
-    id("com.github.ben-manes.versions") version "0.48.0"
+    id("com.gradleup.shadow") version("8.3.5")
+    id("com.github.ben-manes.versions") version("0.51.0")
+//    id("io.papermc.paperweight.userdev") version("2.0.0-beta.13")
 }
 
 // Change to true when releasing
@@ -18,6 +19,7 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
+    maven("https://repo.oraxen.com/releases")
     maven("https://jitpack.io")
 }
 
@@ -41,6 +43,8 @@ dependencies {
     implementation(libs.adventure.minimessage)
 
     compileOnly("org.jetbrains:annotations:23.0.0")
+
+//    paperweight.paperDevBundle("1.21.3-R0.1-SNAPSHOT")
 }
 
 tasks {

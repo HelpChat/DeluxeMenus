@@ -23,7 +23,7 @@ vault = { module = "com.github.milkbowl:VaultAPI", version.ref = "vault" }
 authlib = { module = "com.mojang:authlib", version.ref = "authlib" }
 headdb = { module = "com.arcaniax:HeadDatabase-API", version.ref = "headdb" }
 itemsadder = { module = "com.github.LoneDev6:api-itemsadder", version.ref = "itemsadder" }
-oraxen = { module = "io.th0rgal:oraxen", version.ref = "oraxen" }
+oraxen = { module = "com.github.oraxen:oraxen", version.ref = "oraxen" }
 mythiclib = { module = "io.lumine:MythicLib-dist", version.ref = "mythiclib"}
 mmoitems = { module = "net.Indyuce:MMOItems-API", version.ref = "mmoitems" }
 papi = { module = "me.clip:placeholderapi", version.ref = "papi" }

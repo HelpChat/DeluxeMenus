@@ -3,15 +3,18 @@ package com.extendedclip.deluxemenus.requirement;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 public class HasMetaRequirement extends Requirement {
 
+  private final DeluxeMenus plugin;
   private final String key;
   private final String value;
   private final String type;
   private final boolean invert;
 
-  public HasMetaRequirement(String key, String type, String value, boolean invert) {
+  public HasMetaRequirement(@NotNull final DeluxeMenus plugin, String key, String type, String value, boolean invert) {
+    this.plugin = plugin;
     this.key = key;
     this.type = type.toUpperCase();
     this.value = value;
@@ -25,7 +28,7 @@ public class HasMetaRequirement extends Requirement {
       return false;
     }
     String parsedKey = holder.setPlaceholdersAndArguments(key);
-    String metaVal = DeluxeMenus.getInstance().getPersistentMetaHandler()
+    String metaVal = plugin.getPersistentMetaHandler()
         .getMeta(player, parsedKey, type, null);
     if (metaVal == null) {
       return invert;

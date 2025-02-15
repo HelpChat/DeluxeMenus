@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.menu;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
+import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
@@ -14,12 +15,14 @@ import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.Registry;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Banner;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BannerMeta;
@@ -52,9 +55,11 @@ import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 
 public class MenuItem {
 
-    private final @NotNull MenuItemOptions options;
+    private final DeluxeMenus plugin;
+    private final MenuItemOptions options;
 
-    public MenuItem(@NotNull final MenuItemOptions options) {
+    public MenuItem(@NotNull final DeluxeMenus plugin, @NotNull final MenuItemOptions options) {
+        this.plugin = plugin;
         this.options = options;
     }
 
@@ -86,7 +91,7 @@ public class MenuItem {
         final int temporaryAmount = amount;
 
         final String finalMaterial = lowercaseStringMaterial;
-        final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+        final ItemHook pluginHook = plugin.getItemHooks().values()
             .stream()
             .filter(x -> finalMaterial.startsWith(x.getPrefix()))
             .findFirst()
@@ -104,7 +109,7 @@ public class MenuItem {
         if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Material: " + stringMaterial + " is not valid! Setting to Stone."
@@ -186,7 +191,7 @@ public class MenuItem {
                     }
                 }
             } catch (final NumberFormatException exception) {
-                DeluxeMenus.printStacktrace(
+                plugin.printStacktrace(
                         "Invalid damage found: " + parsedDamage + ".",
                         exception
                 );
@@ -259,6 +264,39 @@ public class MenuItem {
             itemMeta.setUnbreakable(true);
         }
 
+        if (VersionHelper.HAS_DATA_COMPONENTS) {
+            if (this.options.hideTooltip().isPresent()) {
+                String hideTooltip = holder.setPlaceholdersAndArguments(this.options.hideTooltip().get());
+                itemMeta.setHideTooltip(Boolean.parseBoolean(hideTooltip));
+            }
+            if (this.options.enchantmentGlintOverride().isPresent()) {
+                String enchantmentGlintOverride = holder.setPlaceholdersAndArguments(this.options.enchantmentGlintOverride().get());
+                itemMeta.setEnchantmentGlintOverride(Boolean.parseBoolean(enchantmentGlintOverride));
+            }
+            if (this.options.rarity().isPresent()) {
+                String rarity = holder.setPlaceholdersAndArguments(this.options.rarity().get());
+                try {
+                    itemMeta.setRarity(ItemRarity.valueOf(rarity.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    plugin.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Rarity " + rarity + " is not a valid!"
+                    );
+                }
+            }
+        }
+        if (VersionHelper.HAS_TOOLTIP_STYLE) {
+            if (this.options.tooltipStyle().isPresent()) {
+                NamespacedKey tooltipStyle = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.tooltipStyle().get()));
+                if (tooltipStyle != null) itemMeta.setTooltipStyle(tooltipStyle);
+            }
+            if (this.options.itemModel().isPresent()) {
+                NamespacedKey itemModel = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.itemModel().get()));
+                if (itemModel != null) itemMeta.setItemModel(itemModel);
+            }
+        }
+
         if (VersionHelper.HAS_ARMOR_TRIMS && ItemUtils.hasArmorMeta(itemStack)) {
             final Optional<String> trimMaterialName = this.options.trimMaterial();
             final Optional<String> trimPatternName = this.options.trimPattern();
@@ -274,7 +312,7 @@ public class MenuItem {
                     itemStack.setItemMeta(armorMeta);
                 } else {
                     if (trimMaterial == null) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
                                 "Trim material " + trimMaterialName.get() + " is not a valid!"
@@ -282,7 +320,7 @@ public class MenuItem {
                     }
 
                     if (trimPattern == null) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
                                 "Trim pattern " + trimPatternName.get() + " is not a valid!"
@@ -290,13 +328,13 @@ public class MenuItem {
                     }
                 }
             } else if (trimMaterialName.isPresent()) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Trim pattern is not set for item with trim material " + trimMaterialName.get()
                 );
             } else if (trimPatternName.isPresent()) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Trim material is not set for item with trim pattern " + trimPatternName.get()
@@ -314,7 +352,7 @@ public class MenuItem {
                         Integer.parseInt(parts[2].trim())));
                 itemStack.setItemMeta(leatherArmorMeta);
             } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
+                plugin.printStacktrace(
                         "Invalid rgb colors found for leather armor: " + parts[0].trim() + ", " + parts[1].trim() + ", " +
                                 parts[2].trim(),
                         exception
@@ -330,7 +368,7 @@ public class MenuItem {
                         Integer.parseInt(parts[1].trim()), Integer.parseInt(parts[2].trim()))).build());
                 itemStack.setItemMeta(fireworkEffectMeta);
             } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
+                plugin.printStacktrace(
                         "Invalid rgb colors found for firework or firework star: " + parts[0].trim() + ", "
                                 + parts[1].trim() + ", " + parts[2].trim(),
                         exception
@@ -341,7 +379,7 @@ public class MenuItem {
             for (final Map.Entry<Enchantment, Integer> entry : this.options.enchantments().entrySet()) {
                 final boolean result = enchantmentStorageMeta.addStoredEnchant(entry.getKey(), entry.getValue(), true);
                 if (!result) {
-                    DeluxeMenus.debug(
+                    plugin.debug(
                             DebugLevel.HIGHEST,
                             Level.INFO,
                             "Failed to add enchantment " + entry.getKey().getName() + " to item " + itemStack.getType()
@@ -367,14 +405,14 @@ public class MenuItem {
                     final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), light.getMaximumLevel());
                     light.setLevel(Math.max(lightLevel, 0));
                     if (lightLevel < 0) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.MEDIUM,
                                 Level.WARNING,
                                 "Invalid light level found for light block: " + parsedLightLevel + ". Setting to 0."
                         );
                     }
                     if (lightLevel > light.getMaximumLevel()) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.MEDIUM,
                                 Level.WARNING,
                                 "Invalid light level found for light block: " + parsedLightLevel + ". Setting to " + light.getMaximumLevel() + "."
@@ -384,7 +422,7 @@ public class MenuItem {
                     blockDataMeta.setBlockData(light);
                     itemStack.setItemMeta(blockDataMeta);
                 } catch (final Exception exception) {
-                    DeluxeMenus.printStacktrace(
+                    plugin.printStacktrace(
                             "Invalid light level found for light block: " + parsedLightLevel,
                             exception
                     );
@@ -413,6 +451,22 @@ public class MenuItem {
                 }
             }
 
+            if (this.options.nbtByte().isPresent()) {
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtByte().get());
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
+                }
+            }
+
+            if (this.options.nbtShort().isPresent()) {
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtShort().get());
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
+                }
+            }
+
             if (this.options.nbtInt().isPresent()) {
                 final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
                 if (tag.contains(":")) {
@@ -426,6 +480,22 @@ public class MenuItem {
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
+                }
+            }
+
+            for (String nbtTag : this.options.nbtBytes()) {
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
+                }
+            }
+
+            for (String nbtTag : this.options.nbtShorts()) {
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
                 }
             }
 
@@ -461,9 +531,7 @@ public class MenuItem {
     }
 
     private @NotNull Optional<ItemStack> getItemFromHook(String hookName, String... args) {
-        return DeluxeMenus.getInstance()
-                .getItemHook(hookName)
-                .map(itemHook -> itemHook.getItem(args));
+        return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
     private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {

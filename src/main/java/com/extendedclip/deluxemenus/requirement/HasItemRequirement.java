@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.StringUtils;
@@ -13,20 +14,28 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class HasItemRequirement extends Requirement {
 
+  private final DeluxeMenus plugin;
   private final ItemWrapper wrapper;
   private final boolean invert;
 
-  public HasItemRequirement(ItemWrapper wrapper, boolean invert) {
+  public HasItemRequirement(final DeluxeMenus plugin, final ItemWrapper wrapper, final boolean invert) {
+    this.plugin = plugin;
     this.wrapper = wrapper;
     this.invert = invert;
   }
 
   @Override
   public boolean evaluate(MenuHolder holder) {
-    String materialName = holder.setPlaceholdersAndArguments(wrapper.getMaterial()).toUpperCase();
-    Material material = DeluxeMenus.MATERIALS.get(materialName);
+    String materialName = holder.setPlaceholdersAndArguments(wrapper.getMaterial());
+    Material material = DeluxeMenus.MATERIALS.get(materialName.toUpperCase());
+    ItemHook pluginHook = null;
     if (material == null) {
-      return invert;
+      pluginHook = plugin.getItemHooks().values()
+              .stream()
+              .filter(x -> materialName.toLowerCase().startsWith(x.getPrefix()))
+              .findFirst()
+              .orElse(null);
+      if (pluginHook == null) return invert;
     }
 
     if (material == Material.AIR) return invert == (holder.getViewer().getInventory().firstEmpty() == -1);
@@ -37,20 +46,20 @@ public class HasItemRequirement extends Requirement {
 
     int total = 0;
     for (ItemStack itemToCheck: inventory) {
-      if (!isRequiredItem(itemToCheck, holder, material)) continue;
+      if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
       total += itemToCheck.getAmount();
     }
 
     if (offHand != null) {
       for (ItemStack itemToCheck: offHand) {
-        if (!isRequiredItem(itemToCheck, holder, material)) continue;
+        if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
         total += itemToCheck.getAmount();
       }
     }
 
     if (armor != null) {
       for (ItemStack itemToCheck: armor) {
-        if (!isRequiredItem(itemToCheck, holder, material)) continue;
+        if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
         total += itemToCheck.getAmount();
       }
     }
@@ -58,9 +67,13 @@ public class HasItemRequirement extends Requirement {
     return invert == (total < wrapper.getAmount());
   }
 
-  private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material) {
+  private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material, ItemHook pluginHook) {
     if (itemToCheck == null || itemToCheck.getType() == Material.AIR) return false;
-    if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
+
+    if (pluginHook != null) {
+      if (!pluginHook.itemMatchesIdentifiers(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length())))) return false;
+    }
+    else if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
     if (wrapper.hasData() && itemToCheck.getDurability() != wrapper.getData()) return false;
 
     ItemMeta metaToCheck = itemToCheck.getItemMeta();

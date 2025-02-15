@@ -1,10 +1,10 @@
 package com.extendedclip.deluxemenus.dupe;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.listener.Listener;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -13,15 +13,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 
-public class DupeFixer implements Listener {
+/**
+ * Prevents duplication of items created by DeluxeMenus. Items created by DeluxeMenus are marked and removed if found
+ * outside the inventory they were created in.
+ */
+public class DupeFixer extends Listener {
 
-    private final DeluxeMenus plugin;
     private final MenuItemMarker marker;
 
     public DupeFixer(@NotNull final DeluxeMenus plugin, @NotNull final MenuItemMarker marker) {
-        this.plugin = plugin;
+        super(plugin);
         this.marker = marker;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -30,7 +32,7 @@ public class DupeFixer implements Listener {
             return;
         }
 
-        DeluxeMenus.debug(
+        plugin.debug(
                 DebugLevel.LOWEST,
                 Level.INFO,
                 "Someone picked up a DeluxeMenus item. Removing it."
@@ -44,7 +46,7 @@ public class DupeFixer implements Listener {
             return;
         }
 
-        DeluxeMenus.debug(
+        plugin.debug(
                 DebugLevel.LOWEST,
                 Level.INFO,
                 "A DeluxeMenus item was dropped in the world. Removing it."
@@ -60,7 +62,7 @@ public class DupeFixer implements Listener {
                         if (itemStack == null) continue;
                         if (!marker.isMarked(itemStack)) continue;
 
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.LOWEST,
                                 Level.INFO,
                                 "Player logged in with a DeluxeMenus item in their inventory. Removing it."

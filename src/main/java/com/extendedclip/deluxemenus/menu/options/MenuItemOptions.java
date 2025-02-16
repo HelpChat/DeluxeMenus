@@ -2,7 +2,6 @@ package com.extendedclip.deluxemenus.menu.options;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
-import com.extendedclip.deluxemenus.menu.LoreAppendMode;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import org.bukkit.DyeColor;
 import org.bukkit.block.banner.Pattern;
@@ -37,6 +36,12 @@ public class MenuItemOptions {
     private final String trimMaterial;
     private final String trimPattern;
 
+    private final String hideTooltip;
+    private final String enchantmentGlintOverride;
+    private final String rarity;
+    private final String tooltipStyle;
+    private final String itemModel;
+
     private final Map<Enchantment, Integer> enchantments;
     private final List<PotionEffect> potionEffects;
     private final List<Pattern> bannerMeta;
@@ -50,8 +55,12 @@ public class MenuItemOptions {
     private final LoreAppendMode loreAppendMode;
 
     private final String nbtString;
+    private final String nbtByte;
+    private final String nbtShort;
     private final String nbtInt;
     private final List<String> nbtStrings;
+    private final List<String> nbtBytes;
+    private final List<String> nbtShorts;
     private final List<String> nbtInts;
 
     private final int slot;
@@ -89,6 +98,11 @@ public class MenuItemOptions {
         this.rgb = builder.rgb;
         this.trimMaterial = builder.trimMaterial;
         this.trimPattern = builder.trimPattern;
+        this.hideTooltip = builder.hideTooltip;
+        this.enchantmentGlintOverride = builder.enchantmentGlintOverride;
+        this.rarity = builder.rarity;
+        this.tooltipStyle = builder.tooltipStyle;
+        this.itemModel = builder.itemModel;
         this.enchantments = builder.enchantments;
         this.potionEffects = builder.potionEffects;
         this.bannerMeta = builder.bannerMeta;
@@ -97,8 +111,12 @@ public class MenuItemOptions {
         this.displayNameHasPlaceholders = builder.displayNameHasPlaceholders;
         this.loreHasPlaceholders = builder.loreHasPlaceholders;
         this.nbtString = builder.nbtString;
+        this.nbtByte = builder.nbtByte;
+        this.nbtShort = builder.nbtShort;
         this.nbtInt = builder.nbtInt;
         this.nbtStrings = builder.nbtStrings;
+        this.nbtBytes = builder.nbtBytes;
+        this.nbtShorts = builder.nbtShorts;
         this.nbtInts = builder.nbtInts;
         this.slot = builder.slot;
         this.priority = builder.priority;
@@ -178,6 +196,26 @@ public class MenuItemOptions {
         return Optional.ofNullable(trimPattern);
     }
 
+    public @NotNull Optional<String> hideTooltip() {
+        return Optional.ofNullable(hideTooltip);
+    }
+
+    public @NotNull Optional<String> enchantmentGlintOverride() {
+        return Optional.ofNullable(enchantmentGlintOverride);
+    }
+
+    public @NotNull Optional<String> rarity() {
+        return Optional.ofNullable(rarity);
+    }
+
+    public @NotNull Optional<String> tooltipStyle() {
+        return Optional.ofNullable(tooltipStyle);
+    }
+
+    public @NotNull Optional<String> itemModel() {
+        return Optional.ofNullable(itemModel);
+    }
+
     public @NotNull Map<Enchantment, Integer> enchantments() {
         return enchantments;
     }
@@ -218,12 +256,28 @@ public class MenuItemOptions {
         return Optional.ofNullable(nbtString);
     }
 
+    public @NotNull Optional<String> nbtByte() {
+        return Optional.ofNullable(nbtByte);
+    }
+
+    public @NotNull Optional<String> nbtShort() {
+        return Optional.ofNullable(nbtShort);
+    }
+
     public @NotNull Optional<String> nbtInt() {
         return Optional.ofNullable(nbtInt);
     }
 
     public @NotNull List<String> nbtStrings() {
         return nbtStrings;
+    }
+
+    public @NotNull List<String> nbtBytes() {
+        return nbtBytes;
+    }
+
+    public @NotNull List<String> nbtShorts() {
+        return nbtShorts;
     }
 
     public @NotNull List<String> nbtInts() {
@@ -311,14 +365,23 @@ public class MenuItemOptions {
                 .rgb(this.rgb)
                 .trimMaterial(this.trimMaterial)
                 .trimPattern(this.trimPattern)
+                .hideTooltip(this.hideTooltip)
+                .enchantmentGlintOverride(this.enchantmentGlintOverride)
+                .rarity(this.rarity)
+                .tooltipStyle(this.tooltipStyle)
+                .itemModel(this.itemModel)
                 .enchantments(this.enchantments)
                 .potionEffects(this.potionEffects)
                 .bannerMeta(this.bannerMeta)
                 .itemFlags(this.itemFlags)
                 .unbreakable(this.unbreakable)
                 .nbtString(this.nbtString)
+                .nbtByte(this.nbtByte)
+                .nbtShort(this.nbtShort)
                 .nbtInt(this.nbtInt)
                 .nbtStrings(this.nbtStrings)
+                .nbtBytes(this.nbtBytes)
+                .nbtShorts(this.nbtShorts)
                 .nbtInts(this.nbtInts)
                 .slot(this.slot)
                 .priority(this.priority)
@@ -355,6 +418,12 @@ public class MenuItemOptions {
         private String trimMaterial;
         private String trimPattern;
 
+        private String hideTooltip;
+        private String enchantmentGlintOverride;
+        private String rarity;
+        private String tooltipStyle;
+        private String itemModel;
+
         private Map<Enchantment, Integer> enchantments = Collections.emptyMap();
         private List<PotionEffect> potionEffects = Collections.emptyList();
         private List<Pattern> bannerMeta = Collections.emptyList();
@@ -368,8 +437,12 @@ public class MenuItemOptions {
         private LoreAppendMode loreAppendMode;
 
         private String nbtString;
+        private String nbtByte;
+        private String nbtShort;
         private String nbtInt;
         private List<String> nbtStrings = Collections.emptyList();
+        private List<String> nbtBytes = Collections.emptyList();
+        private List<String> nbtShorts = Collections.emptyList();
         private List<String> nbtInts = Collections.emptyList();
 
         private int slot;
@@ -463,6 +536,31 @@ public class MenuItemOptions {
             return this;
         }
 
+        public MenuItemOptionsBuilder hideTooltip(final @Nullable String hideTooltip) {
+            this.hideTooltip = hideTooltip;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder enchantmentGlintOverride(final @Nullable String enchantmentGlintOverride) {
+            this.enchantmentGlintOverride = enchantmentGlintOverride;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder rarity(final @Nullable String rarity) {
+            this.rarity = rarity;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder tooltipStyle(final @Nullable String tooltipStyle) {
+            this.tooltipStyle = tooltipStyle;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder itemModel(final @Nullable String itemModel) {
+            this.itemModel = itemModel;
+            return this;
+        }
+
         public MenuItemOptionsBuilder enchantments(final @NotNull Map<Enchantment, Integer> enchantments) {
             this.enchantments = enchantments;
             return this;
@@ -526,6 +624,16 @@ public class MenuItemOptions {
             return this;
         }
 
+        public MenuItemOptionsBuilder nbtByte(final @Nullable String nbtByte) {
+            this.nbtByte = nbtByte;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtShort(final @Nullable String nbtShort) {
+            this.nbtShort = nbtShort;
+            return this;
+        }
+
         public MenuItemOptionsBuilder nbtInt(final @Nullable String nbtInt) {
             this.nbtInt = nbtInt;
             return this;
@@ -533,6 +641,16 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder nbtStrings(final @NotNull List<String> nbtStrings) {
             this.nbtStrings = nbtStrings;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtBytes(final @NotNull List<String> nbtBytes) {
+            this.nbtBytes = nbtBytes;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtShorts(final @NotNull List<String> nbtShorts) {
+            this.nbtShorts = nbtShorts;
             return this;
         }
 

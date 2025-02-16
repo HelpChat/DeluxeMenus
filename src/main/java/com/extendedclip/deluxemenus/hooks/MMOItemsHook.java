@@ -19,6 +19,11 @@ import org.jetbrains.annotations.NotNull;
 public class MMOItemsHook implements ItemHook, SimpleCache {
 
     private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+    private final DeluxeMenus plugin;
+
+    public MMOItemsHook(final @NotNull DeluxeMenus plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public ItemStack getItem(@NotNull final String... arguments) {
@@ -57,10 +62,20 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
             });
             mmoItem = future.get();
         } catch (InterruptedException | ExecutionException e) {
-            DeluxeMenus.debug(DebugLevel.HIGHEST, Level.SEVERE, "Error getting MMOItem synchronously.");
+            plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Error getting MMOItem synchronously.");
         }
 
         return mmoItem == null ? new ItemStack(Material.STONE, 1) : mmoItem;
+    }
+
+    @Override
+    public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+        if (arguments.length == 0) {
+            return false;
+        }
+        String[] splitArgs = arguments[0].split(":");
+        if (splitArgs.length != 2) return false;
+        return splitArgs[0].equalsIgnoreCase(MMOItems.getTypeName(item)) && splitArgs[1].equalsIgnoreCase(MMOItems.getID(item));
     }
 
     @Override

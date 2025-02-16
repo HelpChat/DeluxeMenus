@@ -1,6 +1,5 @@
 package com.extendedclip.deluxemenus.requirement;
 
-import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 
 public class InputResultRequirement extends Requirement {
@@ -44,7 +43,7 @@ public class InputResultRequirement extends Requirement {
     try {
       in = Double.parseDouble(parsedInput);
     } catch (final NumberFormatException exception) {
-      DeluxeMenus.printStacktrace(
+      holder.getPlugin().printStacktrace(
          "Input for comparison requirement is an invalid number: " + parsedInput,
           exception
       );
@@ -54,7 +53,7 @@ public class InputResultRequirement extends Requirement {
     try {
       res = Double.parseDouble(parsedResult);
     } catch (final NumberFormatException exception) {
-      DeluxeMenus.printStacktrace(
+      holder.getPlugin().printStacktrace(
           "Output for comparison requirement is an invalid number: " + parsedResult,
           exception
       );

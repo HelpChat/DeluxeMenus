@@ -6,17 +6,7 @@ import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.config.GeneralConfig;
 import com.extendedclip.deluxemenus.dupe.DupeFixer;
 import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
-import com.extendedclip.deluxemenus.hooks.BaseHeadHook;
-import com.extendedclip.deluxemenus.hooks.ExecutableBlocksHook;
-import com.extendedclip.deluxemenus.hooks.ExecutableItemsHook;
-import com.extendedclip.deluxemenus.hooks.HeadDatabaseHook;
-import com.extendedclip.deluxemenus.hooks.ItemHook;
-import com.extendedclip.deluxemenus.hooks.ItemsAdderHook;
-import com.extendedclip.deluxemenus.hooks.MMOItemsHook;
-import com.extendedclip.deluxemenus.hooks.NamedHeadHook;
-import com.extendedclip.deluxemenus.hooks.OraxenHook;
-import com.extendedclip.deluxemenus.hooks.TextureHeadHook;
-import com.extendedclip.deluxemenus.hooks.VaultHook;
+import com.extendedclip.deluxemenus.hooks.*;
 import com.extendedclip.deluxemenus.listener.PlayerListener;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
@@ -30,6 +20,7 @@ import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import io.github.projectunified.minelib.scheduler.canceller.TaskCanceller;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -41,11 +32,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -56,21 +43,23 @@ public class DeluxeMenus extends JavaPlugin {
 
     private static final DebugLevel STACKTRACE_PRINT_LEVEL = DebugLevel.MEDIUM;
 
+    private static DeluxeMenus instance;
+    private final GeneralConfig generalConfig = new GeneralConfig(this);
     private PersistentMetaHandler persistentMetaHandler;
     private MenuItemMarker menuItemMarker;
-
     private BukkitAudiences audiences;
-
     private VaultHook vaultHook;
-
     private ItemStack head;
     private Map<String, ItemHook> itemHooks;
-
-    private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
+
+    public static DeluxeMenus getInstance() {
+        return instance;
+    }
 
     @Override
     public void onLoad() {
+        instance = this;
         if (NbtProvider.isAvailable()) {
             this.debug(DebugLevel.HIGHEST, Level.INFO, "NMS hook has been setup successfully!");
             return;
@@ -119,7 +108,7 @@ public class DeluxeMenus extends JavaPlugin {
     public void onDisable() {
         Bukkit.getMessenger().unregisterOutgoingPluginChannel(this, "BungeeCord");
 
-        Bukkit.getScheduler().cancelTasks(this);
+        TaskCanceller.get(this).cancelAll();
 
         if (this.audiences != null) {
             this.audiences.close();

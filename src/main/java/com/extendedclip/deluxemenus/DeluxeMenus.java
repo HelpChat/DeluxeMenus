@@ -286,7 +286,7 @@ public class DeluxeMenus extends JavaPlugin {
         }
 
         if (Bukkit.getPluginManager().isPluginEnabled("SimpleItemGenerator")) {
-            this.itemHooks.put("simpleitemgenerator", new SIGHook());
+            this.itemHooks.put("simpleitemgenerator", new SimpleItemGeneratorHook(this));
         }
     }
 

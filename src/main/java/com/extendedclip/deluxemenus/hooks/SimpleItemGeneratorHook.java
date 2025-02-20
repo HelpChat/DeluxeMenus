@@ -1,23 +1,27 @@
 package com.extendedclip.deluxemenus.hooks;
 
+import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import com.extendedclip.deluxemenus.utils.DebugLevel;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import ua.valeriishymchuk.simpleitemgenerator.api.SimpleItemGenerator;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
-public class SIGHook implements ItemHook, SimpleCache {
+public class SimpleItemGeneratorHook implements ItemHook, SimpleCache {
 
 
     private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+    private final DeluxeMenus plugin;
+
+    public SimpleItemGeneratorHook(DeluxeMenus plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public void clearCache() {
@@ -25,7 +29,7 @@ public class SIGHook implements ItemHook, SimpleCache {
     }
 
     @Override
-    public ItemStack getItem(Player holder, @NotNull String... arguments) {
+    public ItemStack getItem(@NotNull Player holder, @NotNull String... arguments) {
         if (arguments.length == 0) {
             return errorItem("Item arguments are absent.");
         }
@@ -33,17 +37,16 @@ public class SIGHook implements ItemHook, SimpleCache {
         final ItemStack item = cache.computeIfAbsent(arguments[0], id -> {
             return SimpleItemGenerator.get().bakeItem(id, holder).orElse(null);
         });
-        return item == null? errorItem("Item %s wasn't found by SIG.", arguments[0]) : item.clone();
+        return item == null? errorItem("Item %s wasn't found by SimpleItemGenerator.", arguments[0]) : item.clone();
     }
 
     private ItemStack errorItem(String error, Object... args) {
         final ItemStack item = new ItemStack(Material.STONE, 1);
-        final ItemMeta meta = item.getItemMeta();
-        final Component errorText = MiniMessage.miniMessage()
-                .deserialize("<red>" + String.format(error, args) + "</red>");
-        // I can't use components, because for some reason Spigot 1.21.4 still doesn't have methods for it, lol
-        meta.setDisplayName(LegacyComponentSerializer.legacySection().serialize(errorText));
-        item.setItemMeta(meta);
+        plugin.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                String.format(error, args)
+        );
         return item;
     }
 
@@ -59,6 +62,6 @@ public class SIGHook implements ItemHook, SimpleCache {
 
     @Override
     public String getPrefix() {
-        return "sig-";
+        return "simpleitemgenerator-";
     }
 }

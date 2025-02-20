@@ -11,7 +11,7 @@ public interface ItemHook {
     return new ItemStack(Material.STONE);
   }
 
-  default ItemStack getItem(Player holder, @NotNull final String... arguments) {
+  default ItemStack getItem(@NotNull final Player holder, @NotNull final String... arguments) {
     return getItem(arguments);
   }
 

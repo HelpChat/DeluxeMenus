@@ -10,6 +10,7 @@ mythiclib = "1.7.1-SNAPSHOT"
 mmoitems = "6.10-SNAPSHOT"
 papi = "2.11.6"
 score = "4.24.3.5"
+sig = "1.5.0"
 
 # Implementation
 nashorn = "15.6"
@@ -28,6 +29,7 @@ mythiclib = { module = "io.lumine:MythicLib-dist", version.ref = "mythiclib"}
 mmoitems = { module = "net.Indyuce:MMOItems-API", version.ref = "mmoitems" }
 papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
 score = { module = "com.github.Ssomar-Developement:SCore", version.ref = "score" }
+sig = { module = "io.github.valerashimchuck:simpleitemgenerator-api", version.ref = "sig" }
 
 # Implementation
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }

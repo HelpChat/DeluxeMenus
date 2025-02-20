@@ -203,13 +203,13 @@ public class OpenCommand extends SubCommand {
 
             if (!thirdArgument.startsWith("-")) {
                 return onlinePlayerNames.stream()
-                        .filter(playerName -> playerName.startsWith(arguments.get(2)))
+                        .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
                         .collect(Collectors.toList());
             }
 
             return onlinePlayerNames.stream()
                     .map(playerName -> "-p:" + playerName)
-                    .filter(playerName -> playerName.startsWith(arguments.get(2)))
+                    .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
                     .collect(Collectors.toList());
         }
 
@@ -226,7 +226,7 @@ public class OpenCommand extends SubCommand {
             }
 
             return onlinePlayerNames.stream()
-                    .filter(playerName -> playerName.startsWith(arguments.get(3)))
+                    .filter(playerName -> playerName.toLowerCase().startsWith(fourthArgument))
                     .collect(Collectors.toList());
         }
 

@@ -148,10 +148,8 @@ public class ExecuteCommand extends SubCommand {
             return onlinePlayerNames;
         }
 
-        final List<String> result = onlinePlayerNames.stream()
-                .filter(playerName -> playerName.startsWith(arguments.get(1)))
+        return onlinePlayerNames.stream()
+                .filter(playerName -> playerName.toLowerCase().startsWith(secondArgument))
                 .collect(Collectors.toList());
-
-        return result;
     }
 }

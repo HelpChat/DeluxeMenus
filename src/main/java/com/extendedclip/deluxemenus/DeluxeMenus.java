@@ -6,17 +6,7 @@ import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.config.GeneralConfig;
 import com.extendedclip.deluxemenus.dupe.DupeFixer;
 import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
-import com.extendedclip.deluxemenus.hooks.BaseHeadHook;
-import com.extendedclip.deluxemenus.hooks.ExecutableBlocksHook;
-import com.extendedclip.deluxemenus.hooks.ExecutableItemsHook;
-import com.extendedclip.deluxemenus.hooks.HeadDatabaseHook;
-import com.extendedclip.deluxemenus.hooks.ItemHook;
-import com.extendedclip.deluxemenus.hooks.ItemsAdderHook;
-import com.extendedclip.deluxemenus.hooks.MMOItemsHook;
-import com.extendedclip.deluxemenus.hooks.NamedHeadHook;
-import com.extendedclip.deluxemenus.hooks.OraxenHook;
-import com.extendedclip.deluxemenus.hooks.TextureHeadHook;
-import com.extendedclip.deluxemenus.hooks.VaultHook;
+import com.extendedclip.deluxemenus.hooks.*;
 import com.extendedclip.deluxemenus.listener.PlayerListener;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
@@ -293,6 +283,10 @@ public class DeluxeMenus extends JavaPlugin {
 
         if (Bukkit.getPluginManager().isPluginEnabled("ExecutableBlocks")) {
             this.itemHooks.put("executableblocks", new ExecutableBlocksHook());
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("SimpleItemGenerator")) {
+            this.itemHooks.put("simpleitemgenerator", new SimpleItemGeneratorHook(this));
         }
     }
 

@@ -21,24 +21,34 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
 
 public class ListCommand extends SubCommand {
 
+    private static final String LIST_PERMISSION = "deluxemenus.list";
+
     public ListCommand(final @NotNull DeluxeMenus plugin) {
         super(plugin);
     }
 
     @Override
-    public void execute(final @NotNull CommandSender sender, final @NotNull List<String> args) {
-        if (!sender.hasPermission("deluxemenus.list")) {
+    public @NotNull String getName() {
+        return "list";
+    }
+
+    @Override
+    public void execute(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
+        if (!sender.hasPermission(LIST_PERMISSION)) {
             plugin.sms(sender, Messages.NO_PERMISSION);
             return;
         }
 
-        if (!args.isEmpty() && args.get(0).equalsIgnoreCase("all")) {
+        if (!arguments.isEmpty() && arguments.get(0).equalsIgnoreCase("all")) {
             final Collection<Menu> menus = Menu.getAllMenus();
             if (menus.isEmpty()) {
                 plugin.sms(sender, Messages.MENUS_LOADED.message().replaceText(AMOUNT_REPLACER_BUILDER.replacement("There are no").build()));
@@ -49,14 +59,69 @@ public class ListCommand extends SubCommand {
             return;
         }
 
-        final Map<String, List<Menu>> menus = Menu.getPathSortedMenus();
-        if (menus.isEmpty() || menus.values().stream().allMatch(List::isEmpty)) {
+        if (Menu.getAllMenuNames().isEmpty()) {
             plugin.sms(sender, Messages.MENUS_LOADED.message().replaceText(AMOUNT_REPLACER_BUILDER.replacement("There are no").build()));
             return;
         }
 
+        final Map<String, List<Menu>> menus = Menu.getPathSortedMenus();
         final List<Menu> configMenus = menus.remove("config");
-        sendPaginatedMenuList(sender, menus, configMenus == null ? Collections.emptyList() : configMenus, args);
+
+        sendPaginatedMenuList(sender, menus, configMenus == null ? Collections.emptyList() : configMenus, arguments);
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
+        if (!sender.hasPermission(LIST_PERMISSION)) {
+            return null;
+        }
+
+        if (arguments.isEmpty()) {
+            return List.of(getName());
+        }
+
+        if (arguments.size() > 2) {
+            return null;
+        }
+
+        if (arguments.size() == 1) {
+            if (arguments.get(0).isEmpty()) {
+                return List.of(getName());
+            }
+
+            final String firstArgument = arguments.get(0).toLowerCase();
+
+            if (getName().startsWith(firstArgument)) {
+                return List.of(getName());
+            }
+
+            return null;
+        }
+
+        final String firstArgument = arguments.get(0).toLowerCase();
+
+        if (!getName().equals(firstArgument)) {
+            return null;
+        }
+
+        final String secondArgument = arguments.get(1).toLowerCase();
+
+        final int menusCount = Menu.getAllMenuNames().size();
+        final int menusPerPage = plugin.getGeneralConfig().menusListPageSize();
+        final int pagesCount = (int) Math.ceil((double) menusCount / menusPerPage);
+
+        final List<String> completions = Stream.concat(
+                Stream.of("all"),
+                IntStream.rangeClosed(1, pagesCount).mapToObj(String::valueOf))
+                .collect(Collectors.toList());
+
+        if (secondArgument.isEmpty()) {
+            return completions;
+        }
+
+        return completions.stream()
+                .filter(completion -> completion.startsWith(secondArgument))
+                .collect(Collectors.toList());
     }
 
     private void sendSimpleMenuList(final @NotNull CommandSender sender, final @NotNull Collection<Menu> menus) {

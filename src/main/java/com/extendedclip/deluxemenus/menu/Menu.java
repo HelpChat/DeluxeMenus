@@ -105,6 +105,10 @@ public class Menu {
         return menus.size();
     }
 
+    public static @NotNull Set<String> getAllMenuNames() {
+        return menus.keySet();
+    }
+
     public static @NotNull Collection<Menu> getAllMenus() {
         return menus.values();
     }

@@ -4,6 +4,7 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,5 +20,9 @@ public abstract class SubCommand {
         this.plugin = plugin;
     }
 
-    public abstract void execute(final @NotNull CommandSender sender, final @NotNull List<String> args);
+    public abstract @NotNull String getName();
+
+    public abstract void execute(final @NotNull CommandSender sender, final @NotNull List<String> arguments);
+
+    public abstract @Nullable List<String> onTabComplete(final @NotNull CommandSender sender, final @NotNull List<String> arguments);
 }

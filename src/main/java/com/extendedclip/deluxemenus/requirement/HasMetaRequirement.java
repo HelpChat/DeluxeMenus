@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -35,7 +36,7 @@ public class HasMetaRequirement extends Requirement {
             return invert;
         }
 
-        final PersistentDataType<?, ?> type = plugin.getPersistentMetaHandler().getSupportedTypeByName(typeName);
+        final PersistentDataType<?, ?> type = PersistentMetaHandler.getSupportedTypeByName(typeName);
         if (type == null) {
             return invert;
         }

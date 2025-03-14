@@ -193,14 +193,9 @@ public class PersistentMetaHandler {
      */
     public @NotNull OperationResult switchMetaValue(
             @NotNull final Player player,
-            @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType<?, ?> type
+            @NotNull final NamespacedKey key
     ) {
-        if (type != PersistentDataType.STRING) {
-            return OperationResult.INVALID_TYPE;
-        }
-
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type)) {
+        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
@@ -304,10 +299,10 @@ public class PersistentMetaHandler {
             @NotNull final Player player,
             @NotNull final String input
     ) {
-        // <action> <key> <type> [value]
+        // <action> <key> [type] [value] - type is optional for switch action since it only toggles a boolean
         String[] args = input.split(" ", 4);
 
-        if (args.length < 3) {
+        if (args.length < 2) {
             return OperationResult.INVALID_SYNTAX;
         }
 
@@ -318,6 +313,14 @@ public class PersistentMetaHandler {
 
         final NamespacedKey key = getKey(args[1]);
         if (key == null) {
+            return OperationResult.INVALID_SYNTAX;
+        }
+
+        if (action == DataAction.SWITCH) {
+            return switchMetaValue(player, key);
+        }
+
+        if (args.length < 3) {
             return OperationResult.INVALID_SYNTAX;
         }
 
@@ -337,8 +340,6 @@ public class PersistentMetaHandler {
                 return setMetaValue(player, key, type, parsedValue);
             case REMOVE:
                 return removeMetaValue(player, key, type);
-            case SWITCH:
-                return switchMetaValue(player, key, type);
             case ADD:
                 if (!(parsedValue instanceof Number)) {
                     return OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
@@ -402,7 +403,7 @@ public class PersistentMetaHandler {
      *
      * @return A set of all supported types.
      */
-    public @NotNull Set<String> getSupportedTypes() {
+    public static @NotNull Set<String> getSupportedTypes() {
         return SUPPORTED_TYPES.keySet();
     }
 
@@ -412,7 +413,7 @@ public class PersistentMetaHandler {
      * @param name The name of the type.
      * @return The type, or null if type does not exist or is not supported.
      */
-    public @Nullable PersistentDataType<?, ?> getSupportedTypeByName(@NotNull final String name) {
+    public static @Nullable PersistentDataType<?, ?> getSupportedTypeByName(@NotNull final String name) {
         return SUPPORTED_TYPES.get(name.toUpperCase(Locale.ROOT));
     }
 
@@ -422,7 +423,7 @@ public class PersistentMetaHandler {
      * @param name The name of the action type.
      * @return The {@link DataAction} or null if it does not exist.
      */
-    public @Nullable DataAction getActionByName(@NotNull final String name) {
+    public static @Nullable DataAction getActionByName(@NotNull final String name) {
         return DataAction.getByName(name);
     }
 

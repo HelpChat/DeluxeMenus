@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.placeholder;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
@@ -80,7 +81,7 @@ public class Expansion extends PlaceholderExpansion {
                     return "INVALID_KEY";
                 }
 
-                final PersistentDataType<?, ?> type = plugin.getPersistentMetaHandler().getSupportedTypeByName(hasValueParts[1]);
+                final PersistentDataType<?, ?> type = PersistentMetaHandler.getSupportedTypeByName(hasValueParts[1]);
                 if (type == null) {
                     return "INVALID_TYPE";
                 }
@@ -107,7 +108,7 @@ public class Expansion extends PlaceholderExpansion {
                 return "INVALID_KEY";
             }
 
-            final PersistentDataType<?, ?> type = plugin.getPersistentMetaHandler().getSupportedTypeByName(parts[1]);
+            final PersistentDataType<?, ?> type = PersistentMetaHandler.getSupportedTypeByName(parts[1]);
             if (type == null) {
                 return "INVALID_TYPE";
             }

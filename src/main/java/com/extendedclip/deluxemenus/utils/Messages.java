@@ -1,5 +1,6 @@
 package com.extendedclip.deluxemenus.utils;
 
+import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -92,39 +93,6 @@ public enum Messages {
             .append(text("/dm execute <player> <action>", NamedTextColor.GRAY))),
     WRONG_USAGE_DUMP_COMMAND(WRONG_USAGE_BASE.message
             .append(text("/dm dump <menu-name/config>", NamedTextColor.GRAY))),
-    WRONG_USAGE_META_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> <set/remove/add/subtract/switch/list/show>", NamedTextColor.GRAY))),
-    WRONG_USAGE_VALUE_META_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> <set/add/subtract> <key> <type> <value>", NamedTextColor.GRAY))),
-    WRONG_USAGE_NO_VALUE_META_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> <remove/switch> <key> <type>", NamedTextColor.GRAY))),
-    WRONG_USAGE_SHOW_META_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> show <key> <type> ", NamedTextColor.GRAY))),
-    WRONG_USAGE_LIST_META_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> list <type> [page]", NamedTextColor.GRAY))),
-    UNSUPPORTED_META_TYPE(text("Unsupported meta type <type>! Supported values are: DOUBLE, INTEGER, LONG, STRING, BOOLEAN", NamedTextColor.RED)),
-    INVALID_META_KEY(text("An invalid meta key was provided: '<key>'!", NamedTextColor.RED)),
-
-    WRONG_USAGE_META_SET_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> set <key> <type> <value>", NamedTextColor.GRAY))),
-    WRONG_USAGE_META_REMOVE_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> remove <key> <type>", NamedTextColor.GRAY))),
-    WRONG_USAGE_META_ADD_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> add <key> <type> <value>", NamedTextColor.GRAY))),
-    WRONG_USAGE_META_SUBTRACT_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> subtract <key> <type> <value>", NamedTextColor.GRAY))),
-    WRONG_USAGE_META_SWITCH_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> switch <key>", NamedTextColor.GRAY))),
-    WRONG_USAGE_META_LIST_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> list <type> [page]", NamedTextColor.GRAY))),
-    WRONG_USAGE_META_SHOW_COMMAND(WRONG_USAGE_BASE.message
-            .append(text("/dm meta <player> show <key> <type>", NamedTextColor.GRAY))),
-
-    META_SWITCH_TYPE_MISMATCH(text("", NamedTextColor.RED)),
-    META_VALUE_TYPE_MISMATCH(text("Given value does not match the given type!", NamedTextColor.RED)),
-    META_EXISTENT_VALUE_WRONG_TYPE(text("Given key stores a value with a different type!", NamedTextColor.RED)),
-    META_VALUE_NOT_FOUND(text("Could not find a meta value with given key and type for the given player!", NamedTextColor.RED)),
-
 
     WRONG_USAGE_OPEN_COMMAND(WRONG_USAGE_BASE.message
             .append(text("/dm open <menu-name> [player]", NamedTextColor.GRAY))),
@@ -140,6 +108,83 @@ public enum Messages {
                     .append(space())
                     .append(text("is exempt from placeholder target arguments.", NamedTextColor.GRAY))),
 
+    MUST_SPECIFY_PLAYER(text("You must specify a player to open a menu for!", NamedTextColor.RED)),
+    WRONG_ACTION_TYPE(text("Action type specified does not exist!", NamedTextColor.RED)),
+    CHANCE_FAIL(text("The chance for this action determined the action should not execute!", NamedTextColor.RED)),
+
+    ACTION_TO_BE_EXECUTED(text("Action set to be executed in", NamedTextColor.GREEN)
+            .append(space())
+            .append(text("<amount>"))
+            .append(space())
+            .append(text("ticks."))),
+    ACTION_EXECUTED_FOR(text("Action executed for player:", NamedTextColor.GREEN)
+            .append(space())
+            .append(text("<player>"))),
+
+    RELOAD_FAIL(text("Errors detected in config.yml. Failed to reload.", NamedTextColor.RED)),
+    RELOAD_SUCCESS(PLUGIN_TITLE.message
+            .append(space())
+            .append(text("successfully reloaded!", NamedTextColor.GREEN))),
+
+    INVALID_MENU(text("Could not find menu:", NamedTextColor.RED)
+            .append(space())
+            .append(text("<menu>", NamedTextColor.GOLD))
+            .append(text(".", NamedTextColor.RED))),
+    MENU_RELOADED(text("<menu>", NamedTextColor.GOLD)
+            .append(space())
+            .append(text("menu successfully reloaded!", NamedTextColor.GREEN))),
+    MENU_NOT_RELOADED(text("<menu>", NamedTextColor.GOLD)
+            .append(space())
+            .append(text("menu could not be reloaded!", NamedTextColor.RED))),
+    MENU_LOADED(text("<amount> menu loaded...", NamedTextColor.YELLOW)),
+    MENUS_LOADED(text("<amount> menus loaded...", NamedTextColor.YELLOW)),
+
+    DUMP_FAILED(text("Failed to create and post dump!", NamedTextColor.RED)),
+
+    DUMP_SUCCESS(text("Dump created successfully! Find it at: ", NamedTextColor.GREEN)),
+
+    UPDATE_AVAILABLE(text("An update for", NamedTextColor.GREEN)
+            .append(space())
+            .append(Messages.PLUGIN_TITLE.message())
+            .append(space())
+            .append(text("is available. Version", NamedTextColor.GREEN))
+            .append(space())
+            .append(text("<latest-version>", NamedTextColor.WHITE))
+            .append(text(", You are running", NamedTextColor.GREEN))
+            .append(space())
+            .append(text("<current-version>", NamedTextColor.WHITE))
+            .append(newline())
+            .append(text("Download the latest version at:", NamedTextColor.GREEN))
+            .append(space())
+            .append(text("https://www.spigotmc.org/resources/deluxemenus.11734/", NamedTextColor.WHITE))
+
+    ),
+
+    // Meta related messages
+    WRONG_USAGE_META_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> <set/remove/add/subtract/switch/list/show>", NamedTextColor.GRAY))),
+
+    WRONG_USAGE_META_LIST_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> list <type> [page]", NamedTextColor.GRAY))),
+    WRONG_USAGE_META_SWITCH_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> switch <key>", NamedTextColor.GRAY))),
+    WRONG_USAGE_META_SHOW_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> show <key> <type>", NamedTextColor.GRAY))),
+    WRONG_USAGE_META_REMOVE_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> remove <key> <type>", NamedTextColor.GRAY))),
+    WRONG_USAGE_META_SET_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> set <key> <type> <value>", NamedTextColor.GRAY))),
+    WRONG_USAGE_META_ADD_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> add <key> <type> <value>", NamedTextColor.GRAY))),
+    WRONG_USAGE_META_SUBTRACT_COMMAND(WRONG_USAGE_BASE.message
+            .append(text("/dm meta <player> subtract <key> <type> <value>", NamedTextColor.GRAY))),
+
+    META_TYPE_UNSUPPORTED(text("Unsupported meta type <type>! Supported values are: " + String.join(", ", PersistentMetaHandler.getSupportedTypes()), NamedTextColor.RED)),
+    META_KEY_INVALID(text("An invalid meta key was provided: '<key>'!", NamedTextColor.RED)),
+    META_ADD_TYPE_MISMATCH(text("Only NUMBERS can be added!", NamedTextColor.RED)),
+    META_SUBTRACT_TYPE_MISMATCH(text("Only NUMBERS can be subtracted!", NamedTextColor.RED)),
+    META_VALUE_TYPE_MISMATCH(text("Given value does not match the given type!", NamedTextColor.RED)),
+    META_EXISTENT_VALUE_WRONG_TYPE(text("Given key stores a value with a different type!", NamedTextColor.RED)),
     META_NOT_SUPPORTED(text("Meta is not supported on this server version!", NamedTextColor.RED)),
     NO_META_VALUE(text("Could not find a meta value with key ", NamedTextColor.RED)
             .append(text("<key>", NamedTextColor.GOLD))
@@ -196,64 +241,11 @@ public enum Messages {
             .append(text("<new-value>", NamedTextColor.GREEN))),
     META_VALUE_SWITCHED(text("Meta value with key ", NamedTextColor.GRAY)
             .append(text("<key>", NamedTextColor.GREEN))
-            .append(text(" and type ", NamedTextColor.GRAY))
-            .append(text("<type>", NamedTextColor.GREEN))
             .append(text(" for ", NamedTextColor.GRAY))
             .append(text("<player>", NamedTextColor.GREEN))
             .append(text(" switched to: ", NamedTextColor.GRAY))
-            .append(text("<new-value>", NamedTextColor.GREEN))),
+            .append(text("<new-value>", NamedTextColor.GREEN)));
 
-    MUST_SPECIFY_PLAYER(text("You must specify a player to open a menu for!", NamedTextColor.RED)),
-    WRONG_ACTION_TYPE(text("Action type specified does not exist!", NamedTextColor.RED)),
-    CHANCE_FAIL(text("The chance for this action determined the action should not execute!", NamedTextColor.RED)),
-
-    ACTION_TO_BE_EXECUTED(text("Action set to be executed in", NamedTextColor.GREEN)
-            .append(space())
-            .append(text("<amount>"))
-            .append(space())
-            .append(text("ticks."))),
-    ACTION_EXECUTED_FOR(text("Action executed for player:", NamedTextColor.GREEN)
-            .append(space())
-            .append(text("<player>"))),
-
-    RELOAD_FAIL(text("Errors detected in config.yml. Failed to reload.", NamedTextColor.RED)),
-    RELOAD_SUCCESS(PLUGIN_TITLE.message
-            .append(space())
-            .append(text("successfully reloaded!", NamedTextColor.GREEN))),
-
-    INVALID_MENU(text("Could not find menu:", NamedTextColor.RED)
-            .append(space())
-            .append(text("<menu>", NamedTextColor.GOLD))
-            .append(text(".", NamedTextColor.RED))),
-    MENU_RELOADED(text("<menu>", NamedTextColor.GOLD)
-            .append(space())
-            .append(text("menu successfully reloaded!", NamedTextColor.GREEN))),
-    MENU_NOT_RELOADED(text("<menu>", NamedTextColor.GOLD)
-            .append(space())
-            .append(text("menu could not be reloaded!", NamedTextColor.RED))),
-    MENU_LOADED(text("<amount> menu loaded...", NamedTextColor.YELLOW)),
-    MENUS_LOADED(text("<amount> menus loaded...", NamedTextColor.YELLOW)),
-
-    DUMP_FAILED(text("Failed to create and post dump!", NamedTextColor.RED)),
-
-    DUMP_SUCCESS(text("Dump created successfully! Find it at: ", NamedTextColor.GREEN)),
-
-    UPDATE_AVAILABLE(text("An update for", NamedTextColor.GREEN)
-            .append(space())
-            .append(Messages.PLUGIN_TITLE.message())
-            .append(space())
-            .append(text("is available. Version", NamedTextColor.GREEN))
-            .append(space())
-            .append(text("<latest-version>", NamedTextColor.WHITE))
-            .append(text(", You are running", NamedTextColor.GREEN))
-            .append(space())
-            .append(text("<current-version>", NamedTextColor.WHITE))
-            .append(newline())
-            .append(text("Download the latest version at:", NamedTextColor.GREEN))
-            .append(space())
-            .append(text("https://www.spigotmc.org/resources/deluxemenus.11734/", NamedTextColor.WHITE))
-
-    );
 
     private static final Map<String, Messages> BY_NAME = new HashMap<>();
 

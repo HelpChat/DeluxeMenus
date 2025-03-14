@@ -80,14 +80,10 @@ public class ClickActionTask extends BukkitRunnable {
                     plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Meta action not supported on this server version.");
                     break;
                 }
-                try {
-                    final boolean result = plugin.getPersistentMetaHandler().setMeta(player, executable);
-                    if (!result) {
-                        plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid meta action! Make sure you have the right syntax.");
-                        break;
-                    }
-                } catch (final NumberFormatException exception) {
-                    plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid integer value for meta action!");
+                final boolean success = plugin.getPersistentMetaHandler().parseAndExecuteMetaActionFromString(player, executable);
+                if (!success) {
+                    plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid meta action! Make sure you have the right syntax.");
+                    break;
                 }
                 break;
 

@@ -11,6 +11,9 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import io.github.projectunified.minelib.scheduler.async.AsyncScheduler;
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
+import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -194,7 +197,7 @@ public class Menu {
         }
 
         if (close) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            GlobalScheduler.get(DeluxeMenus.getInstance()).run(() -> {
                 player.closeInventory();
                 cleanInventory(plugin, player);
             });
@@ -284,7 +287,7 @@ public class Menu {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        AsyncScheduler.get(DeluxeMenus.getInstance()).run(() -> {
 
             Set<MenuItem> activeItems = new HashSet<>();
 
@@ -373,7 +376,7 @@ public class Menu {
 
             final boolean updatePlaceholders = update;
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            GlobalScheduler.get(DeluxeMenus.getInstance()).run(() -> {
                 if (isInMenu(holder.getViewer())) {
                     closeMenu(plugin, holder.getViewer(), false);
                 }

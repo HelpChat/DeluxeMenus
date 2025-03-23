@@ -1,6 +1,8 @@
 package com.extendedclip.deluxemenus.command.subcommand;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.persistentmeta.DataAction;
+import com.extendedclip.deluxemenus.persistentmeta.DataType;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.PaginationUtils;
@@ -12,7 +14,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,11 +29,7 @@ import java.util.stream.Collectors;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
 
-// TODO:
-//  Test the command execution
-//  Test the tab completion
-//  Improve error messages (Better coloring, styling, etc.)
-
+// TODO: Add placeholders support?
 public class MetaCommand extends SubCommand {
 
     private static final List<String> SUB_COMMANDS = List.of("list", "show", "set", "remove", "add", "subtract", "switch");
@@ -71,7 +68,7 @@ public class MetaCommand extends SubCommand {
         }
 
         final String actionName = arguments.get(1);
-        final PersistentMetaHandler.DataAction action = PersistentMetaHandler.getActionByName(actionName);
+        final DataAction action = DataAction.getActionByName(actionName);
 
         if (action == null) {
             if (actionName.equalsIgnoreCase("list")) {
@@ -103,7 +100,7 @@ public class MetaCommand extends SubCommand {
         final Map<ContextKeys, String> context = new HashMap<>();
         context.put(ContextKeys.KEY_NAME, keyName);
 
-        if (action == PersistentMetaHandler.DataAction.SWITCH) {
+        if (action == DataAction.SWITCH) {
             handleSwitchMeta(sender, target, namespacedKey, context);
             return;
         }
@@ -114,15 +111,15 @@ public class MetaCommand extends SubCommand {
         }
 
         final String typeName = arguments.get(3).toUpperCase(Locale.ROOT);
-        final PersistentDataType<?, ?> type = PersistentMetaHandler.getSupportedTypeByName(typeName);
+        final DataType<?, ?> type = DataType.getSupportedTypeByName(typeName);
         if (type == null) {
             plugin.sms(sender, Messages.META_TYPE_UNSUPPORTED.message().replaceText(TYPE_REPLACER_BUILDER.replacement(typeName).build()));
             return;
         }
 
-        context.put(ContextKeys.KEY_NAME, keyName);
+        context.put(ContextKeys.TYPE_NAME, typeName);
 
-        if (action == PersistentMetaHandler.DataAction.REMOVE) {
+        if (action == DataAction.REMOVE) {
             handleRemoveMeta(sender, target, namespacedKey, type, context);
             return;
         }
@@ -132,17 +129,17 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        if (action == PersistentMetaHandler.DataAction.SET) {
+        if (action == DataAction.SET) {
             handleSetMeta(sender, target, namespacedKey, type, String.join(" ", arguments.subList(4, arguments.size())), context);
             return;
         }
 
-        if (action == PersistentMetaHandler.DataAction.ADD) {
+        if (action == DataAction.ADD) {
             handleAddMeta(sender, target, namespacedKey, type, String.join(" ", arguments.subList(4, arguments.size())), context);
             return;
         }
 
-        if (action == PersistentMetaHandler.DataAction.SUBTRACT) {
+        if (action == DataAction.SUBTRACT) {
             handleSubtractMeta(sender, target, namespacedKey, type, String.join(" ", arguments.subList(4, arguments.size())), context);
             return;
         }
@@ -207,29 +204,29 @@ public class MetaCommand extends SubCommand {
             final String fourthArgument = arguments.get(3);
 
             if (fourthArgument.isEmpty()) {
-                return new ArrayList<>(PersistentMetaHandler.getSupportedTypes());
+                return new ArrayList<>(DataType.getSupportedTypeNames());
             }
 
-            return PersistentMetaHandler.getSupportedTypes().stream()
+            return DataType.getSupportedTypeNames().stream()
                     .filter(type -> type.startsWith(fourthArgument.toUpperCase(Locale.ROOT)))
                     .collect(Collectors.toList());
         }
 
         if (arguments.size() == 5) {
             final String actionName = arguments.get(2).toLowerCase();
-            final PersistentMetaHandler.DataAction action = PersistentMetaHandler.getActionByName(actionName);
+            final DataAction action = DataAction.getActionByName(actionName);
 
-            if (actionName.equalsIgnoreCase("list") || action == PersistentMetaHandler.DataAction.SWITCH) {
+            if (actionName.equalsIgnoreCase("list") || action == DataAction.SWITCH) {
                 return null;
             }
 
             final String fifthArgument = arguments.get(4);
 
             if (fifthArgument.isEmpty()) {
-                return new ArrayList<>(PersistentMetaHandler.getSupportedTypes());
+                return new ArrayList<>(DataType.getSupportedTypeNames());
             }
 
-            return PersistentMetaHandler.getSupportedTypes().stream()
+            return DataType.getSupportedTypeNames().stream()
                     .filter(type -> type.startsWith(fifthArgument.toUpperCase(Locale.ROOT)))
                     .collect(Collectors.toList());
         }
@@ -245,7 +242,7 @@ public class MetaCommand extends SubCommand {
         }
 
         final String typeName = arguments.get(0).toUpperCase(Locale.ROOT);
-        final PersistentDataType<?, ?> type = PersistentMetaHandler.getSupportedTypeByName(typeName);
+        final DataType<?, ?> type = DataType.getSupportedTypeByName(typeName);
         if (type == null) {
             plugin.sms(sender, Messages.META_TYPE_UNSUPPORTED.message().replaceText(TYPE_REPLACER_BUILDER.replacement(typeName).build()));
             return;
@@ -326,7 +323,7 @@ public class MetaCommand extends SubCommand {
         }
 
         final String typeName = arguments.get(1).toUpperCase(Locale.ROOT);
-        final PersistentDataType<?, ?> type = PersistentMetaHandler.getSupportedTypeByName(typeName);
+        final DataType<?, ?> type = DataType.getSupportedTypeByName(typeName);
         if (type == null) {
             plugin.sms(sender, Messages.META_TYPE_UNSUPPORTED.message().replaceText(TYPE_REPLACER_BUILDER.replacement(typeName).build()));
             return;
@@ -353,7 +350,7 @@ public class MetaCommand extends SubCommand {
 
     private void handleSetMeta(@NotNull final CommandSender sender, @NotNull final Player target,
                                @NotNull final NamespacedKey namespacedKey,
-                               @NotNull final PersistentDataType<?, ?> type,
+                               @NotNull final DataType<?, ?> type,
                                @NotNull final String value,
                                @NotNull final Map<ContextKeys, String> context) {
         final Object parsedValue = plugin.getPersistentMetaHandler().parseValueByType(type, value);
@@ -385,7 +382,7 @@ public class MetaCommand extends SubCommand {
 
     private void handleRemoveMeta(@NotNull final CommandSender sender, @NotNull final Player target,
                                   @NotNull final NamespacedKey namespacedKey,
-                                  @NotNull final PersistentDataType<?, ?> type,
+                                  @NotNull final DataType<?, ?> type,
                                   @NotNull final Map<ContextKeys, String> context) {
         final PersistentMetaHandler.OperationResult result = plugin.getPersistentMetaHandler().removeMetaValue(target, namespacedKey, type);
         switch (result) {
@@ -417,7 +414,7 @@ public class MetaCommand extends SubCommand {
 
         switch (result) {
             case SUCCESS:
-                final Object newValue = plugin.getPersistentMetaHandler().getMetaValue(target, namespacedKey, PersistentDataType.STRING);
+                final Object newValue = plugin.getPersistentMetaHandler().getMetaValue(target, namespacedKey, DataType.BOOLEAN);
 
                 plugin.sms(sender, Messages.META_VALUE_SWITCHED.message()
                         .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
@@ -435,7 +432,7 @@ public class MetaCommand extends SubCommand {
 
     private void handleAddMeta(@NotNull final CommandSender sender, @NotNull final Player target,
                                @NotNull final NamespacedKey namespacedKey,
-                               @NotNull final PersistentDataType<?, ?> type,
+                               @NotNull final DataType<?, ?> type,
                                @NotNull final String value,
                                @NotNull final Map<ContextKeys, String> context) {
         final Object parsedValue = plugin.getPersistentMetaHandler().parseValueByType(type, value);
@@ -472,7 +469,7 @@ public class MetaCommand extends SubCommand {
 
     private void handleSubtractMeta(@NotNull final CommandSender sender, @NotNull final Player target,
                                     @NotNull final NamespacedKey namespacedKey,
-                                    @NotNull final PersistentDataType<?, ?> type,
+                                    @NotNull final DataType<?, ?> type,
                                     @NotNull final String value,
                                     @NotNull final Map<ContextKeys, String> context) {
         final Object parsedValue = plugin.getPersistentMetaHandler().parseValueByType(type, value);
@@ -507,7 +504,7 @@ public class MetaCommand extends SubCommand {
         }
     }
 
-    private void sendWrongUsageMessage(@NotNull final CommandSender sender, @Nullable final PersistentMetaHandler.DataAction action) {
+    private void sendWrongUsageMessage(@NotNull final CommandSender sender, @Nullable final DataAction action) {
         if (action == null) {
             plugin.sms(sender, Messages.WRONG_USAGE_META_COMMAND);
             return;

@@ -1,6 +1,6 @@
 package com.extendedclip.deluxemenus.utils;
 
-import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
+import com.extendedclip.deluxemenus.persistentmeta.DataType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -179,8 +179,13 @@ public enum Messages {
     WRONG_USAGE_META_SUBTRACT_COMMAND(WRONG_USAGE_BASE.message
             .append(text("/dm meta <player> subtract <key> <type> <value>", NamedTextColor.GRAY))),
 
-    META_TYPE_UNSUPPORTED(text("Unsupported meta type <type>! Supported values are: " + String.join(", ", PersistentMetaHandler.getSupportedTypes()), NamedTextColor.RED)),
-    META_KEY_INVALID(text("An invalid meta key was provided: '<key>'!", NamedTextColor.RED)),
+    META_TYPE_UNSUPPORTED(text("Unsupported meta type ", NamedTextColor.RED)
+            .append(text("<type>", NamedTextColor.GOLD))
+            .append(text("! Supported values are: ", NamedTextColor.RED))
+            .append(text(String.join(", ", DataType.getSupportedTypeNames()), NamedTextColor.GOLD))),
+    META_KEY_INVALID(text("An invalid meta key was provided: '", NamedTextColor.RED)
+            .append(text("<key>", NamedTextColor.GOLD))
+            .append(text("'!", NamedTextColor.RED))),
     META_ADD_TYPE_MISMATCH(text("Only NUMBERS can be added!", NamedTextColor.RED)),
     META_SUBTRACT_TYPE_MISMATCH(text("Only NUMBERS can be subtracted!", NamedTextColor.RED)),
     META_VALUE_TYPE_MISMATCH(text("Given value does not match the given type!", NamedTextColor.RED)),

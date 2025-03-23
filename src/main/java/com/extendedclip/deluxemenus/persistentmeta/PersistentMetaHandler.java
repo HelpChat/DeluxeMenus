@@ -7,27 +7,15 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Longs;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PersistentMetaHandler {
-
-    private static final Map<String, PersistentDataType<?, ?>> SUPPORTED_TYPES = Map.of(
-            "DOUBLE", PersistentDataType.DOUBLE,
-            "INTEGER", PersistentDataType.LONG,
-            "LONG", PersistentDataType.LONG,
-            "STRING", PersistentDataType.STRING,
-            "BOOLEAN", PersistentDataType.STRING
-    );
 
     private final DeluxeMenus plugin;
 
@@ -37,6 +25,7 @@ public class PersistentMetaHandler {
 
     /**
      * Check if a player has a meta value in their {@link org.bukkit.persistence.PersistentDataContainer}.
+     * It will check all supported types. See {@link DataType#getSupportedTypes()}.
      *
      * @param player The player to check.
      * @param key    The key of the meta value.
@@ -46,7 +35,11 @@ public class PersistentMetaHandler {
             @NotNull final Player player,
             @NotNull final NamespacedKey key
     ) {
-        return player.getPersistentDataContainer().has(key);
+        return DataType.getSupportedTypes()
+                .stream()
+                .map(DataType::getPDType)
+                .distinct()
+                .anyMatch(type -> player.getPersistentDataContainer().has(key, type));
     }
 
     /**
@@ -60,9 +53,9 @@ public class PersistentMetaHandler {
     public boolean hasMetaValue(
             @NotNull final Player player,
             @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType<?, ?> type
+            @NotNull final DataType<?, ?> type
     ) {
-        return player.getPersistentDataContainer().has(key, type);
+        return player.getPersistentDataContainer().has(key, type.getPDType());
     }
 
     /**
@@ -77,13 +70,13 @@ public class PersistentMetaHandler {
     public @Nullable <T> T getMetaValue(
             @NotNull final Player player,
             @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType<?, T> type
+            @NotNull final DataType<?, T> type
     ) {
-        if (!player.getPersistentDataContainer().has(key, type)) {
+        if (!player.getPersistentDataContainer().has(key, type.getPDType())) {
             return null;
         }
 
-        return player.getPersistentDataContainer().get(key, type);
+        return player.getPersistentDataContainer().get(key, type.getPDType());
     }
 
     /**
@@ -99,14 +92,14 @@ public class PersistentMetaHandler {
     public @NotNull <T> T getMetaValueOrDefault(
             @NotNull final Player player,
             @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType<?, T> type,
+            @NotNull final DataType<?, T> type,
             @NotNull final T defaultValue
     ) {
-        if (!player.getPersistentDataContainer().has(key, type)) {
+        if (!player.getPersistentDataContainer().has(key, type.getPDType())) {
             return defaultValue;
         }
 
-        final T result = player.getPersistentDataContainer().get(key, type);
+        final T result = player.getPersistentDataContainer().get(key, type.getPDType());
         return result == null ? defaultValue : result;
     }
 
@@ -119,12 +112,13 @@ public class PersistentMetaHandler {
      */
     public <T> Map<String, T> getMetaValues(
             @NotNull final Player player,
-            @NotNull final PersistentDataType<?, T> type
+            @NotNull final DataType<?, T> type
     ) {
         return player.getPersistentDataContainer().getKeys().stream()
-                .filter(key -> player.getPersistentDataContainer().has(key, type))
-                .map(key -> Pair.of(key.toString(), player.getPersistentDataContainer().get(key, type)))
+                .filter(key -> player.getPersistentDataContainer().has(key, type.getPDType()))
+                .map(key -> Pair.of(key.toString(), player.getPersistentDataContainer().get(key, type.getPDType())))
                 .filter(entry -> entry.getValue() != null)
+                .filter(entry -> type.isSupported(entry.getValue()))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
@@ -138,22 +132,21 @@ public class PersistentMetaHandler {
      * @param value  The value to set.
      * @return The result of the operation.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public @NotNull OperationResult setMetaValue(
             @NotNull final Player player,
             @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType type,
+            @NotNull final DataType type,
             @NotNull final Object value
     ) {
-        if (!type.getComplexType().isInstance(value)) {
+        if (!type.isSupported(value)) {
             return OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type)) {
+        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        player.getPersistentDataContainer().set(key, type, value);
+        player.getPersistentDataContainer().set(key, type.getPDType(), value);
         return OperationResult.SUCCESS;
     }
 
@@ -167,13 +160,13 @@ public class PersistentMetaHandler {
     public @NotNull OperationResult removeMetaValue(
             @NotNull final Player player,
             @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType<?, ?> type
+            @NotNull final DataType<?, ?> type
     ) {
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type)) {
+        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        if (!player.getPersistentDataContainer().has(key, type)) {
+        if (!player.getPersistentDataContainer().has(key, type.getPDType())) {
             return OperationResult.VALUE_NOT_FOUND;
         }
 
@@ -195,16 +188,16 @@ public class PersistentMetaHandler {
             @NotNull final Player player,
             @NotNull final NamespacedKey key
     ) {
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, DataType.BOOLEAN.getPDType())) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        final String currentValue = player.getPersistentDataContainer().getOrDefault(key, PersistentDataType.STRING, "false");
-        if (!currentValue.equalsIgnoreCase("true") && !currentValue.equalsIgnoreCase("false")) {
+        final String currentValue = player.getPersistentDataContainer().getOrDefault(key, DataType.BOOLEAN.getPDType(), "false");
+        if (!DataType.BOOLEAN.isSupported(currentValue)) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        player.getPersistentDataContainer().set(key, PersistentDataType.STRING, currentValue.equalsIgnoreCase("true") ? "false" : "true");
+        player.getPersistentDataContainer().set(key, DataType.BOOLEAN.getPDType(), currentValue.equalsIgnoreCase("true") ? "false" : "true");
         return OperationResult.SUCCESS;
     }
 
@@ -223,27 +216,27 @@ public class PersistentMetaHandler {
     public @NotNull OperationResult addMetaValue(
             @NotNull final Player player,
             @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType<?, ?> type,
+            @NotNull final DataType type,
             @NotNull final Number value
     ) {
-        if (type != PersistentDataType.DOUBLE && type != PersistentDataType.LONG) {
+        if (type != DataType.DOUBLE && type != DataType.LONG && type != DataType.INTEGER) {
             return OperationResult.INVALID_TYPE;
         }
 
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type)) {
+        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        final Object currentValue = player.getPersistentDataContainer().get(key, type);
+        final Object currentValue = player.getPersistentDataContainer().get(key, type.getPDType());
 
-        if (type == PersistentDataType.DOUBLE) {
+        if (type == DataType.DOUBLE) {
             final double newValue = (double) (currentValue == null ? 0.0 : currentValue) + value.doubleValue();
-            player.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, newValue);
+            player.getPersistentDataContainer().set(key, type.getPDType(), newValue);
             return OperationResult.SUCCESS;
         }
 
         final long newValue = (long) (currentValue == null ? 0 : currentValue) + value.longValue();
-        player.getPersistentDataContainer().set(key, PersistentDataType.LONG, newValue);
+        player.getPersistentDataContainer().set(key, type.getPDType(), newValue);
         return OperationResult.SUCCESS;
     }
 
@@ -262,27 +255,27 @@ public class PersistentMetaHandler {
     public @NotNull OperationResult subtractMetaValue(
             @NotNull final Player player,
             @NotNull final NamespacedKey key,
-            @NotNull final PersistentDataType<?, ?> type,
+            @NotNull final DataType type,
             @NotNull final Number value
     ) {
-        if (type != PersistentDataType.DOUBLE && type != PersistentDataType.LONG) {
+        if (type != DataType.DOUBLE && type != DataType.LONG && type != DataType.INTEGER) {
             return OperationResult.INVALID_TYPE;
         }
 
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type)) {
+        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        final Object currentValue = player.getPersistentDataContainer().get(key, type);
+        final Object currentValue = player.getPersistentDataContainer().get(key, type.getPDType());
 
-        if (type == PersistentDataType.DOUBLE) {
+        if (type == DataType.DOUBLE) {
             final double newValue = (double) (currentValue == null ? 0.0 : currentValue) - value.doubleValue();
-            player.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, newValue);
+            player.getPersistentDataContainer().set(key, type.getPDType(), newValue);
             return OperationResult.SUCCESS;
         }
 
         final long newValue = (long) (currentValue == null ? 0 : currentValue) - value.longValue();
-        player.getPersistentDataContainer().set(key, PersistentDataType.LONG, newValue);
+        player.getPersistentDataContainer().set(key, type.getPDType(), newValue);
         return OperationResult.SUCCESS;
     }
 
@@ -306,7 +299,7 @@ public class PersistentMetaHandler {
             return OperationResult.INVALID_SYNTAX;
         }
 
-        DataAction action = getActionByName(args[0]);
+        DataAction action = DataAction.getActionByName(args[0]);
         if (action == null) {
             return OperationResult.INVALID_SYNTAX;
         }
@@ -324,7 +317,7 @@ public class PersistentMetaHandler {
             return OperationResult.INVALID_SYNTAX;
         }
 
-        final PersistentDataType<?, ?> type = getSupportedTypeByName(args[2]);
+        final DataType<?, ?> type = DataType.getSupportedTypeByName(args[2]);
         if (type == null) {
             return OperationResult.INVALID_SYNTAX;
         }
@@ -365,66 +358,34 @@ public class PersistentMetaHandler {
      * @return The parsed value or null if the value is null or could not be parsed.
      */
     public @Nullable Object parseValueByType(
-            @NotNull final PersistentDataType<?, ?> type,
+            @NotNull final DataType<?, ?> type,
             @Nullable final String value
     ) {
-        plugin.getLogger().info("Parsing value by type. Value: " + value + ", type: <" + type.getPrimitiveType().getTypeName() + ", " + type.getComplexType().getTypeName() + ">.");
         if (value == null) {
-            plugin.getLogger().info("Value is null.");
             return null;
         }
 
-        if (type == PersistentDataType.STRING) {
-            plugin.getLogger().info("Value is a string.");
+        if (type == DataType.BOOLEAN) {
+            if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
+                return null;
+            }
+
             return value;
         }
 
-        if (type == PersistentDataType.DOUBLE) {
-            final Double result = Doubles.tryParse(value);
-            plugin.getLogger().info("Value is a double: " + result);
-            return result;
+        if (type == DataType.STRING) {
+            return value;
         }
 
-        if (type == PersistentDataType.LONG) {
-            final Long result = Longs.tryParse(value);
-            plugin.getLogger().info("Value is a long: " + result);
-            return result;
+        if (type == DataType.DOUBLE) {
+            return Doubles.tryParse(value);
         }
 
-        plugin.getLogger().info("Unsupported type found.");
+        if (type == DataType.LONG || type == DataType.INTEGER) {
+            return Longs.tryParse(value);
+        }
+
         return null;
-    }
-
-
-    // Helper methods
-
-    /**
-     * Get a list of all supported types.
-     *
-     * @return A set of all supported types.
-     */
-    public static @NotNull Set<String> getSupportedTypes() {
-        return SUPPORTED_TYPES.keySet();
-    }
-
-    /**
-     * Helper method to parse a string into a {@link PersistentDataType}.
-     *
-     * @param name The name of the type.
-     * @return The type, or null if type does not exist or is not supported.
-     */
-    public static @Nullable PersistentDataType<?, ?> getSupportedTypeByName(@NotNull final String name) {
-        return SUPPORTED_TYPES.get(name.toUpperCase(Locale.ROOT));
-    }
-
-    /**
-     * Helper method to parse a string into a {@link DataAction}.
-     *
-     * @param name The name of the action type.
-     * @return The {@link DataAction} or null if it does not exist.
-     */
-    public static @Nullable DataAction getActionByName(@NotNull final String name) {
-        return DataAction.getByName(name);
     }
 
     /**
@@ -456,23 +417,6 @@ public class PersistentMetaHandler {
         }
 
         return namespacedKey;
-    }
-
-    public enum DataAction {
-        SET, REMOVE, ADD, SUBTRACT, SWITCH;
-
-        final static Map<String, DataAction> BY_NAME = Arrays.stream(values())
-                .collect(Collectors.toUnmodifiableMap(Enum::name, Function.identity()));
-
-        /**
-         * Get a {@link DataAction} by its name.
-         *
-         * @param name The name of the action type.
-         * @return The {@link DataAction} or null if it does not exist.
-         */
-        public static @Nullable DataAction getByName(@NotNull final String name) {
-            return BY_NAME.get(name.toUpperCase(Locale.ROOT));
-        }
     }
 
     public enum OperationResult {

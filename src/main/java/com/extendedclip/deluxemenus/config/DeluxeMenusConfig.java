@@ -32,6 +32,19 @@ import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.LocationUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import io.github.projectunified.minelib.scheduler.common.scheduler.Scheduler;
 import com.google.common.base.Enums;
 import com.google.common.primitives.Ints;
 import org.bukkit.DyeColor;
@@ -1202,12 +1215,14 @@ public class DeluxeMenusConfig {
 
                         final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
 
+                        Scheduler scheduler = action.getType().getScheduler().getScheduler(holder.getViewer());
+
                         if (action.hasDelay()) {
-                            actionTask.runTaskLater(plugin, action.getDelay(holder));
+                            scheduler.runLater(actionTask, action.getDelay(holder));
                             continue;
                         }
 
-                        actionTask.runTask(plugin);
+                        scheduler.run(actionTask);
                     }
                 }
             };

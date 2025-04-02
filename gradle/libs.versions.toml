@@ -16,6 +16,7 @@ sig = "1.5.0"
 nashorn = "15.6"
 adventure-platform = "4.3.4"
 adventure-minimessage = "4.18.0"
+minelib = "1.2.1"
 
 [libraries]
 # Compile only
@@ -35,3 +36,7 @@ sig = { module = "io.github.valerashimchuck:simpleitemgenerator-api", version.re
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }
 adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
 adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
+minelib-scheduler-global = { module = "io.github.projectunified:minelib-scheduler-global", version.ref = "minelib" }
+minelib-scheduler-async = { module = "io.github.projectunified:minelib-scheduler-async", version.ref = "minelib" }
+minelib-scheduler-entity = { module = "io.github.projectunified:minelib-scheduler-entity", version.ref = "minelib" }
+minelib-scheduler-canceller = { module = "io.github.projectunified:minelib-scheduler-canceller", version.ref = "minelib" }

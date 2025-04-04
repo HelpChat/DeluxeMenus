@@ -47,7 +47,8 @@ public class HasMetaRequirement extends Requirement {
         }
 
         final String expectedValue = holder.setPlaceholdersAndArguments(value);
-        // TODO: Determine if there is a good use for parsing placeholders in the stored/existent value.
+        // TODO: Is there any reason to parse placeholders in the stored value when reading them?
+        //  Placeholders are parsed before value are stored. This means there will (or should) be no placeholders when reading.
         final String actualValue = holder.setPlaceholdersAndArguments(String.valueOf(metaValue));
 
         if (type.equals(DataType.STRING) || type.equals(DataType.BOOLEAN)) {

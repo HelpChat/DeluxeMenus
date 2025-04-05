@@ -179,6 +179,7 @@ public enum Messages {
     WRONG_USAGE_META_SUBTRACT_COMMAND(WRONG_USAGE_BASE.message
             .append(text("/dm meta <player> subtract <key> <type> <value>", NamedTextColor.GRAY))),
 
+    META_NOT_SUPPORTED(text("Meta is not supported on this server version!", NamedTextColor.RED)),
     META_TYPE_UNSUPPORTED(text("Unsupported meta type ", NamedTextColor.RED)
             .append(text("<type>", NamedTextColor.GOLD))
             .append(text("! Supported values are: ", NamedTextColor.RED))
@@ -186,11 +187,20 @@ public enum Messages {
     META_KEY_INVALID(text("An invalid meta key was provided: '", NamedTextColor.RED)
             .append(text("<key>", NamedTextColor.GOLD))
             .append(text("'!", NamedTextColor.RED))),
-    META_ADD_TYPE_MISMATCH(text("Only NUMBERS can be added!", NamedTextColor.RED)),
-    META_SUBTRACT_TYPE_MISMATCH(text("Only NUMBERS can be subtracted!", NamedTextColor.RED)),
-    META_VALUE_TYPE_MISMATCH(text("Given value does not match the given type!", NamedTextColor.RED)),
-    META_EXISTENT_VALUE_WRONG_TYPE(text("Given key stores a value with a different type!", NamedTextColor.RED)),
-    META_NOT_SUPPORTED(text("Meta is not supported on this server version!", NamedTextColor.RED)),
+    META_ADD_TYPE_MISMATCH(text("Only NUMBERS can be added, and '", NamedTextColor.RED)
+            .append(text("<value>", NamedTextColor.GOLD))
+            .append(text("' is not a number!", NamedTextColor.RED))),
+    META_SUBTRACT_TYPE_MISMATCH(text("Only NUMBERS can be subtracted, and '", NamedTextColor.RED)
+            .append(text("<value>", NamedTextColor.GOLD))
+            .append(text("' is not a number!", NamedTextColor.RED))),
+    META_VALUE_TYPE_MISMATCH(text("Given value '", NamedTextColor.RED)
+            .append(text("<value>", NamedTextColor.GOLD))
+            .append(text("' does not match the given type '", NamedTextColor.RED))
+            .append(text("<type>", NamedTextColor.GOLD))
+            .append(text("'!", NamedTextColor.RED))),
+    META_EXISTENT_VALUE_WRONG_TYPE(text("Given key '", NamedTextColor.RED)
+            .append(text("<key>", NamedTextColor.GOLD))
+            .append(text("' stores a value with a different type!", NamedTextColor.RED))),
     NO_META_VALUE(text("Could not find a meta value with key ", NamedTextColor.RED)
             .append(text("<key>", NamedTextColor.GOLD))
             .append(text(" and type ", NamedTextColor.RED))

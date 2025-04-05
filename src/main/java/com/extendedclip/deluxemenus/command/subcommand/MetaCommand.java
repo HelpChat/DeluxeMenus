@@ -357,7 +357,9 @@ public class MetaCommand extends SubCommand {
                                @NotNull final Map<ContextKeys, String> context) {
         final Object parsedValue = plugin.getPersistentMetaHandler().parseValueByType(type, value);
         if (parsedValue == null) {
-            plugin.sms(sender, Messages.META_VALUE_TYPE_MISMATCH);
+            plugin.sms(sender, Messages.META_VALUE_TYPE_MISMATCH.message()
+                    .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                    .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
             return;
         }
 
@@ -372,10 +374,13 @@ public class MetaCommand extends SubCommand {
                 );
                 return;
             case NEW_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_VALUE_TYPE_MISMATCH);
+                plugin.sms(sender, Messages.META_VALUE_TYPE_MISMATCH.message()
+                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                        .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
                 return;
             case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE);
+                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
                 return;
             default:
                 plugin.sms(sender, Messages.WRONG_USAGE_META_SET_COMMAND);
@@ -396,7 +401,8 @@ public class MetaCommand extends SubCommand {
                 );
                 return;
             case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE);
+                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
                 return;
             case VALUE_NOT_FOUND:
                 plugin.sms(sender, Messages.NO_META_VALUE.message()
@@ -425,7 +431,8 @@ public class MetaCommand extends SubCommand {
                 );
                 return;
             case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE);
+                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                        .replaceText(KEY_REPLACER_BUILDER.replacement(DataType.BOOLEAN.getName()).build()));
                 return;
             default:
                 plugin.sms(sender, Messages.WRONG_USAGE_META_SWITCH_COMMAND);
@@ -440,7 +447,8 @@ public class MetaCommand extends SubCommand {
         final Object parsedValue = plugin.getPersistentMetaHandler().parseValueByType(type, value);
 
         if (!(parsedValue instanceof Number)) {
-            plugin.sms(sender, Messages.META_ADD_TYPE_MISMATCH);
+            plugin.sms(sender, Messages.META_ADD_TYPE_MISMATCH.message()
+                    .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
             return;
         }
 
@@ -459,10 +467,12 @@ public class MetaCommand extends SubCommand {
                 );
                 return;
             case INVALID_TYPE:
-                plugin.sms(sender, Messages.META_ADD_TYPE_MISMATCH);
+                plugin.sms(sender, Messages.META_ADD_TYPE_MISMATCH.message()
+                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
                 return;
             case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE);
+                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
                 return;
             default:
                 plugin.sms(sender, Messages.WRONG_USAGE_META_ADD_COMMAND);
@@ -477,7 +487,8 @@ public class MetaCommand extends SubCommand {
         final Object parsedValue = plugin.getPersistentMetaHandler().parseValueByType(type, value);
 
         if (!(parsedValue instanceof Number)) {
-            plugin.sms(sender, Messages.META_SUBTRACT_TYPE_MISMATCH);
+            plugin.sms(sender, Messages.META_SUBTRACT_TYPE_MISMATCH.message()
+                    .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
             return;
         }
 
@@ -496,10 +507,12 @@ public class MetaCommand extends SubCommand {
                 );
                 return;
             case INVALID_TYPE:
-                plugin.sms(sender, Messages.META_SUBTRACT_TYPE_MISMATCH);
+                plugin.sms(sender, Messages.META_SUBTRACT_TYPE_MISMATCH.message()
+                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
                 return;
             case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE);
+                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
                 return;
             default:
                 plugin.sms(sender, Messages.WRONG_USAGE_META_SUBTRACT_COMMAND);

@@ -11,7 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DataType<P, C> {
-    public static final DataType<Double, Double> DOUBLE = create("DOUBLE", PersistentDataType.DOUBLE, value -> true);
+    public static final DataType<Double, Double> DOUBLE = new DataType<>("DOUBLE", PersistentDataType.DOUBLE, value -> true);
     public static final DataType<Long, Long> INTEGER = new DataType<>("INTEGER", PersistentDataType.LONG, value -> true);
     public static final DataType<Long, Long> LONG = new DataType<>("LONG", PersistentDataType.LONG, value -> true);
     public static final DataType<String, String> STRING = new DataType<>("STRING", PersistentDataType.STRING, value -> true);
@@ -19,17 +19,9 @@ public class DataType<P, C> {
 
     private static final List<DataType<?, ?>> SUPPORTED_TYPES = List.of(DOUBLE, INTEGER, LONG, STRING, BOOLEAN);
 
-    private static <P, C> DataType<P, C> create(
-            @NotNull final String name,
-            @NotNull final PersistentDataType<P, C> pdType,
-            @NotNull final Function<@NotNull Object, @NotNull Boolean> checker
-    ) {
-        return new DataType<>(name, pdType, checker);
-    }
-
-    public final String name;
-    public final PersistentDataType<P, C> pdType;
-    public final Function<Object, Boolean> checker;
+    private final String name;
+    private final PersistentDataType<P, C> pdType;
+    private final Function<Object, Boolean> checker;
 
     private DataType(
             @NotNull final String name,

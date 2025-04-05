@@ -37,9 +37,8 @@ public class PersistentMetaHandler {
     ) {
         return DataType.getSupportedTypes()
                 .stream()
-                .map(DataType::getPDType)
                 .distinct()
-                .anyMatch(type -> player.getPersistentDataContainer().has(key, type));
+                .anyMatch(type -> hasMetaValue(player, key, type));
     }
 
     /**
@@ -55,7 +54,7 @@ public class PersistentMetaHandler {
             @NotNull final NamespacedKey key,
             @NotNull final DataType<?, ?> type
     ) {
-        return player.getPersistentDataContainer().has(key, type.getPDType());
+        return player.getPersistentDataContainer().has(key, type.getPDType()) && type.isSupported(player.getPersistentDataContainer().get(key, type.getPDType()));
     }
 
     /**
@@ -160,6 +159,7 @@ public class PersistentMetaHandler {
      *
      * @param player The player to remove the meta value from.
      * @param key    The key of the meta value.
+     * @param type  The type of the meta value.
      * @return The result of the operation.
      */
     public @NotNull OperationResult removeMetaValue(
@@ -178,6 +178,26 @@ public class PersistentMetaHandler {
         player.getPersistentDataContainer().remove(key);
         return OperationResult.SUCCESS;
     }
+
+    /**
+     * Remove a meta value from a player's {@link org.bukkit.persistence.PersistentDataContainer}.
+     *
+     * @param player The player to remove the meta value from.
+     * @param key    The key of the meta value.
+     * @return The result of the operation.
+     */
+    public @NotNull OperationResult removeMetaValue(
+            @NotNull final Player player,
+            @NotNull final NamespacedKey key
+    ) {
+        if (!player.getPersistentDataContainer().has(key)) {
+            return OperationResult.VALUE_NOT_FOUND;
+        }
+
+        player.getPersistentDataContainer().remove(key);
+        return OperationResult.SUCCESS;
+    }
+
 
     /**
      * Switch a meta value in a player's {@link org.bukkit.persistence.PersistentDataContainer}.

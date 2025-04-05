@@ -99,12 +99,11 @@ public class PersistentMetaHandler {
             @NotNull final DataType<?, T> type,
             @NotNull final T defaultValue
     ) {
-        if (!player.getPersistentDataContainer().has(key, type.getPDType())) {
-            return defaultValue;
+        final T value = getMetaValue(player, key, type);
+        if (value != null) {
+            return value;
         }
-
-        final T result = player.getPersistentDataContainer().get(key, type.getPDType());
-        return result == null ? defaultValue : result;
+        return defaultValue;
     }
 
     /**
@@ -146,7 +145,8 @@ public class PersistentMetaHandler {
             return OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
+        if (player.getPersistentDataContainer().has(key) &&
+                (!player.getPersistentDataContainer().has(key, type.getPDType()) || !type.isSupported(player.getPersistentDataContainer().get(key, type.getPDType())))) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
@@ -167,7 +167,8 @@ public class PersistentMetaHandler {
             @NotNull final NamespacedKey key,
             @NotNull final DataType<?, ?> type
     ) {
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
+        if (player.getPersistentDataContainer().has(key) &&
+                (!player.getPersistentDataContainer().has(key, type.getPDType()) || !type.isSupported(player.getPersistentDataContainer().get(key, type.getPDType())))) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
@@ -248,7 +249,8 @@ public class PersistentMetaHandler {
             return OperationResult.INVALID_TYPE;
         }
 
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
+        if (player.getPersistentDataContainer().has(key) &&
+                (!player.getPersistentDataContainer().has(key, type.getPDType()) || !type.isSupported(player.getPersistentDataContainer().get(key, type.getPDType())))) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
@@ -287,7 +289,8 @@ public class PersistentMetaHandler {
             return OperationResult.INVALID_TYPE;
         }
 
-        if (player.getPersistentDataContainer().has(key) && !player.getPersistentDataContainer().has(key, type.getPDType())) {
+        if (player.getPersistentDataContainer().has(key) &&
+                (!player.getPersistentDataContainer().has(key, type.getPDType()) || !type.isSupported(player.getPersistentDataContainer().get(key, type.getPDType())))) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 

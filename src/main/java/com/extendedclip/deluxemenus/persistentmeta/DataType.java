@@ -57,7 +57,7 @@ public class DataType<P, C> {
         return pdType.getPrimitiveType();
     }
 
-    public boolean isSupported(@NotNull final Object value) {
+    public boolean isSupported(@Nullable final Object value) {
         return this.getComplexType().isInstance(value) && checker.apply(value);
     }
 

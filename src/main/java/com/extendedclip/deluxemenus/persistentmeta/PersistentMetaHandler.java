@@ -77,11 +77,7 @@ public class PersistentMetaHandler {
         }
 
         final T value = player.getPersistentDataContainer().get(key, type.getPDType());
-        if (value == null) {
-            return null;
-        }
-
-        if (!type.isSupported(value)) {
+        if (value == null || !type.isSupported(value)) {
             return null;
         }
 

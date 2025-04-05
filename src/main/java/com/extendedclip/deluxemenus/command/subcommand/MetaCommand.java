@@ -6,6 +6,7 @@ import com.extendedclip.deluxemenus.persistentmeta.DataType;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.PaginationUtils;
+import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -67,7 +68,7 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String actionName = arguments.get(1);
+        final String actionName = StringUtils.replacePlaceholders(arguments.get(1), target);
         final DataAction action = DataAction.getActionByName(actionName);
 
         if (action == null) {
@@ -90,7 +91,7 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String keyName = arguments.get(2);
+        final String keyName = StringUtils.replacePlaceholders(arguments.get(2), target);
         final NamespacedKey namespacedKey = plugin.getPersistentMetaHandler().getKey(keyName);
         if (namespacedKey == null) {
             plugin.sms(sender, Messages.META_KEY_INVALID.message().replaceText(KEY_REPLACER_BUILDER.replacement(keyName).build()));
@@ -110,7 +111,7 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String typeName = arguments.get(3).toUpperCase(Locale.ROOT);
+        final String typeName = StringUtils.replacePlaceholders(arguments.get(3), target).toUpperCase(Locale.ROOT);
         final DataType<?, ?> type = DataType.getSupportedTypeByName(typeName);
         if (type == null) {
             plugin.sms(sender, Messages.META_TYPE_UNSUPPORTED.message().replaceText(TYPE_REPLACER_BUILDER.replacement(typeName).build()));
@@ -129,18 +130,20 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
+        final String value = StringUtils.replacePlaceholders(String.join(" ", arguments.subList(4, arguments.size())), target);
+
         if (action == DataAction.SET) {
-            handleSetMeta(sender, target, namespacedKey, type, String.join(" ", arguments.subList(4, arguments.size())), context);
+            handleSetMeta(sender, target, namespacedKey, type, value, context);
             return;
         }
 
         if (action == DataAction.ADD) {
-            handleAddMeta(sender, target, namespacedKey, type, String.join(" ", arguments.subList(4, arguments.size())), context);
+            handleAddMeta(sender, target, namespacedKey, type, value, context);
             return;
         }
 
         if (action == DataAction.SUBTRACT) {
-            handleSubtractMeta(sender, target, namespacedKey, type, String.join(" ", arguments.subList(4, arguments.size())), context);
+            handleSubtractMeta(sender, target, namespacedKey, type, value, context);
             return;
         }
 

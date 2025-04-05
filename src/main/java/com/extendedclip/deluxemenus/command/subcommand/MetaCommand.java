@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
 
-// TODO: Add placeholders support?
 public class MetaCommand extends SubCommand {
 
     private static final List<String> SUB_COMMANDS = List.of("list", "show", "set", "remove", "add", "subtract", "switch");

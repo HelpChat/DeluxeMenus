@@ -8,24 +8,28 @@ import com.extendedclip.deluxemenus.command.subcommand.ListCommand;
 import com.extendedclip.deluxemenus.command.subcommand.OpenCommand;
 import com.extendedclip.deluxemenus.command.subcommand.ReloadCommand;
 import com.extendedclip.deluxemenus.command.subcommand.SubCommand;
+import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
 
-public class DeluxeMenusCommand implements CommandExecutor {
+public class DeluxeMenusCommand implements TabExecutor {
 
     private static final TextReplacementConfig.Builder VERSION_REPLACER_BUILDER = TextReplacementConfig.builder().matchLiteral("<version>");
     private static final TextReplacementConfig.Builder AUTHORS_REPLACER_BUILDER = TextReplacementConfig.builder().matchLiteral("<authors>");
@@ -73,12 +77,36 @@ public class DeluxeMenusCommand implements CommandExecutor {
         return true;
     }
 
+    @Override
+    public List<String> onTabComplete(
+            final @NotNull CommandSender sender,
+            final @NotNull Command command,
+            final @NotNull String label,
+            final @NotNull String[] args
+    ) {
+        final List<String> arguments = Arrays.asList(args);
+
+        return subCommands.values()
+                .stream()
+                .map(sc -> sc.onTabComplete(sender, arguments))
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
     private void registerSubCommands() {
-        subCommands.put("dump", new DumpCommand(plugin));
-        subCommands.put("execute", new ExecuteCommand(plugin));
-        subCommands.put("help", new HelpCommand(plugin));
-        subCommands.put("list", new ListCommand(plugin));
-        subCommands.put("open", new OpenCommand(plugin));
-        subCommands.put("reload", new ReloadCommand(plugin));
+        final List<SubCommand> commands = List.of(
+                new DumpCommand(plugin),
+                new ExecuteCommand(plugin),
+                new HelpCommand(plugin),
+                new ListCommand(plugin),
+                new OpenCommand(plugin),
+                new ReloadCommand(plugin)
+        );
+
+        for (final SubCommand subCommand : commands) {
+            subCommands.put(subCommand.getName(), subCommand);
+        }
     }
 }

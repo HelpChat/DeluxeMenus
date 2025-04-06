@@ -981,6 +981,19 @@ public class DeluxeMenusConfig {
                         );
                     }
                     break;
+                case BOOLEAN:
+                case REVERSE_BOOLEAN:
+                    if (c.contains(rPath + ".input")) {
+                        invert = type == RequirementType.REVERSE_BOOLEAN;
+                        req = new BooleanRequirement(c.getString(rPath + ".input"), invert);
+                    } else {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Boolean requirement at path: " + rPath + " does not contain a input: entry"
+                        );
+                    }
+                    break;
                 case JAVASCRIPT:
                     if (c.contains(rPath + ".expression")) {
                         req = new JavascriptRequirement(plugin, c.getString(rPath + ".expression"));

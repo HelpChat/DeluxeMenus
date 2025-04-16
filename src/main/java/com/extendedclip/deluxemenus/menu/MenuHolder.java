@@ -274,19 +274,7 @@ public class MenuHolder implements InventoryHolder {
                         }
 
                         if (item.options().loreHasPlaceholders()) {
-
-                            List<String> updated = new ArrayList<>();
-
-                            for (String line : item.options().lore()) {
-                                for(String splitLine : line.split("\n")) {
-                                    String updatedLine = setPlaceholdersAndArguments(splitLine);
-
-                                    for (String finalLine : updatedLine.split("\\\\n")) {
-                                        updated.add(StringUtils.color(finalLine));
-                                    }
-                                }
-                            }
-                            meta.setLore(updated);
+                            meta.setLore(item.getMenuItemLore(getHolder(), item.options().lore()));
                         }
 
                         i.setItemMeta(meta);

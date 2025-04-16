@@ -278,8 +278,13 @@ public class MenuHolder implements InventoryHolder {
                             List<String> updated = new ArrayList<>();
 
                             for (String line : item.options().lore()) {
-                                updated.add(StringUtils
-                                        .color(setPlaceholdersAndArguments(line)));
+                                for(String splitLine : line.split("\n")) {
+                                    String updatedLine = setPlaceholdersAndArguments(splitLine);
+
+                                    for (String finalLine : updatedLine.split("\\\\n")) {
+                                        updated.add(StringUtils.color(finalLine));
+                                    }
+                                }
                             }
                             meta.setLore(updated);
                         }

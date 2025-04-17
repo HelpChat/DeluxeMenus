@@ -67,6 +67,8 @@ public enum Messages {
         .append(text("/dm dump <menu-name/config>", NamedTextColor.GRAY))),
     WRONG_USAGE_OPEN_COMMAND(WRONG_USAGE_BASE.message
         .append(text("/dm open <menu-name> [player]", NamedTextColor.GRAY))),
+    WRONG_USAGE_REFRESH_COMMAND(WRONG_USAGE_BASE.message
+        .append(text("/dm refresh <menu-name>", NamedTextColor.GRAY))),
     PLAYER_IS_NOT_ONLINE(empty()
         .append(text("Player:", NamedTextColor.RED))
         .append(space())
@@ -109,6 +111,10 @@ public enum Messages {
         .append(text("menu could not be reloaded!", NamedTextColor.RED))),
     MENU_LOADED(text("<amount> menu loaded...", NamedTextColor.YELLOW)),
     MENUS_LOADED(text("<amount> menus loaded...", NamedTextColor.YELLOW)),
+    MENU_REFRESHED(text("<menu>", NamedTextColor.GOLD)
+        .append(space())
+        .append(text("menu refreshed for <amount> players...", NamedTextColor.YELLOW))
+    ),
 
     DUMP_FAILED(text("Failed to create and post dump!", NamedTextColor.RED)),
 

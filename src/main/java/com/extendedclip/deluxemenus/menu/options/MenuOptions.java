@@ -16,6 +16,8 @@ public class MenuOptions {
     private final InventoryType type;
     private final int size;
     private final int updateInterval;
+    private final int refreshInterval;
+    private final boolean refresh;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
 
@@ -35,6 +37,8 @@ public class MenuOptions {
         this.type = builder.type;
         this.size = builder.size;
         this.updateInterval = builder.updateInterval;
+        this.refreshInterval = builder.refreshInterval;
+        this.refresh = builder.refresh;
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
 
@@ -71,6 +75,14 @@ public class MenuOptions {
 
     public int updateInterval() {
         return this.updateInterval;
+    }
+
+    public int refreshInterval() {
+        return this.refreshInterval;
+    }
+
+    public boolean refresh() {
+        return this.refresh;
     }
 
     public boolean parsePlaceholdersInArguments() {
@@ -118,6 +130,8 @@ public class MenuOptions {
                 .type(this.type)
                 .size(this.size)
                 .updateInterval(this.updateInterval)
+                .refreshInterval(this.refreshInterval)
+                .refresh(this.refresh)
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
                 .commands(this.commands)
@@ -137,6 +151,8 @@ public class MenuOptions {
         private InventoryType type = InventoryType.CHEST;
         private int size = 9;
         private int updateInterval = 10;
+        private int refreshInterval = 10;
+        private boolean refresh;
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
 
@@ -177,6 +193,16 @@ public class MenuOptions {
 
         public MenuOptionsBuilder updateInterval(final int updateInterval) {
             this.updateInterval = updateInterval;
+            return this;
+        }
+
+        public MenuOptionsBuilder refreshInterval(final int refreshInterval) {
+            this.refreshInterval = refreshInterval;
+            return this;
+        }
+
+        public MenuOptionsBuilder refresh(final boolean refresh) {
+            this.refresh = refresh;
             return this;
         }
 

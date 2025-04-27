@@ -11,6 +11,7 @@ public class GeneralConfig {
     private DebugLevel debugLevel = getDefaultDebugLevel();
     private boolean useAdminCommandsInMenusList = false;
     private int menusListPageSize = 10;
+    private int metasListPageSize = 15;
 
     public GeneralConfig(final @NotNull DeluxeMenus plugin) {
         this.plugin = plugin;
@@ -21,11 +22,13 @@ public class GeneralConfig {
         plugin.getConfig().addDefault("debug", debugLevel.name());
         plugin.getConfig().addDefault("use_admin_commands_in_menus_list", false);
         plugin.getConfig().addDefault("menus_list_page_size", menusListPageSize);
+        plugin.getConfig().addDefault("metas_list_page_size", metasListPageSize);
 
         checkForUpdates = plugin.getConfig().getBoolean("check_updates", false);
         debugLevel = loadDebugLevel();
         useAdminCommandsInMenusList = plugin.getConfig().getBoolean("use_admin_commands_in_menus_list", false);
         menusListPageSize = plugin.getConfig().getInt("menus_list_page_size", 10);
+        metasListPageSize = plugin.getConfig().getInt("metas_list_page_size", 15);
     }
 
     public void reload() {
@@ -47,6 +50,10 @@ public class GeneralConfig {
 
     public int menusListPageSize() {
         return menusListPageSize;
+    }
+
+    public int metasListPageSize() {
+        return metasListPageSize;
     }
 
     private @NotNull DebugLevel loadDebugLevel() {

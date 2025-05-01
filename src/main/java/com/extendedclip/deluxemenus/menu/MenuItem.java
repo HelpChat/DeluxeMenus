@@ -63,6 +63,25 @@ public class MenuItem {
         this.options = options;
     }
 
+    public static ItemStack Base64ToItem(String data) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            dataInput.close();
+            Object object = dataInput.readObject();
+            if (object instanceof ItemStack) {
+                return (ItemStack) object;
+            }
+            return null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
     public ItemStack getItemStack(@NotNull final MenuHolder holder) {
         final Player viewer = holder.getViewer();
 
@@ -72,8 +91,17 @@ public class MenuItem {
         String stringMaterial = this.options.material();
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
+        // "placeholder-" is treated normally (no Base64 decoding)
         if (ItemUtils.isPlaceholderOption(lowercaseStringMaterial)) {
             stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
+            lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
+            // Only decode as Base64 if the prefix is "base64-"
+        } else if (ItemUtils.isBase64Option(lowercaseStringMaterial)) {
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(STACK_PREFIX.length()));
+            ItemStack base64Item = Base64ToItem(stringMaterial);
+            if (base64Item != null) {
+                itemStack = base64Item;
+            }
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
 

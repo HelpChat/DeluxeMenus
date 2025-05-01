@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.menu;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
+import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
@@ -54,9 +55,11 @@ import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 
 public class MenuItem {
 
-    private final @NotNull MenuItemOptions options;
+    private final DeluxeMenus plugin;
+    private final MenuItemOptions options;
 
-    public MenuItem(@NotNull final MenuItemOptions options) {
+    public MenuItem(@NotNull final DeluxeMenus plugin, @NotNull final MenuItemOptions options) {
+        this.plugin = plugin;
         this.options = options;
     }
 
@@ -88,14 +91,17 @@ public class MenuItem {
         final int temporaryAmount = amount;
 
         final String finalMaterial = lowercaseStringMaterial;
-        final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+        final ItemHook pluginHook = plugin.getItemHooks().values()
             .stream()
             .filter(x -> finalMaterial.startsWith(x.getPrefix()))
             .findFirst()
             .orElse(null);
 
         if (pluginHook != null) {
-            itemStack = pluginHook.getItem(holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length())));
+            itemStack = pluginHook.getItem(
+                    viewer,
+                    holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length()))
+            );
         }
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {
@@ -106,7 +112,7 @@ public class MenuItem {
         if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Material: " + stringMaterial + " is not valid! Setting to Stone."
@@ -188,7 +194,7 @@ public class MenuItem {
                     }
                 }
             } catch (final NumberFormatException exception) {
-                DeluxeMenus.printStacktrace(
+                plugin.printStacktrace(
                         "Invalid damage found: " + parsedDamage + ".",
                         exception
                 );
@@ -275,7 +281,7 @@ public class MenuItem {
                 try {
                     itemMeta.setRarity(ItemRarity.valueOf(rarity.toUpperCase()));
                 } catch (IllegalArgumentException e) {
-                    DeluxeMenus.debug(
+                    plugin.debug(
                             DebugLevel.HIGHEST,
                             Level.WARNING,
                             "Rarity " + rarity + " is not a valid!"
@@ -309,7 +315,7 @@ public class MenuItem {
                     itemStack.setItemMeta(armorMeta);
                 } else {
                     if (trimMaterial == null) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
                                 "Trim material " + trimMaterialName.get() + " is not a valid!"
@@ -317,7 +323,7 @@ public class MenuItem {
                     }
 
                     if (trimPattern == null) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
                                 "Trim pattern " + trimPatternName.get() + " is not a valid!"
@@ -325,13 +331,13 @@ public class MenuItem {
                     }
                 }
             } else if (trimMaterialName.isPresent()) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Trim pattern is not set for item with trim material " + trimMaterialName.get()
                 );
             } else if (trimPatternName.isPresent()) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Trim material is not set for item with trim pattern " + trimPatternName.get()
@@ -349,7 +355,7 @@ public class MenuItem {
                         Integer.parseInt(parts[2].trim())));
                 itemStack.setItemMeta(leatherArmorMeta);
             } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
+                plugin.printStacktrace(
                         "Invalid rgb colors found for leather armor: " + parts[0].trim() + ", " + parts[1].trim() + ", " +
                                 parts[2].trim(),
                         exception
@@ -365,7 +371,7 @@ public class MenuItem {
                         Integer.parseInt(parts[1].trim()), Integer.parseInt(parts[2].trim()))).build());
                 itemStack.setItemMeta(fireworkEffectMeta);
             } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
+                plugin.printStacktrace(
                         "Invalid rgb colors found for firework or firework star: " + parts[0].trim() + ", "
                                 + parts[1].trim() + ", " + parts[2].trim(),
                         exception
@@ -376,7 +382,7 @@ public class MenuItem {
             for (final Map.Entry<Enchantment, Integer> entry : this.options.enchantments().entrySet()) {
                 final boolean result = enchantmentStorageMeta.addStoredEnchant(entry.getKey(), entry.getValue(), true);
                 if (!result) {
-                    DeluxeMenus.debug(
+                    plugin.debug(
                             DebugLevel.HIGHEST,
                             Level.INFO,
                             "Failed to add enchantment " + entry.getKey().getName() + " to item " + itemStack.getType()
@@ -402,14 +408,14 @@ public class MenuItem {
                     final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), light.getMaximumLevel());
                     light.setLevel(Math.max(lightLevel, 0));
                     if (lightLevel < 0) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.MEDIUM,
                                 Level.WARNING,
                                 "Invalid light level found for light block: " + parsedLightLevel + ". Setting to 0."
                         );
                     }
                     if (lightLevel > light.getMaximumLevel()) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.MEDIUM,
                                 Level.WARNING,
                                 "Invalid light level found for light block: " + parsedLightLevel + ". Setting to " + light.getMaximumLevel() + "."
@@ -419,7 +425,7 @@ public class MenuItem {
                     blockDataMeta.setBlockData(light);
                     itemStack.setItemMeta(blockDataMeta);
                 } catch (final Exception exception) {
-                    DeluxeMenus.printStacktrace(
+                    plugin.printStacktrace(
                             "Invalid light level found for light block: " + parsedLightLevel,
                             exception
                     );
@@ -528,12 +534,10 @@ public class MenuItem {
     }
 
     private @NotNull Optional<ItemStack> getItemFromHook(String hookName, String... args) {
-        return DeluxeMenus.getInstance()
-                .getItemHook(hookName)
-                .map(itemHook -> itemHook.getItem(args));
+        return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
-    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
         return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
                 .map(StringUtils::color)

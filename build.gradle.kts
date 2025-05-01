@@ -1,7 +1,7 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version("8.1.1")
-    id("com.github.ben-manes.versions") version "0.48.0"
+    id("com.gradleup.shadow") version("8.3.5")
+    id("com.github.ben-manes.versions") version("0.51.0")
 }
 
 // Change to true when releasing
@@ -18,6 +18,8 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
+    maven("https://repo.nexomc.com/releases/")
+    maven("https://repo.oraxen.com/releases")
     maven("https://jitpack.io")
 }
 
@@ -29,10 +31,12 @@ dependencies {
 
     compileOnly(libs.headdb)
     compileOnly(libs.itemsadder)
+    compileOnly(libs.nexo)
     compileOnly(libs.oraxen)
     compileOnly(libs.mythiclib)
     compileOnly(libs.mmoitems)
     compileOnly(libs.score)
+    compileOnly(libs.sig)
 
     compileOnly(libs.papi)
 
@@ -53,6 +57,7 @@ tasks {
     java {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        disableAutoTargetJvm()
     }
 
     processResources {

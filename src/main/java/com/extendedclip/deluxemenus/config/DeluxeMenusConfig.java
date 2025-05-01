@@ -88,6 +88,7 @@ public class DeluxeMenusConfig {
         VALID_MATERIALS.addAll(PLAYER_ITEMS);
         VALID_MATERIALS.add(WATER_BOTTLE);
 
+        VALID_MATERIAL_PREFIXES.add(STACK_PREFIX);
         VALID_MATERIAL_PREFIXES.add(PLACEHOLDER_PREFIX);
     }
 

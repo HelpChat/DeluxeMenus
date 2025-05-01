@@ -28,6 +28,9 @@ public final class ItemUtils {
     public static boolean isPlaceholderOption(@NotNull final String material) {
         return material.toLowerCase(Locale.ROOT).startsWith(PLACEHOLDER_PREFIX);
     }
+    public static boolean isBase64Option(@NotNull final String material) {
+        return material.toLowerCase(Locale.ROOT).startsWith(STACK_PREFIX);
+    }
 
     /**
      * Checks if the string is a player item. The check is case-sensitive.

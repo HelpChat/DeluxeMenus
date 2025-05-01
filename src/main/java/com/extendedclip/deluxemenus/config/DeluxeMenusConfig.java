@@ -88,6 +88,7 @@ public class DeluxeMenusConfig {
         VALID_MATERIALS.addAll(PLAYER_ITEMS);
         VALID_MATERIALS.add(WATER_BOTTLE);
 
+        VALID_MATERIAL_PREFIXES.add(STACK_PREFIX);
         VALID_MATERIAL_PREFIXES.add(PLACEHOLDER_PREFIX);
     }
 
@@ -978,6 +979,19 @@ public class DeluxeMenusConfig {
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
                                 "Has Permissions requirement at path: " + rPath + " does not contain permissions: entry"
+                        );
+                    }
+                    break;
+                case BOOLEAN:
+                case REVERSE_BOOLEAN:
+                    if (c.contains(rPath + ".input")) {
+                        invert = type == RequirementType.REVERSE_BOOLEAN;
+                        req = new BooleanRequirement(c.getString(rPath + ".input"), invert);
+                    } else {
+                        DeluxeMenus.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Boolean requirement at path: " + rPath + " does not contain a input: entry"
                         );
                     }
                     break;

@@ -274,14 +274,7 @@ public class MenuHolder implements InventoryHolder {
                         }
 
                         if (item.options().loreHasPlaceholders()) {
-
-                            List<String> updated = new ArrayList<>();
-
-                            for (String line : item.options().lore()) {
-                                updated.add(StringUtils
-                                        .color(setPlaceholdersAndArguments(line)));
-                            }
-                            meta.setLore(updated);
+                            meta.setLore(item.getMenuItemLore(getHolder(), item.options().lore()));
                         }
 
                         i.setItemMeta(meta);

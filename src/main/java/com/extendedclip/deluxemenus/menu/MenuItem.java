@@ -535,7 +535,7 @@ public class MenuItem {
         return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
-    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
         return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
                 .map(StringUtils::color)

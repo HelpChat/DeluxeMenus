@@ -921,6 +921,19 @@ public class DeluxeMenusConfig {
                         wrapper.setCustomData(c.getInt(rPath + ".modeldata", 0));
                     }
 
+                    if (c.contains(rPath + "model_data_component") && c.isConfigurationSection(rPath + "model_data_component")) {
+                        final ConfigurationSection modelDataComponent = c.getConfigurationSection(rPath + "model_data_component");
+                        if (modelDataComponent != null) {
+                            wrapper.setCustomModelDataComponent(
+                                    CustomModelDataComponent.builder()
+                                            .colors(modelDataComponent.getStringList("colors"))
+                                            .flags(modelDataComponent.getStringList("flags"))
+                                            .floats(modelDataComponent.getStringList("floats"))
+                                            .strings(modelDataComponent.getStringList("strings"))
+                            );
+                        }
+                    }
+
                     if (c.contains(rPath + ".name_contains")) {
                         wrapper.setNameContains(c.getBoolean(rPath + ".name_contains"));
                     } else {

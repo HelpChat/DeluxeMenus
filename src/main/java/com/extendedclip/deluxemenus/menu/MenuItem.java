@@ -591,21 +591,15 @@ public class MenuItem {
     }
 
     private @Nullable Color parseRGBColor(@NotNull final String input) {
-        final String[] parts = input.split(",");
-        try {
-            return Color.fromRGB(
-                    Integer.parseInt(parts[0].trim()),
-                    Integer.parseInt(parts[1].trim()),
-                    Integer.parseInt(parts[2].trim())
+        final Color color = StringUtils.parseRGBColor(input);
+        if (color == null) {
+            plugin.debug(
+                    DebugLevel.HIGHEST,
+                    Level.WARNING,
+                    "Invalid RGB color found: " + input
             );
-        } catch (final Exception exception) {
-            plugin.printStacktrace(
-                    "Invalid RGB color found: " + parts[0].trim() + ", " + parts[1].trim() + ", " +
-                            parts[2].trim(),
-                    exception
-            );
-            return null;
         }
+        return color;
     }
 
     public @NotNull MenuItemOptions options() {

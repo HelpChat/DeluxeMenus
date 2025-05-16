@@ -7,11 +7,17 @@ import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("UnstableApiUsage")
 public class HasItemRequirement extends Requirement {
 
   private final DeluxeMenus plugin;
@@ -80,20 +86,49 @@ public class HasItemRequirement extends Requirement {
     if (wrapper.isStrict()) {
       if (metaToCheck != null) {
         if (VersionHelper.IS_CUSTOM_MODEL_DATA) {
-          if (metaToCheck.hasCustomModelData()) return false;
+          if (metaToCheck.hasCustomModelData()) {
+            return false;
+          }
+        }
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT) {
+          if (metaToCheck.hasCustomModelDataComponent()) {
+            if (!isEmptyModelData(metaToCheck.getCustomModelDataComponent())) {
+              return false;
+            }
+          }
         }
         if (metaToCheck.hasLore()) return false;
         return !metaToCheck.hasDisplayName();
       }
 
     } else {
-      if ((wrapper.getCustomData() != 0 || wrapper.getName() != null || wrapper.getLore() != null) && metaToCheck == null)
-        return false;
+      if (metaToCheck == null) {
+        if (wrapper.getCustomData() != 0 || wrapper.getName() != null || wrapper.getLore() != null) {
+          return false;
+        }
+
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT) {
+          if (isEmptyModelData(wrapper.getCustomModelDataComponent())) {
+            return false;
+          }
+        }
+      }
 
       if (wrapper.getCustomData() != 0) {
         if (VersionHelper.IS_CUSTOM_MODEL_DATA) {
           if (!metaToCheck.hasCustomModelData()) return false;
           if (metaToCheck.getCustomModelData() != wrapper.getCustomData()) return false;
+        }
+      }
+
+      if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT) {
+        if (!isEmptyModelData(wrapper.getCustomModelDataComponent())) {
+          if (!metaToCheck.hasCustomModelDataComponent()) {
+            return false;
+          }
+          if (!itemModelComponentContains(holder, metaToCheck.getCustomModelDataComponent(), wrapper.getCustomModelDataComponent())) {
+            return false;
+          }
         }
       }
 
@@ -157,6 +192,66 @@ public class HasItemRequirement extends Requirement {
         else return loreToCheck.equals(lore);
       }
     }
+    return true;
+  }
+
+  private boolean isEmptyModelData(@NotNull final CustomModelDataComponent modelData) {
+    return modelData.getColors().isEmpty() && modelData.getFlags().isEmpty() && modelData.getFloats().isEmpty() && modelData.getStrings().isEmpty();
+  }
+
+  private boolean isEmptyModelData(@NotNull final com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent modelData) {
+    return modelData.colors().isEmpty() && modelData.flags().isEmpty() && modelData.floats().isEmpty() && modelData.strings().isEmpty();
+  }
+
+  private boolean itemModelComponentContains(MenuHolder holder, @NotNull final CustomModelDataComponent modelData, @NotNull final com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent wrapper) {
+    if (!wrapper.colors().isEmpty()) {
+      final List<Color> colors = wrapper.colors()
+              .stream()
+              .map(holder::setPlaceholdersAndArguments)
+              .map(StringUtils::parseRGBColor)
+              .filter(Objects::nonNull)
+              .collect(Collectors.toList());
+
+      for (Color color : colors) {
+        if (!modelData.getColors().contains(color)) return false;
+      }
+    }
+
+    if (!wrapper.flags().isEmpty()) {
+      final List<Boolean> flags = wrapper.flags()
+              .stream()
+              .map(holder::setPlaceholdersAndArguments)
+              .map(Boolean::parseBoolean)
+              .collect(Collectors.toList());
+
+      for (Boolean flag : flags) {
+        if (!modelData.getFlags().contains(flag)) return false;
+      }
+    }
+
+    if (!wrapper.floats().isEmpty()) {
+      final List<Float> floats = wrapper.floats()
+              .stream()
+              .map(holder::setPlaceholdersAndArguments)
+              .map(Float::parseFloat)
+              .collect(Collectors.toList());
+
+      for (Float floatValue : floats) {
+        if (!modelData.getFloats().contains(floatValue)) return false;
+      }
+    }
+
+    if (!wrapper.strings().isEmpty()) {
+      final List<String> strings = wrapper.strings()
+              .stream()
+              .map(holder::setPlaceholdersAndArguments)
+              .collect(Collectors.toList());
+
+      for (String string : strings) {
+        if (!modelData.getStrings().contains(string)) return false;
+      }
+    }
+
     return true;
   }
 }

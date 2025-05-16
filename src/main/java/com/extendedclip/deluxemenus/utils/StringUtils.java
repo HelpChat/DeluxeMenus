@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,5 +73,19 @@ public class StringUtils {
         }
 
         return input;
+    }
+
+    @Nullable
+    public static Color parseRGBColor(@NotNull final String input) {
+        final String[] parts = input.split(",");
+        try {
+            return Color.fromRGB(
+                    Integer.parseInt(parts[0].trim()),
+                    Integer.parseInt(parts[1].trim()),
+                    Integer.parseInt(parts[2].trim())
+            );
+        } catch (final Exception exception) {
+            return null;
+        }
     }
 }

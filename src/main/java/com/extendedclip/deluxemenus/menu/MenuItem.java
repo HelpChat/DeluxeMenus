@@ -399,7 +399,7 @@ public class MenuItem {
         }
 
         if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {
-            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemStack.getItemMeta();
+            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemMeta;
             final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
             if (blockData instanceof Light) {
                 final Light light = (Light) blockData;
@@ -423,7 +423,6 @@ public class MenuItem {
                     }
 
                     blockDataMeta.setBlockData(light);
-                    itemStack.setItemMeta(blockDataMeta);
                 } catch (final Exception exception) {
                     plugin.printStacktrace(
                             "Invalid light level found for light block: " + parsedLightLevel,

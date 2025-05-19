@@ -9,8 +9,9 @@ import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.hooks.*;
 import com.extendedclip.deluxemenus.listener.PlayerListener;
 import com.extendedclip.deluxemenus.menu.Menu;
+import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
-import com.extendedclip.deluxemenus.metrics.Metrics;
+import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.placeholder.Expansion;
@@ -22,6 +23,9 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.AdvancedPie;
+import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -31,11 +35,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -316,5 +316,31 @@ public class DeluxeMenus extends JavaPlugin {
 
     private void setUpMetrics() {
         final Metrics metrics = new Metrics(this, 445);
+        metrics.addCustomChart(new SingleLineChart("menus", Menu::getLoadedMenuSize));
+
+        metrics.addCustomChart(new AdvancedPie("inventory_types", () -> Menu.getAllMenus().stream()
+                .map(Menu::options)
+                .map(MenuOptions::type)
+                .collect(Collectors.groupingBy(Enum::name, Collectors.summingInt(type -> 1)))));
+
+        // added for 1.21 usage
+        metrics.addCustomChart(new AdvancedPie("nbt_usage", () -> {
+            final var results = new HashMap<String, Integer>();
+            final var options = Menu.getAllMenus().stream()
+                    .map(Menu::getMenuItems)
+                    .flatMap(c -> c.values().stream().map(TreeMap::values).flatMap(Collection::stream))
+                    .map(MenuItem::options)
+                    .collect(Collectors.toList());
+            results.put("Byte", options.stream().filter(option -> option.nbtByte().isPresent()).mapToInt(b -> 1).sum());
+            results.put("Bytes", options.stream().filter(option -> !option.nbtBytes().isEmpty()).mapToInt(b -> 1).sum());
+            results.put("Short", options.stream().filter(option -> option.nbtShort().isPresent()).mapToInt(s -> 1).sum());
+            results.put("Shorts", options.stream().filter(option -> !option.nbtShorts().isEmpty()).mapToInt(s -> 1).sum());
+            results.put("Int", options.stream().filter(option -> option.nbtInt().isPresent()).mapToInt(i -> 1).sum());
+            results.put("Ints", options.stream().filter(option -> !option.nbtInts().isEmpty()).mapToInt(i -> 1).sum());
+            results.put("String", options.stream().filter(option -> option.nbtString().isPresent()).mapToInt(s -> 1).sum());
+            results.put("Strings", options.stream().filter(option -> !option.nbtStrings().isEmpty()).mapToInt(s -> 1).sum());
+            results.put("Model Data", options.stream().filter(option -> option.customModelData().isPresent()).mapToInt(c -> 1).sum());
+            return results;
+        }));
     }
 }

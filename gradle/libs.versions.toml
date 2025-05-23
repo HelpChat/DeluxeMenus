@@ -12,11 +12,12 @@ mmoitems = "6.10-SNAPSHOT"
 papi = "2.11.6"
 score = "4.24.3.5"
 sig = "1.5.0"
+bstats = "3.1.0"
 
 # Implementation
 nashorn = "15.6"
-adventure-platform = "4.3.4"
-adventure-minimessage = "4.18.0"
+adventure-platform = "4.4.0"
+adventure-minimessage = "4.21.0"
 
 [libraries]
 # Compile only
@@ -37,3 +38,4 @@ sig = { module = "io.github.valerashimchuck:simpleitemgenerator-api", version.re
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }
 adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
 adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
+bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }

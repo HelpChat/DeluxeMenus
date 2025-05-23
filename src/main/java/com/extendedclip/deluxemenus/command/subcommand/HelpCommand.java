@@ -23,16 +23,25 @@ public class HelpCommand extends SubCommand {
 
     @Override
     public void execute(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
-        if (sender.hasPermission(ADMIN_PERMISSION)) {
-            plugin.sms(sender, Messages.HELP_ADMIN);
+        if (sender.isOp()) {
+            plugin.sms(sender, Messages.HELP_OP);
             return;
         }
 
-        plugin.sms(sender, Messages.HELP);
+        if (sender.hasPermission(ADMIN_PERMISSION)) {
+            plugin.sms(sender, Messages.HELP);
+            return;
+        }
+
+        plugin.sms(sender, Messages.NO_PERMISSION);
     }
 
     @Override
     public @Nullable List<String> onTabComplete(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
+        if (!sender.hasPermission(ADMIN_PERMISSION)) {
+            return null;
+        }
+
         if (arguments.size() > 1) {
             return null;
         }

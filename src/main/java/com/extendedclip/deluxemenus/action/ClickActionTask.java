@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.action;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.utils.AdventureUtils;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
@@ -80,14 +81,24 @@ public class ClickActionTask extends BukkitRunnable {
                     plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Meta action not supported on this server version.");
                     break;
                 }
-                try {
-                    final boolean result = plugin.getPersistentMetaHandler().setMeta(player, executable);
-                    if (!result) {
+                final PersistentMetaHandler.OperationResult result = plugin.getPersistentMetaHandler().parseAndExecuteMetaActionFromString(player, executable);
+                switch (result) {
+                    case INVALID_SYNTAX:
                         plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid meta action! Make sure you have the right syntax.");
                         break;
-                    }
-                } catch (final NumberFormatException exception) {
-                    plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid integer value for meta action!");
+                    case NEW_VALUE_IS_DIFFERENT_TYPE:
+                        plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid meta action! New value is a different type than the old value!");
+                        break;
+                    case INVALID_TYPE:
+                        plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid meta action! The specified type is not supported for the specified action!");
+                        break;
+                    case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
+                        plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid meta action! Existent value is a different type than the new value!");
+                        break;
+                    case VALUE_NOT_FOUND:
+                    case SUCCESS:
+                    default:
+                        break;
                 }
                 break;
 

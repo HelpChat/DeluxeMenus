@@ -21,6 +21,8 @@ public final class VersionHelper {
     private static final String PACKAGE_NAME = Bukkit.getServer().getClass().getPackage().getName();
     public static final String NMS_VERSION = PACKAGE_NAME.substring(PACKAGE_NAME.lastIndexOf('.') + 1);
 
+    // Custom Model Data Component
+    private static final int V1_21_4 = 1_21_4;
     // Tooltip Style & Item Model
     private static final int V1_21_2 = 1_21_2;
     // Data components
@@ -97,6 +99,8 @@ public final class VersionHelper {
      * Checks if the version has {@link org.bukkit.inventory.meta.ItemMeta#setCustomModelData(Integer)}
      */
     public static final boolean IS_CUSTOM_MODEL_DATA = CURRENT_VERSION >= V1_14;
+
+    public static final boolean IS_CUSTOM_MODEL_DATA_COMPONENT = CURRENT_VERSION >= V1_21_4;
 
     public static final boolean IS_HEX_VERSION = CURRENT_VERSION >= V1_16;
 

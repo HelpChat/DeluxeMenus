@@ -8,7 +8,7 @@ import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.bukkit.Bukkit;
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -93,7 +93,7 @@ public class PlayerListener extends Listener {
 
         if (Menu.isInMenu(player)) {
             Menu.closeMenu(plugin, player, false);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            GlobalScheduler.get(plugin).runLater(() -> {
                 Menu.cleanInventory(plugin, player);
                 player.updateInventory();
             }, 3L);

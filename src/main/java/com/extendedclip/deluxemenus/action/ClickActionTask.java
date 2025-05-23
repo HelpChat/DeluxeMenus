@@ -3,29 +3,19 @@ package com.extendedclip.deluxemenus.action;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
-import com.extendedclip.deluxemenus.utils.AdventureUtils;
-import com.extendedclip.deluxemenus.utils.DebugLevel;
-import com.extendedclip.deluxemenus.utils.ExpUtils;
-import com.extendedclip.deluxemenus.utils.SoundUtils;
-import com.extendedclip.deluxemenus.utils.StringUtils;
-import com.extendedclip.deluxemenus.utils.VersionHelper;
+import com.extendedclip.deluxemenus.utils.*;
+import io.github.projectunified.minelib.scheduler.global.GlobalScheduler;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
-public class ClickActionTask extends BukkitRunnable {
+public class ClickActionTask implements Runnable {
 
     private final DeluxeMenus plugin;
     private final UUID uuid;
@@ -439,4 +429,13 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
         }
     }
+
+    public void runTaskLater(DeluxeMenus plugin, long delay) {
+        GlobalScheduler.get(plugin).runLater(this, delay);
+    }
+
+    public void runTask(DeluxeMenus plugin) {
+        GlobalScheduler.get(plugin).run(this);
+    }
+
 }

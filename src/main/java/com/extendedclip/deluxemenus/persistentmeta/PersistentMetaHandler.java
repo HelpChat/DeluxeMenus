@@ -262,7 +262,18 @@ public class PersistentMetaHandler {
             return OperationResult.SUCCESS;
         }
 
-        final long newValue = (long) (currentValue == null ? 0 : currentValue) + (type == DataType.INTEGER ? value.intValue() : value.longValue());
+        long currentValueLong = 0;
+        if (currentValue != null) {
+            if (currentValue instanceof Long) {
+                currentValueLong = (Long) currentValue;
+            } else if (currentValue instanceof Integer) {
+                currentValueLong = (Integer) currentValue;
+            } else {
+                return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
+            }
+        }
+
+        final long newValue = currentValueLong + (type == DataType.INTEGER ? value.intValue() : value.longValue());
         player.getPersistentDataContainer().set(key, type.getPDType(), newValue);
         return OperationResult.SUCCESS;
     }

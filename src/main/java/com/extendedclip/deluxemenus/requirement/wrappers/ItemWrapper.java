@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.requirement.wrappers;
 
 import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class ItemWrapper {
 
     private short data = 0;
     private boolean hasData = false;
-    private CustomModelDataComponent customDataComponent = null;
+    private CustomModelDataComponent customDataComponent = CustomModelDataComponent.builder();
     private int customData = 0;
     private int amount = 1;
 
@@ -83,11 +84,11 @@ public class ItemWrapper {
         this.customData = customData;
     }
 
-    public CustomModelDataComponent getCustomModelDataComponent() {
+    public @NotNull CustomModelDataComponent getCustomModelDataComponent() {
         return this.customDataComponent;
     }
 
-    public void setCustomModelDataComponent(CustomModelDataComponent customDataComponent) {
+    public void setCustomModelDataComponent(@NotNull final CustomModelDataComponent customDataComponent) {
         this.customDataComponent = customDataComponent;
     }
 

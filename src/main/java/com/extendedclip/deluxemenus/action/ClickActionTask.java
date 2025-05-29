@@ -92,11 +92,8 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case PLAYER:
-                player.chat("/" + executable);
-                break;
-
             case PLAYER_COMMAND_EVENT:
-                Bukkit.getPluginManager().callEvent(new PlayerCommandPreprocessEvent(player, "/" + executable));
+                player.chat("/" + executable);
                 break;
 
             case PLACEHOLDER:

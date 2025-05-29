@@ -262,7 +262,7 @@ public class PersistentMetaHandler {
             return OperationResult.SUCCESS;
         }
 
-        final long newValue = (long) (currentValue == null ? 0 : currentValue) + value.longValue();
+        final long newValue = ((Number) (currentValue == null ? 0 : currentValue)).longValue() + value.longValue();
         player.getPersistentDataContainer().set(key, type.getPDType(), newValue);
         return OperationResult.SUCCESS;
     }
@@ -302,7 +302,7 @@ public class PersistentMetaHandler {
             return OperationResult.SUCCESS;
         }
 
-        final long newValue = (long) (currentValue == null ? 0 : currentValue) - value.longValue();
+        final long newValue = ((Number) (currentValue == null ? 0 : currentValue)).longValue() - value.longValue();
         player.getPersistentDataContainer().set(key, type.getPDType(), newValue);
         return OperationResult.SUCCESS;
     }

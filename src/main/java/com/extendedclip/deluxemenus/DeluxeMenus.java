@@ -66,7 +66,11 @@ public class DeluxeMenus extends JavaPlugin {
             return;
         }
 
-        this.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not setup a NMS hook for your server version!");
+        this.debug(
+                DebugLevel.HIGHEST,
+                Level.WARNING,
+                "Could not setup a NMS hook for your server version! The following Item options will not work: nbt_int, nbt_ints, nbt_string and nbt_strings."
+        );
     }
 
     @Override

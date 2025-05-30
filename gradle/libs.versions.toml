@@ -1,6 +1,6 @@
 [versions]
 # Compile only
-spigot = "1.21.4-R0.1-SNAPSHOT"
+spigot = "1.21.5-R0.1-SNAPSHOT"
 vault = "1.7.1"
 authlib = "1.5.25"
 headdb = "1.3.2"

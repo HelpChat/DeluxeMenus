@@ -31,7 +31,7 @@ public final class DumpUtils {
     private static final Gson gson = new Gson();
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter
         .ofLocalizedDateTime(FormatStyle.LONG)
-        .withLocale(Locale.US)
+        .withLocale(Locale.getDefault())
         .withZone(ZoneId.of("UTC"));
 
     private DumpUtils() {

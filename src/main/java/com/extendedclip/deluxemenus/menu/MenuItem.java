@@ -5,6 +5,7 @@ import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
+import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
@@ -39,6 +40,7 @@ import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -158,13 +160,9 @@ public class MenuItem {
 
             if (meta != null) {
                 if (this.options.rgb().isPresent()) {
-                    final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
-                    final String[] parts = rgbString.split(",");
-
-                    try {
-                        meta.setColor(Color.fromRGB(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()),
-                                Integer.parseInt(parts[2].trim())));
-                    } catch (Exception ignored) {
+                    final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+                    if (color != null) {
+                        meta.setColor(color);
                     }
                 }
 
@@ -224,12 +222,16 @@ public class MenuItem {
             return itemStack;
         }
 
-        if (this.options.customModelData().isPresent() && VersionHelper.IS_CUSTOM_MODEL_DATA) {
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA && this.options.customModelData().isPresent()) {
             try {
                 final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get()));
                 itemMeta.setCustomModelData(modelData);
             } catch (final Exception ignored) {
             }
+        }
+
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT && this.options.customModelDataComponent().isPresent()) {
+            itemMeta.setCustomModelDataComponent(parseCustomModelDataComponent(this.options.customModelDataComponent().get(), itemMeta.getCustomModelDataComponent(), holder));
         }
 
         if (this.options.displayName().isPresent()) {
@@ -346,37 +348,33 @@ public class MenuItem {
         }
 
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
-            final String[] parts = rgbString.split(",");
             final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 
-            try {
-                leatherArmorMeta.setColor(Color.fromRGB(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()),
-                        Integer.parseInt(parts[2].trim())));
-                itemStack.setItemMeta(leatherArmorMeta);
-            } catch (final Exception exception) {
-                plugin.printStacktrace(
-                        "Invalid rgb colors found for leather armor: " + parts[0].trim() + ", " + parts[1].trim() + ", " +
-                                parts[2].trim(),
-                        exception
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            if (color != null) {
+                leatherArmorMeta.setColor(color);
+            } else {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Invalid rgb colors found for leather armor: " + this.options.rgb().get()
                 );
             }
-        } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
-            final String[] parts = rgbString.split(",");
-            final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
 
-            try {
-                fireworkEffectMeta.setEffect(FireworkEffect.builder().withColor(Color.fromRGB(Integer.parseInt(parts[0].trim()),
-                        Integer.parseInt(parts[1].trim()), Integer.parseInt(parts[2].trim()))).build());
-                itemStack.setItemMeta(fireworkEffectMeta);
-            } catch (final Exception exception) {
-                plugin.printStacktrace(
-                        "Invalid rgb colors found for firework or firework star: " + parts[0].trim() + ", "
-                                + parts[1].trim() + ", " + parts[2].trim(),
-                        exception
+            itemStack.setItemMeta(leatherArmorMeta);
+        } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
+            final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            if (color != null) {
+                fireworkEffectMeta.setEffect(FireworkEffect.builder().withColor(color).build());
+            } else {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Invalid RGB color found for firework or firework star: " + this.options.rgb().get()
                 );
             }
+            itemStack.setItemMeta(fireworkEffectMeta);
         } else if (itemMeta instanceof EnchantmentStorageMeta && !this.options.enchantments().isEmpty()) {
             final EnchantmentStorageMeta enchantmentStorageMeta = (EnchantmentStorageMeta) itemMeta;
             for (final Map.Entry<Enchantment, Integer> entry : this.options.enchantments().entrySet()) {
@@ -399,7 +397,7 @@ public class MenuItem {
         }
 
         if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {
-            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemStack.getItemMeta();
+            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemMeta;
             final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
             if (blockData instanceof Light) {
                 final Light light = (Light) blockData;
@@ -423,7 +421,6 @@ public class MenuItem {
                     }
 
                     blockDataMeta.setBlockData(light);
-                    itemStack.setItemMeta(blockDataMeta);
                 } catch (final Exception exception) {
                     plugin.printStacktrace(
                             "Invalid light level found for light block: " + parsedLightLevel,
@@ -537,7 +534,7 @@ public class MenuItem {
         return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
-    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
         return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
                 .map(StringUtils::color)
@@ -546,6 +543,62 @@ public class MenuItem {
                 .map(line -> line.split("\\\\n"))
                 .flatMap(Arrays::stream)
                 .collect(Collectors.toList());
+    }
+
+    private @NotNull org.bukkit.inventory.meta.components.CustomModelDataComponent parseCustomModelDataComponent(
+            @NotNull final CustomModelDataComponent unparsedComponent,
+            @NotNull final org.bukkit.inventory.meta.components.CustomModelDataComponent component,
+            @NotNull final MenuHolder holder
+    ) {
+        if (!unparsedComponent.colors().isEmpty()) {
+            final List<Color> colors = unparsedComponent.colors()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(this::parseRGBColor)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            component.setColors(colors);
+        }
+
+        if (!unparsedComponent.flags().isEmpty()) {
+            final List<Boolean> flags = unparsedComponent.flags()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(Boolean::parseBoolean)
+                    .collect(Collectors.toList());
+            component.setFlags(flags);
+        }
+
+        if (!unparsedComponent.floats().isEmpty()) {
+            final List<Float> floats = unparsedComponent.floats()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(Float::parseFloat)
+                    .collect(Collectors.toList());
+            component.setFloats(floats);
+        }
+
+        if (!unparsedComponent.strings().isEmpty()) {
+            final List<String> strings = unparsedComponent.strings()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .collect(Collectors.toList());
+            component.setStrings(strings);
+        }
+
+        return component;
+    }
+
+    private @Nullable Color parseRGBColor(@NotNull final String input) {
+        final Color color = StringUtils.parseRGBColor(input);
+        if (color == null) {
+            plugin.debug(
+                    DebugLevel.HIGHEST,
+                    Level.WARNING,
+                    "Invalid RGB color found: " + input
+            );
+        }
+        return color;
     }
 
     public @NotNull MenuItemOptions options() {

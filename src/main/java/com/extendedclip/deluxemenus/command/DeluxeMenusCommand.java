@@ -1,14 +1,7 @@
 package com.extendedclip.deluxemenus.command;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import com.extendedclip.deluxemenus.command.subcommand.DumpCommand;
-import com.extendedclip.deluxemenus.command.subcommand.ExecuteCommand;
-import com.extendedclip.deluxemenus.command.subcommand.HelpCommand;
-import com.extendedclip.deluxemenus.command.subcommand.ListCommand;
-import com.extendedclip.deluxemenus.command.subcommand.MetaCommand;
-import com.extendedclip.deluxemenus.command.subcommand.OpenCommand;
-import com.extendedclip.deluxemenus.command.subcommand.ReloadCommand;
-import com.extendedclip.deluxemenus.command.subcommand.SubCommand;
+import com.extendedclip.deluxemenus.command.subcommand.*;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import net.kyori.adventure.text.Component;

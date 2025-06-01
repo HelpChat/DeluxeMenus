@@ -5,7 +5,7 @@ plugins {
 }
 
 // Change to true when releasing
-val release = false
+val release = true
 val majorVersion = "1.14.1"
 val minorVersion = if (release) "Release" else "DEV-" + System.getenv("BUILD_NUMBER")
 

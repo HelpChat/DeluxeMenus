@@ -11,6 +11,7 @@ import com.extendedclip.deluxemenus.utils.SoundUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.apache.commons.lang3.EnumUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -129,6 +130,20 @@ public class ClickActionTask extends BukkitRunnable {
 
             case MESSAGE:
                 player.sendMessage(StringUtils.color(executable));
+                break;
+
+            case LOG:
+                String[] logParts = executable.split(" ", 2);
+
+                Level logLevel;
+
+                try {
+                    logLevel = Level.parse(logParts[0].toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    logLevel = Level.INFO;
+                }
+
+                plugin.getLogger().log(logLevel, String.format("[%s]: %s", holder.map(MenuHolder::getMenuName).orElse("Unknown Menu"), logParts[1]));
                 break;
 
             case BROADCAST:

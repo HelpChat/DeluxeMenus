@@ -20,16 +20,19 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class PlayerListener extends Listener {
 
-    private final Cache<UUID, Long> cache = CacheBuilder.newBuilder().expireAfterWrite(75, TimeUnit.MILLISECONDS).build();
+    private final Cache<UUID, Long> clickCooldown = CacheBuilder.newBuilder()
+        .expireAfterWrite(75, TimeUnit.MILLISECONDS)
+        .build();
 
     // This is so dumb. Mojang fix your shit.
-    private final Cache<UUID, Long> shiftCache = CacheBuilder.newBuilder().expireAfterWrite(200, TimeUnit.MILLISECONDS).build();
+    private final Cache<UUID, Long> shiftClickCooldown = CacheBuilder.newBuilder()
+        .expireAfterWrite(200, TimeUnit.MILLISECONDS)
+        .build();
 
     public PlayerListener(@NotNull final DeluxeMenus plugin) {
         super(plugin);
@@ -37,41 +40,27 @@ public class PlayerListener extends Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onCommandExecute(PlayerCommandPreprocessEvent event) {
-
-        final String cmd = event.getMessage().substring(1);
-        final Optional<Menu> optionalMenu = Menu.getMenuByCommand(cmd.toLowerCase());
-
-        if (optionalMenu.isEmpty()) {
+        final String cmd = event.getMessage().substring(1).toLowerCase();
+        final Menu menu = Menu.getMenuByCommand(cmd);
+        
+        if (menu == null || menu.options().registerCommands()) {
             return;
         }
 
-        final Menu menu = optionalMenu.get();
-
-        if (menu.options().registerCommands()) {
-            return;
-        }
-
-        Player player = event.getPlayer();
-        menu.openMenu(player);
+        menu.openMenu(event.getPlayer());
         event.setCancelled(true);
     }
 
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-
-        if (Menu.isInMenu(player)) {
-            Menu.closeMenu(plugin, player, false);
-        }
+        cleanupPlayer(event.getPlayer());
     }
 
     @EventHandler
     public void onOpen(InventoryOpenEvent event) {
-        if (!(event.getPlayer() instanceof Player)) {
+        if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
-
-        final Player player = (Player) event.getPlayer();
 
         if (player.isSleeping()) {
             event.setCancelled(true);
@@ -84,12 +73,9 @@ public class PlayerListener extends Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-
-        if (!(event.getPlayer() instanceof Player)) {
+        if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
-
-        final Player player = (Player) event.getPlayer();
 
         if (Menu.isInMenu(player)) {
             Menu.closeMenu(plugin, player, false);
@@ -102,23 +88,18 @@ public class PlayerListener extends Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onClick(InventoryClickEvent event) {
-
-        if (!(event.getWhoClicked() instanceof Player)) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
 
-        final Player player = (Player) event.getWhoClicked();
-
-        final Optional<MenuHolder> optionalHolder = Menu.getMenuHolder(player);
-
-        if (optionalHolder.isEmpty()) {
+        final MenuHolder holder = Menu.getMenuHolder(player);
+        if (holder == null) {
             return;
         }
 
-        final MenuHolder holder = optionalHolder.get();
-
-        if (holder.getMenu().isEmpty()) {
+        if (holder.getMenu() == null) {
             Menu.closeMenu(plugin, player, true);
+            return;
         }
 
         if (holder.isUpdating()) {
@@ -127,63 +108,66 @@ public class PlayerListener extends Listener {
         }
 
         event.setCancelled(true);
-
-        int slot = event.getRawSlot();
-
-        MenuItem item = holder.getItem(slot);
-
+        final int slot = event.getRawSlot();
+        final MenuItem item = holder.getItem(slot);
+        
         if (item == null) {
             return;
         }
 
-        if (this.cache.getIfPresent(player.getUniqueId()) != null) {
+        final UUID uuid = player.getUniqueId();
+        if (isClickBlocked(uuid, event.getClick())) {
             return;
         }
 
-        if (this.shiftCache.getIfPresent(player.getUniqueId()) != null) {
-            return;
+        if (processClick(player, holder, item, event.getClick())) {
+            clickCooldown.put(uuid, System.currentTimeMillis());
+        }
+    }
+
+    private boolean isClickBlocked(UUID uuid, ClickType clickType) {
+        if (clickType == ClickType.DOUBLE_CLICK) {
+            return true;
+        }
+        
+        if (clickType == ClickType.SHIFT_LEFT) {
+            shiftClickCooldown.put(uuid, System.currentTimeMillis());
+        }
+        
+        return clickCooldown.getIfPresent(uuid) != null 
+            || shiftClickCooldown.getIfPresent(uuid) != null;
+    }
+
+    private boolean processClick(Player player, MenuHolder holder, MenuItem item, ClickType clickType) {
+        if (handleClick(player, holder, 
+            item.options().clickHandler(),
+            item.options().clickRequirements())) {
+            return true;
         }
 
-        if (event.getClick() == ClickType.DOUBLE_CLICK) {
-            return;
-        }
-
-        if (event.getClick() == ClickType.SHIFT_LEFT) {
-            this.shiftCache.put(player.getUniqueId(), System.currentTimeMillis());
-        }
-
-        if (handleClick(player, holder, item.options().clickHandler(), item.options().clickRequirements())) {
-            return;
-        }
-
-        if (event.isShiftClick() && event.isLeftClick()) {
-            if (handleClick(player, holder, item.options().shiftLeftClickHandler(), item.options().shiftLeftClickRequirements())) {
-                return;
-            }
-        }
-
-        if (event.isShiftClick() && event.isRightClick()) {
-            if (handleClick(player, holder, item.options().shiftRightClickHandler(), item.options().shiftRightClickRequirements())) {
-                return;
-            }
-        }
-
-        if (event.getClick() == ClickType.LEFT) {
-            if (handleClick(player, holder, item.options().leftClickHandler(), item.options().leftClickRequirements())) {
-                return;
-            }
-        }
-
-        if (event.getClick() == ClickType.RIGHT) {
-            if (handleClick(player, holder, item.options().rightClickHandler(), item.options().rightClickRequirements())) {
-                return;
-            }
-        }
-
-        if (event.getClick() == ClickType.MIDDLE) {
-            if (handleClick(player, holder, item.options().middleClickHandler(), item.options().middleClickRequirements())) {
-            }
-        }
+        return switch (clickType) {
+            case SHIFT_LEFT -> handleClick(player, holder,
+                item.options().shiftLeftClickHandler(),
+                item.options().shiftLeftClickRequirements());
+                
+            case SHIFT_RIGHT -> handleClick(player, holder,
+                item.options().shiftRightClickHandler(),
+                item.options().shiftRightClickRequirements());
+                
+            case LEFT -> handleClick(player, holder,
+                item.options().leftClickHandler(),
+                item.options().leftClickRequirements());
+                
+            case RIGHT -> handleClick(player, holder,
+                item.options().rightClickHandler(),
+                item.options().rightClickRequirements());
+                
+            case MIDDLE -> handleClick(player, holder,
+                item.options().middleClickHandler(),
+                item.options().middleClickRequirements());
+                
+            default -> false;
+        };
     }
 
     /**
@@ -195,27 +179,31 @@ public class PlayerListener extends Listener {
      * @param requirements click requirements
      * @return true if click was handled successfully. will ever return false if no click handler was found
      */
-    private boolean handleClick(final @NotNull Player player, final @NotNull MenuHolder holder, final @NotNull Optional<ClickHandler> handler, final @NotNull Optional<RequirementList> requirements) {
-        if (handler.isEmpty()) {
+    private boolean handleClick(
+        final @NotNull Player player,
+        final @NotNull MenuHolder holder,
+        final @NotNull ClickHandler handler,
+        final @NotNull RequirementList requirements
+    ) {
+        if (handler == null) {
             return false;
         }
 
-        if (requirements.isPresent()) {
-            final ClickHandler denyHandler = requirements.get().getDenyHandler();
-
-            if (!requirements.get().evaluate(holder)) {
-                if (denyHandler == null) {
-                    return true;
-                }
-
+        if (!requirements.evaluate(holder)) {
+            final ClickHandler denyHandler = requirements.getDenyHandler();
+            if (denyHandler != null) {
                 denyHandler.onClick(holder);
-                return true;
             }
+            return true;
         }
 
-        this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-        handler.get().onClick(holder);
-
+        handler.onClick(holder);
         return true;
+    }
+
+    private void cleanupPlayer(Player player) {
+        if (Menu.isInMenu(player)) {
+            Menu.closeMenu(plugin, player, false);
+        }
     }
 }

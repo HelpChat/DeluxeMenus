@@ -13,6 +13,7 @@ papi = "2.11.6"
 score = "4.24.3.5"
 sig = "1.5.0"
 bstats = "3.1.0"
+simple-yaml = "1.8.4"
 
 # Implementation
 nashorn = "15.6"
@@ -33,6 +34,7 @@ mmoitems = { module = "net.Indyuce:MMOItems-API", version.ref = "mmoitems" }
 papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
 score = { module = "com.github.Ssomar-Developement:SCore", version.ref = "score" }
 sig = { module = "io.github.valerashimchuck:simpleitemgenerator-api", version.ref = "sig" }
+simple-yaml = { module = "com.github.Carleslc.Simple-YAML:Simple-Yaml", version.ref = "simple-yaml" }
 
 # Implementation
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }

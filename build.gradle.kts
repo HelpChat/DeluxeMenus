@@ -38,12 +38,11 @@ dependencies {
     compileOnly(libs.score)
     compileOnly(libs.sig)
 
-    compileOnly(libs.papi)
-
-    implementation(libs.nashorn)
+    compileOnly(libs.papi)    implementation(libs.nashorn)
     implementation(libs.adventure.platform)
     implementation(libs.adventure.minimessage)
     implementation(libs.bstats)
+    implementation(libs.simple.yaml)
 
     compileOnly("org.jetbrains:annotations:23.0.0")
 }

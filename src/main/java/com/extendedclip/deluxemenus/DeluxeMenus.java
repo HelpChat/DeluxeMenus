@@ -54,10 +54,9 @@ public class DeluxeMenus extends JavaPlugin {
     private VaultHook vaultHook;
 
     private ItemStack head;
-    private Map<String, ItemHook> itemHooks;
-
-    private final GeneralConfig generalConfig = new GeneralConfig(this);
+    private Map<String, ItemHook> itemHooks;    private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
+    private com.extendedclip.deluxemenus.config.CommentPreservingConfig commentPreservingConfig;
 
     @Override
     public void onLoad() {
@@ -71,10 +70,9 @@ public class DeluxeMenus extends JavaPlugin {
                 Level.WARNING,
                 "Could not setup a NMS hook for your server version! The following Item options will not work: nbt_int, nbt_ints, nbt_string and nbt_strings."
         );
-    }
-
-    @Override
+    }    @Override
     public void onEnable() {
+        this.commentPreservingConfig = new com.extendedclip.deluxemenus.config.CommentPreservingConfig(this);
         this.generalConfig.load();
 
         if (!hookIntoPlaceholderAPI()) {
@@ -215,6 +213,27 @@ public class DeluxeMenus extends JavaPlugin {
 
     public GeneralConfig getGeneralConfig() {
         return generalConfig;
+    }
+
+    /**
+     * Overrides the default saveConfig to use comment-preserving functionality
+     */
+    @Override
+    public void saveConfig() {
+        File configFile = new File(getDataFolder(), "config.yml");
+        if (configFile.exists()) {
+            // Use our comment preserving config implementation
+            org.simpleyaml.configuration.file.YamlFile yamlFile = commentPreservingConfig.load(configFile);
+            if (yamlFile != null) {
+                // Copy values from memory config to the yamlFile
+                commentPreservingConfig.copyValues(getConfig(), yamlFile, "");
+                // Save with comments preserved
+                commentPreservingConfig.save(yamlFile);
+                return;
+            }
+        }
+        // Fall back to default implementation if something goes wrong
+        super.saveConfig();
     }
 
     private boolean hookIntoPlaceholderAPI() {

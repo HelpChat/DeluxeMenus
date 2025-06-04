@@ -49,6 +49,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.simpleyaml.configuration.file.YamlFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -95,6 +96,7 @@ public class DeluxeMenusConfig {
     private final String separator = File.separator;
     private final File menuDirectory;
     private final DeluxeMenus plugin;
+    private final CommentPreservingConfig commentPreservingConfig;
     private final List<String> exampleMenus = Arrays.asList("basics_menu", "advanced_menu", "requirements_menu"
             // more example menus here
     );
@@ -103,6 +105,7 @@ public class DeluxeMenusConfig {
         VALID_MATERIAL_PREFIXES.addAll(plugin.getItemHooks().values().stream().map(ItemHook::getPrefix).collect(Collectors.toList()));
 
         this.plugin = plugin;
+        this.commentPreservingConfig = new CommentPreservingConfig(plugin);
         menuDirectory = new File(this.plugin.getDataFolder() + separator + "gui_menus");
         try {
             if (menuDirectory.mkdirs()) {

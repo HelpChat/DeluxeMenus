@@ -38,7 +38,8 @@ dependencies {
     compileOnly(libs.score)
     compileOnly(libs.sig)
 
-    compileOnly(libs.papi)    implementation(libs.nashorn)
+    compileOnly(libs.papi)
+    implementation(libs.nashorn)
     implementation(libs.adventure.platform)
     implementation(libs.adventure.minimessage)
     implementation(libs.bstats)

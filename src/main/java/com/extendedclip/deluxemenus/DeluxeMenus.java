@@ -34,6 +34,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import java.io.File;
 
 import java.util.*;
 import java.util.function.Function;
@@ -53,8 +54,8 @@ public class DeluxeMenus extends JavaPlugin {
 
     private VaultHook vaultHook;
 
-    private ItemStack head;
-    private Map<String, ItemHook> itemHooks;    private final GeneralConfig generalConfig = new GeneralConfig(this);
+    private Map<String, ItemHook> itemHooks;
+    private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
     private com.extendedclip.deluxemenus.config.CommentPreservingConfig commentPreservingConfig;
 

@@ -11,7 +11,6 @@ import com.extendedclip.deluxemenus.utils.SoundUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.apache.commons.lang3.EnumUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -133,17 +132,31 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case LOG:
-                String[] logParts = executable.split(" ", 2);
+                final String[] logParts = executable.split(" ", 2);
 
-                Level logLevel;
-
-                try {
-                    logLevel = Level.parse(logParts[0].toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    logLevel = Level.INFO;
+                if (logParts.length == 0 || logParts[0].isBlank()) {
+                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "LOG command requires at least a message");
+                    break;
                 }
 
-                plugin.getLogger().log(logLevel, String.format("[%s]: %s", holder.map(MenuHolder::getMenuName).orElse("Unknown Menu"), logParts[1]));
+                Level logLevel;
+                String message;
+
+                if(logParts.length == 1) {
+                    logLevel = Level.INFO;
+                    message = logParts[0];
+                } else {
+                    message = logParts[1];
+
+                    try {
+                        logLevel = Level.parse(logParts[0].toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        logLevel = Level.INFO;
+                        plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Log level " + logParts[0] + " is not a valid log level! Using INFO instead.");
+                    }
+                }
+
+                plugin.getLogger().log(logLevel, String.format("[%s]: %s", holder.map(MenuHolder::getMenuName).orElse("Unknown Menu"), message));
                 break;
 
             case BROADCAST:

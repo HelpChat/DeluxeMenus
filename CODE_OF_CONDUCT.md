@@ -18,6 +18,3 @@ Examples of unacceptable behavior include:
 Violations of this Code of Conduct may be reported by opening an issue or contacting the project maintainers directly. All reports will be reviewed and investigated.
 
 Project maintainers have the right to remove or reject comments, commits, issues, or other contributions that are not aligned with this Code of Conduct.
-
-## Contact
-To report an issue, please contact: [your-email@example.com]

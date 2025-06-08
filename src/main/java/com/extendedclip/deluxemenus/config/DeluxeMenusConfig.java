@@ -547,6 +547,12 @@ public class DeluxeMenusConfig {
         final int updateInterval = c.getInt(pre + "update_interval", 10);
         builder.updateInterval(updateInterval > 0 ? updateInterval : 10);
 
+        final int refreshInterval = c.getInt(pre + "refresh_interval", 10);
+        builder.refreshInterval(refreshInterval > 0 ? refreshInterval : 10);
+
+        final boolean refresh = c.getBoolean(pre + "refresh", false);
+        builder.refresh(refresh);
+
         Map<Integer, TreeMap<Integer, MenuItem>> items = loadMenuItems(c, key, mainConfig);
 
         if (items == null || items.isEmpty()) {

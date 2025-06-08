@@ -1,21 +1,38 @@
 # Contributing
 
-By contributing to this project, you agree to follow the [code of conduct].
+Thank you for your interest in contributing to DeluxeMenus!
 
-To contribute to this project, you will require a few tools. You can usually get all of these in one with an IDE such as IntelliJ IDEA:
+By contributing to this project, you agree to follow our [Code of Conduct].
 
-1. Java 17 or higher
-2. Gradle (See version in /gradle/wrapper/gradle-wrapper.properties)
-3. A text editor.
+## Requirements
 
-Start contributing by forking the repository on GitHub and cloning it to your local machine.
+To get started, you’ll need a few tools. The easiest setup is using an IDE like IntelliJ IDEA, which includes most of these:
 
-Before opening a pull request, please ensure that:
+1. Java 17 or higher  
+2. Gradle (check the version in `/gradle/wrapper/gradle-wrapper.properties`)  
+3. A text editor or IDE
 
-- You followed the [code of conduct]   
-- You have tested your changes thoroughly
-- You have reviewed thoroughly any AI generated code
+## Getting Started
 
-When opening a pull request, please provide a clear description of the changes you made and why they are necessary. This will help maintainers understand the purpose of your contribution.
+1. Fork the repository on GitHub  
+2. Clone your fork to your local machine  
+3. Set up your development environment  
+4. Make your changes on a new branch
 
-[code of conduct]: https://github.com/HelpChat/DeluxeMenus/blob/main/CODE_OF_CONDUCT.md
+## Before You Submit a Pull Request
+
+- Make sure you’ve read and followed the [Code of Conduct]  
+- Test your changes thoroughly  
+- Review and verify any AI-generated code  
+
+## Pull Request Guidelines
+
+When opening a pull request, please:
+
+- Provide a **clear description** of the changes
+- Explain **why** the changes are necessary
+- Link any related issues, if applicable
+
+Your contributions help improve the project for everyone. Thank you!
+
+[Code of Conduct]: https://github.com/HelpChat/DeluxeMenus/blob/main/CODE_OF_CONDUCT.md

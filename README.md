@@ -14,7 +14,7 @@
 [ci]: http://ci.extendedclip.com/job/DeluxeMenus/
 [ciImg]: http://ci.extendedclip.com/buildStatus/icon?job=DeluxeMenus
 
-[contributing]: https://github.com/HelpChat/DeluxeMenus/blob/master/.github/CONTRIBUTING.md
+[contributing]: https://github.com/HelpChat/DeluxeMenus/blob/main/CONTRIBUTING.md
 
 [![logo]][spigot]
 

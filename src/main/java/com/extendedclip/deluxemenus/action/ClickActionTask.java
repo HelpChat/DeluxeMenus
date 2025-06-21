@@ -131,6 +131,34 @@ public class ClickActionTask extends BukkitRunnable {
                 player.sendMessage(StringUtils.color(executable));
                 break;
 
+            case LOG:
+                final String[] logParts = executable.split(" ", 2);
+
+                if (logParts.length == 0 || logParts[0].isBlank()) {
+                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "LOG command requires at least a message");
+                    break;
+                }
+
+                Level logLevel;
+                String message;
+
+                if(logParts.length == 1) {
+                    logLevel = Level.INFO;
+                    message = logParts[0];
+                } else {
+                    message = logParts[1];
+
+                    try {
+                        logLevel = Level.parse(logParts[0].toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        logLevel = Level.INFO;
+                        plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Log level " + logParts[0] + " is not a valid log level! Using INFO instead.");
+                    }
+                }
+
+                plugin.getLogger().log(logLevel, String.format("[%s]: %s", holder.map(MenuHolder::getMenuName).orElse("Unknown Menu"), message));
+                break;
+
             case BROADCAST:
                 Bukkit.broadcastMessage(StringUtils.color(executable));
                 break;

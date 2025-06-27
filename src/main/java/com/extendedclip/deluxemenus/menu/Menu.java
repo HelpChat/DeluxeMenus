@@ -4,6 +4,7 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.extendedclip.deluxemenus.utils.AdventureUtils;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 
@@ -11,6 +12,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import com.extendedclip.deluxemenus.utils.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -334,9 +336,13 @@ public class Menu {
             Inventory inventory;
 
             if (this.options.type() != InventoryType.CHEST) {
-                inventory = Bukkit.createInventory(holder, this.options.type(), title);
+                inventory = VersionHelper.IS_PAPER
+                        ? Bukkit.createInventory(holder, this.options.type(), AdventureUtils.fromString(title))
+                        : Bukkit.createInventory(holder, this.options.type(), title);
             } else {
-                inventory = Bukkit.createInventory(holder, this.options.size(), title);
+                inventory = VersionHelper.IS_PAPER
+                        ? Bukkit.createInventory(holder, this.options.size(), AdventureUtils.fromString(title))
+                        : Bukkit.createInventory(holder, this.options.size(), title);
             }
 
             holder.setInventory(inventory);

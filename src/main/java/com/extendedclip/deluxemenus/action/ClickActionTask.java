@@ -10,11 +10,9 @@ import com.extendedclip.deluxemenus.utils.ExpUtils;
 import com.extendedclip.deluxemenus.utils.SoundUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,11 +118,11 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case MINI_MESSAGE:
-                plugin.audiences().player(player).sendMessage(MiniMessage.miniMessage().deserialize(executable));
+                plugin.audiences().player(player).sendMessage(AdventureUtils.fromString(executable));
                 break;
 
             case MINI_BROADCAST:
-                plugin.audiences().all().sendMessage(MiniMessage.miniMessage().deserialize(executable));
+                plugin.audiences().all().sendMessage(AdventureUtils.fromString(executable));
                 break;
 
             case MESSAGE:
@@ -276,7 +274,7 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case JSON_MESSAGE:
-                AdventureUtils.sendJson(plugin, player, executable);
+                plugin.audiences().sender(player).sendMessage(AdventureUtils.fromJson(executable));
                 break;
 
             case JSON_BROADCAST:

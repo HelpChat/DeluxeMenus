@@ -169,7 +169,7 @@ public class DeluxeMenus extends JavaPlugin {
     }
 
     public void sms(CommandSender s, Messages msg) {
-        audiences().sender(s).sendMessage(msg.message());
+        sms(s, msg.message());
     }
 
     public void debug(@NotNull final DebugLevel messageDebugLevel, @NotNull final Level level, @NotNull final String... messages) {
@@ -243,11 +243,11 @@ public class DeluxeMenus extends JavaPlugin {
                 "DeluxeMenus will continue to work but some features (such as the 'has money' requirement) may not be available.");
     }
 
-    @SuppressWarnings("deprecation")
     private void setUpItemHooks() {
         if (!VersionHelper.IS_ITEM_LEGACY) {
             this.head = new ItemStack(Material.PLAYER_HEAD, 1);
         } else {
+            //noinspection deprecation
             this.head = new ItemStack(Material.valueOf("SKULL_ITEM"), 1, (short) 3);
         }
 

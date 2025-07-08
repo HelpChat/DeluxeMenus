@@ -27,21 +27,13 @@ public final class Constants {
     public static final String BASE64_HEAD_PREFIX = "basehead-";
     public static final String HDB_HEAD_PREFIX = "hdb-";
 
-    public static final List<String> HEAD_PREFIXES = List.of(NAMED_HEAD_PREFIX, TEXTURE_HEAD_PREFIX, BASE64_HEAD_PREFIX, HDB_HEAD_PREFIX);
-
     public static final String NAMED_HEAD_TYPE = "namedhead";
     public static final String TEXTURE_HEAD_TYPE = "texture";
     public static final String BASE64_HEAD_TYPE = "basehead";
     public static final String HDB_HEAD_TYPE = "hdb";
 
-    public static final List<String> HEAD_TYPES = List.of(NAMED_HEAD_TYPE, TEXTURE_HEAD_TYPE, BASE64_HEAD_TYPE, HDB_HEAD_TYPE);
-
     public static final String PLACEHOLDER_PREFIX = "placeholder-";
     public static final String WATER_BOTTLE = "water_bottle";
-
-    public static final String ITEMSADDER_PREFIX = "itemsadder-";
-    public static final String ORAXEN_PREFIX = "oraxen-";
-    public static final String MMOITEMS_PREFIX = "mmoitems-";
 
     /**
      * A map between a slot name and the method used to get that item from a player's inventory

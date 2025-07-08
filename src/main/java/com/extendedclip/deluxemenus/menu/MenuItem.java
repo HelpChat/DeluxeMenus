@@ -2,48 +2,66 @@ package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
+import com.extendedclip.deluxemenus.menu.options.HeadType;
+import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
+import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
+import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+import com.google.common.collect.ImmutableMultimap;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
+import org.bukkit.Registry;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Banner;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Light;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BannerMeta;
+import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
-import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.MMOITEMS_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 
 public class MenuItem {
 
-    private final @NotNull MenuItemOptions options;
+    private final DeluxeMenus plugin;
+    private final MenuItemOptions options;
 
-    public MenuItem(@NotNull final MenuItemOptions options) {
+    public MenuItem(@NotNull final DeluxeMenus plugin, @NotNull final MenuItemOptions options) {
+        this.plugin = plugin;
         this.options = options;
     }
 
@@ -56,8 +74,8 @@ public class MenuItem {
         String stringMaterial = this.options.material();
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
-        if (ItemUtils.isPlaceholderMaterial(lowercaseStringMaterial)) {
-            stringMaterial = holder.setPlaceholders(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
+        if (ItemUtils.isPlaceholderOption(lowercaseStringMaterial)) {
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
 
@@ -75,14 +93,17 @@ public class MenuItem {
         final int temporaryAmount = amount;
 
         final String finalMaterial = lowercaseStringMaterial;
-        final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+        final ItemHook pluginHook = plugin.getItemHooks().values()
             .stream()
             .filter(x -> finalMaterial.startsWith(x.getPrefix()))
             .findFirst()
             .orElse(null);
 
         if (pluginHook != null) {
-            itemStack = pluginHook.getItem(stringMaterial.substring(pluginHook.getPrefix().length()));
+            itemStack = pluginHook.getItem(
+                    viewer,
+                    holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length()))
+            );
         }
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {
@@ -93,7 +114,7 @@ public class MenuItem {
         if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Material: " + stringMaterial + " is not valid! Setting to Stone."
@@ -107,9 +128,6 @@ public class MenuItem {
         if (ItemUtils.isBanner(itemStack.getType())) {
             final BannerMeta meta = (BannerMeta) itemStack.getItemMeta();
             if (meta != null) {
-                if (this.options.baseColor().isPresent()) {
-                    meta.setBaseColor(this.options.baseColor().get());
-                }
                 if (!this.options.bannerMeta().isEmpty()) {
                     meta.setPatterns(this.options.bannerMeta());
                 }
@@ -142,13 +160,9 @@ public class MenuItem {
 
             if (meta != null) {
                 if (this.options.rgb().isPresent()) {
-                    final String rgbString = holder.setPlaceholders(this.options.rgb().get());
-                    final String[] parts = rgbString.split(",");
-
-                    try {
-                        meta.setColor(Color.fromRGB(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()),
-                                Integer.parseInt(parts[2].trim())));
-                    } catch (Exception ignored) {
+                    final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+                    if (color != null) {
+                        meta.setColor(color);
                     }
                 }
 
@@ -166,22 +180,23 @@ public class MenuItem {
             return itemStack;
         }
 
-        short data = this.options.data();
-
-        if (this.options.placeholderData().isPresent()) {
-            final String parsedData = holder.setPlaceholders(this.options.placeholderData().get());
+        if (this.options.damage().isPresent()) {
+            final String parsedDamage = holder.setPlaceholdersAndArguments(this.options.damage().get());
             try {
-                data = Short.parseShort(parsedData);
+                int damage = Integer.parseInt(parsedDamage);
+                if (damage > 0) {
+                    final ItemMeta meta = itemStack.getItemMeta();
+                    if (meta instanceof Damageable) {
+                        ((Damageable) meta).setDamage(damage);
+                        itemStack.setItemMeta(meta);
+                    }
+                }
             } catch (final NumberFormatException exception) {
-                DeluxeMenus.printStacktrace(
-                        "Invalid placeholder data found: " + parsedData + ".",
+                plugin.printStacktrace(
+                        "Invalid damage found: " + parsedDamage + ".",
                         exception
                 );
             }
-        }
-
-        if (data > 0) {
-            itemStack.setDurability(data);
         }
 
         if (this.options.amount() != -1) {
@@ -190,7 +205,7 @@ public class MenuItem {
 
         if (this.options.dynamicAmount().isPresent()) {
             try {
-                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholders(this.options.dynamicAmount().get()));
+                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholdersAndArguments(this.options.dynamicAmount().get()));
                 amount = Math.max(dynamicAmount, 1);
             } catch (final NumberFormatException ignored) {
             }
@@ -207,96 +222,165 @@ public class MenuItem {
             return itemStack;
         }
 
-        if (this.options.customModelData().isPresent() && VersionHelper.IS_CUSTOM_MODEL_DATA) {
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA && this.options.customModelData().isPresent()) {
             try {
-                final int modelData = Integer.parseInt(holder.setPlaceholders(this.options.customModelData().get()));
+                final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get()));
                 itemMeta.setCustomModelData(modelData);
             } catch (final Exception ignored) {
             }
         }
 
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT && this.options.customModelDataComponent().isPresent()) {
+            itemMeta.setCustomModelDataComponent(parseCustomModelDataComponent(this.options.customModelDataComponent().get(), itemMeta.getCustomModelDataComponent(), holder));
+        }
+
         if (this.options.displayName().isPresent()) {
-            final String displayName = holder.setPlaceholders(this.options.displayName().get());
+            final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
             itemMeta.setDisplayName(StringUtils.color(displayName));
         }
 
-        if (!this.options.lore().isEmpty()) {
-            final List<String> lore = this.options.lore().stream()
-                    .map(holder::setPlaceholders)
-                    .map(StringUtils::color)
-                    .map(line -> line.split("\n"))
-                    .flatMap(Arrays::stream)
-                    .map(line -> line.split("\\\\n"))
-                    .flatMap(Arrays::stream)
-                    .collect(Collectors.toList());
-
-            itemMeta.setLore(lore);
+        List<String> lore = new ArrayList<>();
+        // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
+        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
+        // Ensures backwards compatibility with how hooked items are currently handled
+        LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
+        if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) mode = LoreAppendMode.IGNORE;
+        switch (mode) {
+            case IGNORE: // DM lore is not added at all
+                lore.addAll(itemLore);
+                break;
+            case TOP: // DM lore is added at the top
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(itemLore);
+                break;
+            case BOTTOM: // DM lore is bottom at the bottom
+                lore.addAll(itemLore);
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
+            case OVERRIDE: // Lore from DM overrides the lore from the item
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
         }
 
-        if (!this.options.itemFlags().isEmpty()) {
-            for (final ItemFlag flag : this.options.itemFlags()) {
-                itemMeta.addItemFlags(flag);
-            }
-        }
-
-        if (this.options.hideAttributes()) {
-            itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-        }
-
-        if (this.options.hideEnchants()) {
-            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        }
-
-        if (this.options.hidePotionEffects()) {
-            itemMeta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-        }
+        itemMeta.setLore(lore);
 
         if (this.options.unbreakable()) {
             itemMeta.setUnbreakable(true);
         }
 
-        if (this.options.hideUnbreakable()) {
-            itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        if (VersionHelper.HAS_DATA_COMPONENTS) {
+            if (this.options.hideTooltip().isPresent()) {
+                String hideTooltip = holder.setPlaceholdersAndArguments(this.options.hideTooltip().get());
+                itemMeta.setHideTooltip(Boolean.parseBoolean(hideTooltip));
+            }
+            if (this.options.enchantmentGlintOverride().isPresent()) {
+                String enchantmentGlintOverride = holder.setPlaceholdersAndArguments(this.options.enchantmentGlintOverride().get());
+                itemMeta.setEnchantmentGlintOverride(Boolean.parseBoolean(enchantmentGlintOverride));
+            }
+            if (this.options.rarity().isPresent()) {
+                String rarity = holder.setPlaceholdersAndArguments(this.options.rarity().get());
+                try {
+                    itemMeta.setRarity(ItemRarity.valueOf(rarity.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    plugin.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Rarity " + rarity + " is not a valid!"
+                    );
+                }
+            }
+        }
+        if (VersionHelper.HAS_TOOLTIP_STYLE) {
+            if (this.options.tooltipStyle().isPresent()) {
+                NamespacedKey tooltipStyle = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.tooltipStyle().get()));
+                if (tooltipStyle != null) itemMeta.setTooltipStyle(tooltipStyle);
+            }
+            if (this.options.itemModel().isPresent()) {
+                NamespacedKey itemModel = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.itemModel().get()));
+                if (itemModel != null) itemMeta.setItemModel(itemModel);
+            }
+        }
+
+        if (VersionHelper.HAS_ARMOR_TRIMS && ItemUtils.hasArmorMeta(itemStack)) {
+            final Optional<String> trimMaterialName = this.options.trimMaterial();
+            final Optional<String> trimPatternName = this.options.trimPattern();
+
+            if (trimMaterialName.isPresent() && trimPatternName.isPresent()) {
+                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.match(holder.setPlaceholdersAndArguments(trimMaterialName.get()));
+                final TrimPattern trimPattern = Registry.TRIM_PATTERN.match(holder.setPlaceholdersAndArguments(trimPatternName.get()));
+
+                if (trimMaterial != null && trimPattern != null) {
+                    final ArmorTrim armorTrim = new ArmorTrim(trimMaterial, trimPattern);
+                    final ArmorMeta armorMeta = (ArmorMeta) itemMeta;
+                    armorMeta.setTrim(armorTrim);
+                    itemStack.setItemMeta(armorMeta);
+                } else {
+                    if (trimMaterial == null) {
+                        plugin.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Trim material " + trimMaterialName.get() + " is not a valid!"
+                        );
+                    }
+
+                    if (trimPattern == null) {
+                        plugin.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Trim pattern " + trimPatternName.get() + " is not a valid!"
+                        );
+                    }
+                }
+            } else if (trimMaterialName.isPresent()) {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Trim pattern is not set for item with trim material " + trimMaterialName.get()
+                );
+            } else if (trimPatternName.isPresent()) {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Trim material is not set for item with trim pattern " + trimPatternName.get()
+                );
+            }
         }
 
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholders(this.options.rgb().get());
-            final String[] parts = rgbString.split(",");
             final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 
-            try {
-                leatherArmorMeta.setColor(Color.fromRGB(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()),
-                        Integer.parseInt(parts[2].trim())));
-                itemStack.setItemMeta(leatherArmorMeta);
-            } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
-                        "Invalid rgb colors found for leather armor: " + parts[0].trim() + ", " + parts[1].trim() + ", " +
-                                parts[2].trim(),
-                        exception
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            if (color != null) {
+                leatherArmorMeta.setColor(color);
+            } else {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Invalid rgb colors found for leather armor: " + this.options.rgb().get()
                 );
             }
-        } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholders(this.options.rgb().get());
-            final String[] parts = rgbString.split(",");
-            final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
 
-            try {
-                fireworkEffectMeta.setEffect(FireworkEffect.builder().withColor(Color.fromRGB(Integer.parseInt(parts[0].trim()),
-                        Integer.parseInt(parts[1].trim()), Integer.parseInt(parts[2].trim()))).build());
-                itemStack.setItemMeta(fireworkEffectMeta);
-            } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
-                        "Invalid rgb colors found for firework or firework star: " + parts[0].trim() + ", "
-                                + parts[1].trim() + ", " + parts[2].trim(),
-                        exception
+            itemStack.setItemMeta(leatherArmorMeta);
+        } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
+            final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            if (color != null) {
+                fireworkEffectMeta.setEffect(FireworkEffect.builder().withColor(color).build());
+            } else {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Invalid RGB color found for firework or firework star: " + this.options.rgb().get()
                 );
             }
+            itemStack.setItemMeta(fireworkEffectMeta);
         } else if (itemMeta instanceof EnchantmentStorageMeta && !this.options.enchantments().isEmpty()) {
             final EnchantmentStorageMeta enchantmentStorageMeta = (EnchantmentStorageMeta) itemMeta;
             for (final Map.Entry<Enchantment, Integer> entry : this.options.enchantments().entrySet()) {
                 final boolean result = enchantmentStorageMeta.addStoredEnchant(entry.getKey(), entry.getValue(), true);
                 if (!result) {
-                    DeluxeMenus.debug(
+                    plugin.debug(
                             DebugLevel.HIGHEST,
                             Level.INFO,
                             "Failed to add enchantment " + entry.getKey().getName() + " to item " + itemStack.getType()
@@ -309,20 +393,82 @@ public class MenuItem {
         }
 
         if (!(itemMeta instanceof EnchantmentStorageMeta) && !this.options.enchantments().isEmpty()) {
-            itemStack.addUnsafeEnchantments(this.options.enchantments());
+            this.options.enchantments().forEach((enchantment, level) -> itemMeta.addEnchant(enchantment, level, true));
         }
+
+        if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {
+            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemMeta;
+            final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
+            if (blockData instanceof Light) {
+                final Light light = (Light) blockData;
+                final String parsedLightLevel = holder.setPlaceholdersAndArguments(this.options.lightLevel().get());
+                try {
+                    final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), light.getMaximumLevel());
+                    light.setLevel(Math.max(lightLevel, 0));
+                    if (lightLevel < 0) {
+                        plugin.debug(
+                                DebugLevel.MEDIUM,
+                                Level.WARNING,
+                                "Invalid light level found for light block: " + parsedLightLevel + ". Setting to 0."
+                        );
+                    }
+                    if (lightLevel > light.getMaximumLevel()) {
+                        plugin.debug(
+                                DebugLevel.MEDIUM,
+                                Level.WARNING,
+                                "Invalid light level found for light block: " + parsedLightLevel + ". Setting to " + light.getMaximumLevel() + "."
+                        );
+                    }
+
+                    blockDataMeta.setBlockData(light);
+                } catch (final Exception exception) {
+                    plugin.printStacktrace(
+                            "Invalid light level found for light block: " + parsedLightLevel,
+                            exception
+                    );
+                }
+            }
+        }
+
+        if (!this.options.itemFlags().isEmpty()) {
+            for (final ItemFlag flag : this.options.itemFlags()) {
+                itemMeta.addItemFlags(flag);
+
+                if (flag == ItemFlag.HIDE_ATTRIBUTES && VersionHelper.HAS_DATA_COMPONENTS) {
+                    itemMeta.setAttributeModifiers(ImmutableMultimap.of());
+                }
+            }
+        }
+
+        itemStack.setItemMeta(itemMeta);
 
         if (NbtProvider.isAvailable()) {
             if (this.options.nbtString().isPresent()) {
-                final String tag = holder.setPlaceholders(this.options.nbtString().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtString().get());
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
                 }
             }
 
+            if (this.options.nbtByte().isPresent()) {
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtByte().get());
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
+                }
+            }
+
+            if (this.options.nbtShort().isPresent()) {
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtShort().get());
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
+                }
+            }
+
             if (this.options.nbtInt().isPresent()) {
-                final String tag = holder.setPlaceholders(this.options.nbtInt().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -330,15 +476,31 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtStrings()) {
-                final String tag = holder.setPlaceholders(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
                 }
             }
 
+            for (String nbtTag : this.options.nbtBytes()) {
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
+                }
+            }
+
+            for (String nbtTag : this.options.nbtShorts()) {
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
+                }
+            }
+
             for (String nbtTag : this.options.nbtInts()) {
-                final String tag = holder.setPlaceholders(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -369,9 +531,74 @@ public class MenuItem {
     }
 
     private @NotNull Optional<ItemStack> getItemFromHook(String hookName, String... args) {
-        return DeluxeMenus.getInstance()
-                .getItemHook(hookName)
-                .map(itemHook -> itemHook.getItem(args));
+        return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
+    }
+
+    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        return lore.stream()
+                .map(holder::setPlaceholdersAndArguments)
+                .map(StringUtils::color)
+                .map(line -> line.split("\n"))
+                .flatMap(Arrays::stream)
+                .map(line -> line.split("\\\\n"))
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toList());
+    }
+
+    private @NotNull org.bukkit.inventory.meta.components.CustomModelDataComponent parseCustomModelDataComponent(
+            @NotNull final CustomModelDataComponent unparsedComponent,
+            @NotNull final org.bukkit.inventory.meta.components.CustomModelDataComponent component,
+            @NotNull final MenuHolder holder
+    ) {
+        if (!unparsedComponent.colors().isEmpty()) {
+            final List<Color> colors = unparsedComponent.colors()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(this::parseRGBColor)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            component.setColors(colors);
+        }
+
+        if (!unparsedComponent.flags().isEmpty()) {
+            final List<Boolean> flags = unparsedComponent.flags()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(Boolean::parseBoolean)
+                    .collect(Collectors.toList());
+            component.setFlags(flags);
+        }
+
+        if (!unparsedComponent.floats().isEmpty()) {
+            final List<Float> floats = unparsedComponent.floats()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(Float::parseFloat)
+                    .collect(Collectors.toList());
+            component.setFloats(floats);
+        }
+
+        if (!unparsedComponent.strings().isEmpty()) {
+            final List<String> strings = unparsedComponent.strings()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .collect(Collectors.toList());
+            component.setStrings(strings);
+        }
+
+        return component;
+    }
+
+    private @Nullable Color parseRGBColor(@NotNull final String input) {
+        final Color color = StringUtils.parseRGBColor(input);
+        if (color == null) {
+            plugin.debug(
+                    DebugLevel.HIGHEST,
+                    Level.WARNING,
+                    "Invalid RGB color found: " + input
+            );
+        }
+        return color;
     }
 
     public @NotNull MenuItemOptions options() {

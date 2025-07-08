@@ -6,14 +6,16 @@ import com.extendedclip.deluxemenus.dupe.marker.impl.NMSMenuItemMarker;
 import com.extendedclip.deluxemenus.dupe.marker.impl.PDCMenuItemMarker;
 import com.extendedclip.deluxemenus.dupe.marker.impl.UnavailableMenuItemMarker;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
-import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+/**
+ * Mark inventory items created by DeluxeMenus to prevent duplication. Marked items will be removed from all inventories
+ * except the one they were created in.
+ */
 public class MenuItemMarker implements ItemMarker {
 
     private final static String DEFAULT_MARK = "DM";

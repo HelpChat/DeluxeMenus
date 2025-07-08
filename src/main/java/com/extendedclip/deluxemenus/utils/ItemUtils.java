@@ -2,15 +2,14 @@ package com.extendedclip.deluxemenus.utils;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
-import static com.extendedclip.deluxemenus.utils.Constants.ITEMSADDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.MMOITEMS_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.ORAXEN_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
 
@@ -21,13 +20,13 @@ public final class ItemUtils {
     }
 
     /**
-     * Checks if the string starts with the substring "placeholder-". The check is case-sensitive.
+     * Checks if the string starts with the substring "placeholder-". The check is case-insensitive.
      *
      * @param material The string to check
      * @return true if the string starts with "placeholder-", false otherwise
      */
-    public static boolean isPlaceholderMaterial(@NotNull final String material) {
-        return material.startsWith(PLACEHOLDER_PREFIX);
+    public static boolean isPlaceholderOption(@NotNull final String material) {
+        return material.toLowerCase(Locale.ROOT).startsWith(PLACEHOLDER_PREFIX);
     }
 
     /**
@@ -39,39 +38,6 @@ public final class ItemUtils {
      */
     public static boolean isPlayerItem(@NotNull final String material) {
         return INVENTORY_ITEM_ACCESSORS.containsKey(material);
-    }
-
-    /**
-     * Checks if the string is an ItemsAdder item. The check is case-sensitive.
-     * ItemsAdder items are: "itemsadder-{namespace:name}"
-     *
-     * @param material The string to check
-     * @return true if the string is an ItemsAdder item, false otherwise
-     */
-    public static boolean isItemsAdderItem(@NotNull final String material) {
-        return material.startsWith(ITEMSADDER_PREFIX);
-    }
-
-    /**
-     * Checks if the string is an Oraxen item. The check is case-sensitive.
-     * Oraxen items are: "oraxen-{namespace:name}"
-     *
-     * @param material The string to check
-     * @return true if the string is an Oraxen item, false otherwise
-     */
-    public static boolean isOraxenItem(@NotNull final String material) {
-        return material.startsWith(ORAXEN_PREFIX);
-    }
-
-    /**
-     * Checks if the string is an MMOItems item. The check is case-sensitive.
-     * MMOItems items are: "mmoitems-{namespace:name}"
-     *
-     * @param material The string to check
-     * @return true if the string is an MMOItem item, false otherwise
-     */
-    public static boolean isMMOItemsItem(@NotNull final String material) {
-        return material.startsWith(MMOITEMS_PREFIX);
     }
 
     /**
@@ -104,6 +70,10 @@ public final class ItemUtils {
         return material == Material.SHIELD;
     }
 
+    public static boolean hasArmorMeta(@NotNull final ItemStack itemStack) {
+        return itemStack.getItemMeta() instanceof ArmorMeta;
+    }
+
     /**
      * Checks if the ItemStack is a potion or can hold potion effects.
      *
@@ -124,8 +94,7 @@ public final class ItemUtils {
         final PotionMeta itemMeta = (PotionMeta) itemStack.getItemMeta();
 
         if (itemMeta != null) {
-            final PotionData potionData = new PotionData(PotionType.WATER);
-            itemMeta.setBasePotionData(potionData);
+            itemMeta.setBasePotionType(PotionType.WATER);
             itemStack.setItemMeta(itemMeta);
         }
 

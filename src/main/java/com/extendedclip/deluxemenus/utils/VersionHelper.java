@@ -21,6 +21,14 @@ public final class VersionHelper {
     private static final String PACKAGE_NAME = Bukkit.getServer().getClass().getPackage().getName();
     public static final String NMS_VERSION = PACKAGE_NAME.substring(PACKAGE_NAME.lastIndexOf('.') + 1);
 
+    // Custom Model Data Component
+    private static final int V1_21_4 = 1_21_4;
+    // Tooltip Style & Item Model
+    private static final int V1_21_2 = 1_21_2;
+    // Data components
+    private static final int V1_20_5 = 1_20_5;
+    // ArmorTrims
+    private static final int V1_19_4 = 1194;
     // PlayerProfile API
     private static final int V1_18_1 = 1181;
     // Mojang obfuscation changes
@@ -40,7 +48,20 @@ public final class VersionHelper {
 
     private static final boolean IS_PAPER = checkPaper();
 
+    /**
+     * Checks if the current version includes the setTooltipStyle and setItemModel
+     */
+    public static final boolean HAS_TOOLTIP_STYLE = CURRENT_VERSION >= V1_21_2;
 
+    /**
+     * Checks if the current version includes the <a href="https://minecraft.wiki/w/Data_component_format">Data Components</a>
+     */
+    public static final boolean HAS_DATA_COMPONENTS = CURRENT_VERSION >= V1_20_5;
+
+    /**
+     * Checks if the current version includes the ArmorTrims API
+     */
+    public static final boolean HAS_ARMOR_TRIMS = CURRENT_VERSION >= V1_19_4;
     /**
      * Checks if current version includes the PlayerProfile API
      */
@@ -78,6 +99,8 @@ public final class VersionHelper {
      * Checks if the version has {@link org.bukkit.inventory.meta.ItemMeta#setCustomModelData(Integer)}
      */
     public static final boolean IS_CUSTOM_MODEL_DATA = CURRENT_VERSION >= V1_14;
+
+    public static final boolean IS_CUSTOM_MODEL_DATA_COMPONENT = CURRENT_VERSION >= V1_21_4;
 
     public static final boolean IS_HEX_VERSION = CURRENT_VERSION >= V1_16;
 

@@ -13,7 +13,7 @@ items:
     material: DIRT
     slot: 0
   'grass':
-    material: GRASS
+    material: GRASS_BLOCK
     slot: 1
   'gravel':
     material: GRAVEL

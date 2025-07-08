@@ -1,4 +1,4 @@
-package com.extendedclip.deluxemenus.menu;
+package com.extendedclip.deluxemenus.menu.options;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
@@ -11,42 +11,57 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class MenuItemOptions {
 
     private final String material;
-    private final short data;
+    private final String damage;
     private final int amount;
     private final String customModelData;
+    private final CustomModelDataComponent customModelDataComponent;
     private final String dynamicAmount;
+    private final String lightLevel;
     private final String displayName;
     private final List<String> lore;
     private final DyeColor baseColor;
     private HeadType headType;
-    private final String placeholderData;
     private final String rgb;
+
+    private final String trimMaterial;
+    private final String trimPattern;
+
+    private final String hideTooltip;
+    private final String enchantmentGlintOverride;
+    private final String rarity;
+    private final String tooltipStyle;
+    private final String itemModel;
 
     private final Map<Enchantment, Integer> enchantments;
     private final List<PotionEffect> potionEffects;
     private final List<Pattern> bannerMeta;
-    private final List<ItemFlag> itemFlags;
+    private final Set<ItemFlag> itemFlags = new HashSet<>();
 
     private final boolean unbreakable;
-    private final boolean hideAttributes;
-    private final boolean hideEnchants;
-    private final boolean hidePotionEffects;
-    private final boolean hideUnbreakable;
 
     private final boolean displayNameHasPlaceholders;
     private final boolean loreHasPlaceholders;
+    private final boolean hasLore;
+    private final LoreAppendMode loreAppendMode;
 
     private final String nbtString;
+    private final String nbtByte;
+    private final String nbtShort;
     private final String nbtInt;
     private final List<String> nbtStrings;
+    private final List<String> nbtBytes;
+    private final List<String> nbtShorts;
     private final List<String> nbtInts;
 
     private final int slot;
@@ -70,30 +85,40 @@ public class MenuItemOptions {
 
     private MenuItemOptions(final @NotNull MenuItemOptionsBuilder builder) {
         this.material = builder.material;
-        this.data = builder.data;
+        this.damage = builder.damage;
         this.amount = builder.amount;
         this.customModelData = builder.customModelData;
+        this.customModelDataComponent = builder.customModelDataComponent;
         this.dynamicAmount = builder.dynamicAmount;
+        this.lightLevel = builder.lightLevel;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
+        this.hasLore = builder.hasLore;
+        this.loreAppendMode = builder.loreAppendMode;
         this.baseColor = builder.baseColor;
         this.headType = builder.headType;
-        this.placeholderData = builder.placeholderData;
         this.rgb = builder.rgb;
+        this.trimMaterial = builder.trimMaterial;
+        this.trimPattern = builder.trimPattern;
+        this.hideTooltip = builder.hideTooltip;
+        this.enchantmentGlintOverride = builder.enchantmentGlintOverride;
+        this.rarity = builder.rarity;
+        this.tooltipStyle = builder.tooltipStyle;
+        this.itemModel = builder.itemModel;
         this.enchantments = builder.enchantments;
         this.potionEffects = builder.potionEffects;
         this.bannerMeta = builder.bannerMeta;
-        this.itemFlags = builder.itemFlags;
+        this.itemFlags.addAll(builder.itemFlags);
         this.unbreakable = builder.unbreakable;
-        this.hideAttributes = builder.hideAttributes;
-        this.hideEnchants = builder.hideEnchants;
-        this.hidePotionEffects = builder.hidePotionEffects;
-        this.hideUnbreakable = builder.hideUnbreakable;
         this.displayNameHasPlaceholders = builder.displayNameHasPlaceholders;
         this.loreHasPlaceholders = builder.loreHasPlaceholders;
         this.nbtString = builder.nbtString;
+        this.nbtByte = builder.nbtByte;
+        this.nbtShort = builder.nbtShort;
         this.nbtInt = builder.nbtInt;
         this.nbtStrings = builder.nbtStrings;
+        this.nbtBytes = builder.nbtBytes;
+        this.nbtShorts = builder.nbtShorts;
         this.nbtInts = builder.nbtInts;
         this.slot = builder.slot;
         this.priority = builder.priority;
@@ -121,8 +146,8 @@ public class MenuItemOptions {
         return material;
     }
 
-    public short data() {
-        return data;
+    public @NotNull Optional<String> damage() {
+        return Optional.ofNullable(damage);
     }
 
     public int amount() {
@@ -133,8 +158,16 @@ public class MenuItemOptions {
         return Optional.ofNullable(customModelData);
     }
 
+    public @NotNull Optional<CustomModelDataComponent> customModelDataComponent() {
+        return Optional.ofNullable(customModelDataComponent);
+    }
+
     public @NotNull Optional<String> dynamicAmount() {
         return Optional.ofNullable(dynamicAmount);
+    }
+
+    public @NotNull Optional<String> lightLevel() {
+        return Optional.ofNullable(lightLevel);
     }
 
     public @NotNull Optional<String> displayName() {
@@ -157,12 +190,36 @@ public class MenuItemOptions {
         return Optional.ofNullable(headType);
     }
 
-    public @NotNull Optional<String> placeholderData() {
-        return Optional.ofNullable(placeholderData);
-    }
-
     public @NotNull Optional<String> rgb() {
         return Optional.ofNullable(rgb);
+    }
+
+    public @NotNull Optional<String> trimMaterial() {
+        return Optional.ofNullable(trimMaterial);
+    }
+
+    public @NotNull Optional<String> trimPattern() {
+        return Optional.ofNullable(trimPattern);
+    }
+
+    public @NotNull Optional<String> hideTooltip() {
+        return Optional.ofNullable(hideTooltip);
+    }
+
+    public @NotNull Optional<String> enchantmentGlintOverride() {
+        return Optional.ofNullable(enchantmentGlintOverride);
+    }
+
+    public @NotNull Optional<String> rarity() {
+        return Optional.ofNullable(rarity);
+    }
+
+    public @NotNull Optional<String> tooltipStyle() {
+        return Optional.ofNullable(tooltipStyle);
+    }
+
+    public @NotNull Optional<String> itemModel() {
+        return Optional.ofNullable(itemModel);
     }
 
     public @NotNull Map<Enchantment, Integer> enchantments() {
@@ -177,28 +234,12 @@ public class MenuItemOptions {
         return bannerMeta;
     }
 
-    public @NotNull List<ItemFlag> itemFlags() {
+    public @NotNull Set<ItemFlag> itemFlags() {
         return itemFlags;
     }
 
     public boolean unbreakable() {
         return unbreakable;
-    }
-
-    public boolean hideAttributes() {
-        return hideAttributes;
-    }
-
-    public boolean hideEnchants() {
-        return hideEnchants;
-    }
-
-    public boolean hidePotionEffects() {
-        return hidePotionEffects;
-    }
-
-    public boolean hideUnbreakable() {
-        return hideUnbreakable;
     }
 
     public boolean displayNameHasPlaceholders() {
@@ -209,8 +250,24 @@ public class MenuItemOptions {
         return loreHasPlaceholders;
     }
 
+    public boolean hasLore() {
+        return hasLore;
+    }
+
+    public @NotNull Optional<LoreAppendMode> loreAppendMode() {
+        return Optional.ofNullable(loreAppendMode);
+    }
+
     public @NotNull Optional<String> nbtString() {
         return Optional.ofNullable(nbtString);
+    }
+
+    public @NotNull Optional<String> nbtByte() {
+        return Optional.ofNullable(nbtByte);
+    }
+
+    public @NotNull Optional<String> nbtShort() {
+        return Optional.ofNullable(nbtShort);
     }
 
     public @NotNull Optional<String> nbtInt() {
@@ -219,6 +276,14 @@ public class MenuItemOptions {
 
     public @NotNull List<String> nbtStrings() {
         return nbtStrings;
+    }
+
+    public @NotNull List<String> nbtBytes() {
+        return nbtBytes;
+    }
+
+    public @NotNull List<String> nbtShorts() {
+        return nbtShorts;
     }
 
     public @NotNull List<String> nbtInts() {
@@ -292,28 +357,38 @@ public class MenuItemOptions {
     public @NotNull MenuItemOptionsBuilder asBuilder() {
         return MenuItemOptions.builder()
                 .material(this.material)
-                .data(this.data)
+                .damage(this.damage)
                 .amount(this.amount)
                 .customModelData(this.customModelData)
+                .customModelDataComponent(this.customModelDataComponent)
                 .dynamicAmount(this.dynamicAmount)
+                .lightLevel(this.lightLevel)
                 .displayName(this.displayName)
                 .lore(this.lore)
+                .hasLore(this.hasLore)
+                .loreAppendMode(this.loreAppendMode)
                 .baseColor(this.baseColor)
                 .headType(this.headType)
-                .placeholderData(this.placeholderData)
                 .rgb(this.rgb)
+                .trimMaterial(this.trimMaterial)
+                .trimPattern(this.trimPattern)
+                .hideTooltip(this.hideTooltip)
+                .enchantmentGlintOverride(this.enchantmentGlintOverride)
+                .rarity(this.rarity)
+                .tooltipStyle(this.tooltipStyle)
+                .itemModel(this.itemModel)
                 .enchantments(this.enchantments)
                 .potionEffects(this.potionEffects)
                 .bannerMeta(this.bannerMeta)
                 .itemFlags(this.itemFlags)
                 .unbreakable(this.unbreakable)
-                .hideAttributes(this.hideAttributes)
-                .hideEnchants(this.hideEnchants)
-                .hidePotionEffects(this.hidePotionEffects)
-                .hideUnbreakable(this.hideUnbreakable)
                 .nbtString(this.nbtString)
+                .nbtByte(this.nbtByte)
+                .nbtShort(this.nbtShort)
                 .nbtInt(this.nbtInt)
                 .nbtStrings(this.nbtStrings)
+                .nbtBytes(this.nbtBytes)
+                .nbtShorts(this.nbtShorts)
                 .nbtInts(this.nbtInts)
                 .slot(this.slot)
                 .priority(this.priority)
@@ -336,34 +411,46 @@ public class MenuItemOptions {
     public static class MenuItemOptionsBuilder {
 
         private String material;
-        private short data;
+        private String damage;
         private int amount;
         private String customModelData;
+        private CustomModelDataComponent customModelDataComponent;
         private String dynamicAmount;
+        private String lightLevel;
         private String displayName;
         private List<String> lore = Collections.emptyList();
         private DyeColor baseColor;
         private HeadType headType;
-        private String placeholderData;
         private String rgb;
+
+        private String trimMaterial;
+        private String trimPattern;
+
+        private String hideTooltip;
+        private String enchantmentGlintOverride;
+        private String rarity;
+        private String tooltipStyle;
+        private String itemModel;
 
         private Map<Enchantment, Integer> enchantments = Collections.emptyMap();
         private List<PotionEffect> potionEffects = Collections.emptyList();
         private List<Pattern> bannerMeta = Collections.emptyList();
-        private List<ItemFlag> itemFlags = Collections.emptyList();
+        private final Set<ItemFlag> itemFlags = new HashSet<>();
 
         private boolean unbreakable;
-        private boolean hideAttributes;
-        private boolean hideEnchants;
-        private boolean hidePotionEffects;
-        private boolean hideUnbreakable;
 
         private boolean displayNameHasPlaceholders;
         private boolean loreHasPlaceholders;
+        private boolean hasLore;
+        private LoreAppendMode loreAppendMode;
 
         private String nbtString;
+        private String nbtByte;
+        private String nbtShort;
         private String nbtInt;
         private List<String> nbtStrings = Collections.emptyList();
+        private List<String> nbtBytes = Collections.emptyList();
+        private List<String> nbtShorts = Collections.emptyList();
         private List<String> nbtInts = Collections.emptyList();
 
         private int slot;
@@ -393,8 +480,8 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder data(final short configData) {
-            this.data = configData;
+        public MenuItemOptionsBuilder damage(final @Nullable String configDamage) {
+            this.damage = configDamage;
             return this;
         }
 
@@ -408,8 +495,18 @@ public class MenuItemOptions {
             return this;
         }
 
+        public MenuItemOptionsBuilder customModelDataComponent(final @Nullable CustomModelDataComponent customModelDataComponent) {
+            this.customModelDataComponent = customModelDataComponent;
+            return this;
+        }
+
         public MenuItemOptionsBuilder dynamicAmount(final @Nullable String configDynamicAmount) {
             this.dynamicAmount = configDynamicAmount;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder lightLevel(final @Nullable String lightLevel) {
+            this.lightLevel = lightLevel;
             return this;
         }
 
@@ -437,13 +534,43 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder placeholderData(final @Nullable String placeholderData) {
-            this.placeholderData = placeholderData;
+        public MenuItemOptionsBuilder rgb(final @Nullable String rgb) {
+            this.rgb = rgb;
             return this;
         }
 
-        public MenuItemOptionsBuilder rgb(final @Nullable String rgb) {
-            this.rgb = rgb;
+        public MenuItemOptionsBuilder trimMaterial(final @Nullable String trimMaterial) {
+            this.trimMaterial = trimMaterial;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder trimPattern(final @Nullable String trimPattern) {
+            this.trimPattern = trimPattern;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder hideTooltip(final @Nullable String hideTooltip) {
+            this.hideTooltip = hideTooltip;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder enchantmentGlintOverride(final @Nullable String enchantmentGlintOverride) {
+            this.enchantmentGlintOverride = enchantmentGlintOverride;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder rarity(final @Nullable String rarity) {
+            this.rarity = rarity;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder tooltipStyle(final @Nullable String tooltipStyle) {
+            this.tooltipStyle = tooltipStyle;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder itemModel(final @Nullable String itemModel) {
+            this.itemModel = itemModel;
             return this;
         }
 
@@ -462,8 +589,8 @@ public class MenuItemOptions {
             return this;
         }
 
-        public MenuItemOptionsBuilder itemFlags(final @NotNull List<ItemFlag> itemFlags) {
-            this.itemFlags = itemFlags;
+        public MenuItemOptionsBuilder itemFlags(final @NotNull Collection<ItemFlag> itemFlags) {
+            this.itemFlags.addAll(itemFlags);
             return this;
         }
 
@@ -472,28 +599,51 @@ public class MenuItemOptions {
             return this;
         }
 
+        /**
+         * @deprecated Use {@link #itemFlags(Collection)} with {@link ItemFlag#HIDE_ATTRIBUTES}
+         */
+        @Deprecated()
         public MenuItemOptionsBuilder hideAttributes(final boolean hideAttributes) {
-            this.hideAttributes = hideAttributes;
+            if (hideAttributes) {
+                this.itemFlags.add(ItemFlag.HIDE_ATTRIBUTES);
+            }
             return this;
         }
 
+        /**
+         * @deprecated Use {@link #itemFlags(Collection)} with {@link ItemFlag#HIDE_ENCHANTS}
+         */
+        @Deprecated
         public MenuItemOptionsBuilder hideEnchants(final boolean hideEnchants) {
-            this.hideEnchants = hideEnchants;
+            if (hideEnchants) {
+                this.itemFlags.add(ItemFlag.HIDE_ENCHANTS);
+            }
             return this;
         }
 
-        public MenuItemOptionsBuilder hidePotionEffects(final boolean hidePotionEffects) {
-            this.hidePotionEffects = hidePotionEffects;
-            return this;
-        }
-
+        /**
+         * @deprecated Use {@link #itemFlags(Collection)} with {@link ItemFlag#HIDE_UNBREAKABLE}
+         */
+        @Deprecated
         public MenuItemOptionsBuilder hideUnbreakable(final boolean hideUnbreakable) {
-            this.hideUnbreakable = hideUnbreakable;
+            if (hideUnbreakable) {
+                this.itemFlags.add(ItemFlag.HIDE_UNBREAKABLE);
+            }
             return this;
         }
 
         public MenuItemOptionsBuilder nbtString(final @Nullable String nbtString) {
             this.nbtString = nbtString;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtByte(final @Nullable String nbtByte) {
+            this.nbtByte = nbtByte;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtShort(final @Nullable String nbtShort) {
+            this.nbtShort = nbtShort;
             return this;
         }
 
@@ -504,6 +654,16 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder nbtStrings(final @NotNull List<String> nbtStrings) {
             this.nbtStrings = nbtStrings;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtBytes(final @NotNull List<String> nbtBytes) {
+            this.nbtBytes = nbtBytes;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder nbtShorts(final @NotNull List<String> nbtShorts) {
+            this.nbtShorts = nbtShorts;
             return this;
         }
 
@@ -524,6 +684,16 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder updatePlaceholders(final boolean updatePlaceholders) {
             this.updatePlaceholders = updatePlaceholders;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder hasLore(final boolean hasLore) {
+            this.hasLore = hasLore;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder loreAppendMode(final LoreAppendMode loreAppendMode) {
+            this.loreAppendMode = loreAppendMode;
             return this;
         }
 

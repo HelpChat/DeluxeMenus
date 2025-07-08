@@ -23,7 +23,8 @@ items:
     slot: 11
     priority: 1
     update: true
-    hide_attributes: true
+    item_flags:
+      - HIDE_ATTRIBUTES
     display_name: '&bExample Kit'
     lore:
       - ''
@@ -46,7 +47,8 @@ items:
     slot: 11
     priority: 2
     update: true
-    hide_attributes: true
+    item_flags:
+      - HIDE_ATTRIBUTES
     display_name: '&cExample Kit Unavailable'
     lore:
       - '&7This kit is on cooldown!'
@@ -62,7 +64,8 @@ items:
     slot: 11
     priority: 3
     update: true
-    hide_attributes: true
+    item_flags:
+      - HIDE_ATTRIBUTES
     display_name: '&7Example Kit'
     lore:
       - '&7You do not have permission for this kit!'

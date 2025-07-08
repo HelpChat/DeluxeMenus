@@ -1,6 +1,5 @@
 package com.extendedclip.deluxemenus.requirement;
 
-import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.google.common.primitives.Doubles;
@@ -22,7 +21,7 @@ public class IsObjectRequirement extends Requirement {
 
     @Override
     public boolean evaluate(MenuHolder holder) {
-        String toCheck = holder.setPlaceholders(input);
+        String toCheck = holder.setPlaceholdersAndArguments(input);
 
         switch (object) {
             case "int":
@@ -44,7 +43,7 @@ public class IsObjectRequirement extends Requirement {
                     return false;
                 }
             default:
-                DeluxeMenus.debug(DebugLevel.HIGHEST, Level.INFO, "Invalid object: " + object + " in \"is object\" check.");
+                holder.getPlugin().debug(DebugLevel.HIGHEST, Level.INFO, "Invalid object: " + object + " in \"is object\" check.");
                 return false;
         }
     }

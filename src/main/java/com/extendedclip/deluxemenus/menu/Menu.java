@@ -400,7 +400,7 @@ public class Menu {
         }
       });
 
-      Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
+      Bukkit.getScheduler().runTask(plugin, () -> {
         DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
         Bukkit.getPluginManager().callEvent(openEvent);
       });

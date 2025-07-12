@@ -1,6 +1,10 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.action.ClickHandler;
+import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
+import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
+import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
@@ -269,7 +273,12 @@ public class Menu {
             return;
         }
 
-        final MenuHolder holder = new MenuHolder(plugin, viewer);
+        DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
+    Bukkit.getPluginManager().callEvent(preOpenEvent);
+
+    if (preOpenEvent.isCancelled()) return;
+
+    final MenuHolder holder = new MenuHolder(plugin, viewer);
         if (placeholderPlayer != null) {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
@@ -386,12 +395,17 @@ public class Menu {
                 viewer.openInventory(inventory);
                 menuHolders.add(holder);
 
-                if (updatePlaceholders) {
-                    holder.startUpdatePlaceholdersTask();
-                }
-            });
-        });
-    }
+        if (updatePlaceholders) {
+          holder.startUpdatePlaceholdersTask();
+        }
+      });
+
+      Bukkit.getScheduler().runTask(plugin, () -> {
+        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+        Bukkit.getPluginManager().callEvent(openEvent);
+      });
+    });
+  }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

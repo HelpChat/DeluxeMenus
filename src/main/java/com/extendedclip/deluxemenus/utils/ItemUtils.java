@@ -9,9 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
-import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
+import static com.extendedclip.deluxemenus.utils.Constants.*;
 
 public final class ItemUtils {
 
@@ -30,6 +28,16 @@ public final class ItemUtils {
     }
 
     /**
+     * Checks if the string starts with the substring "stack-". The check is case-insensitive.
+     *
+     * @param material The string to check
+     * @return true if the string starts with "stack-", false otherwise
+     */
+    public static boolean isItemStackOption(@NotNull final String material) {
+        return material.toLowerCase(Locale.ROOT).startsWith(STACK_PREFIX);
+    }
+
+    /**
      * Checks if the string is a player item. The check is case-sensitive.
      * Player items are: "main_hand", "off_hand", "armor_helmet", "armor_chestplate", "armor_leggings", "armor_boots"
      *
@@ -43,7 +51,7 @@ public final class ItemUtils {
     /**
      * Checks if the material is a water bottle. The check is case-insensitive.
      *
-     * @param material The material to check
+     * @param itemStack The material to check
      * @return true if the material is a water bottle, false otherwise
      */
     public static boolean isWaterBottle(@NotNull final String material) {

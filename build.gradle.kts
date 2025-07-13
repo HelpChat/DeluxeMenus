@@ -32,7 +32,7 @@ dependencies {
     compileOnly(libs.headdb)
     compileOnly(libs.itemsadder)
     compileOnly(libs.nexo)
-    compileOnly(libs.oraxen)
+    compileOnly("io.th0rgal:oraxen:1.190.0")
     compileOnly(libs.mythiclib)
     compileOnly(libs.mmoitems)
     compileOnly(libs.score)

@@ -52,8 +52,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
-import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.*;
 
 public class MenuItem {
 
@@ -74,10 +73,21 @@ public class MenuItem {
         String stringMaterial = this.options.material();
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
+
         if (ItemUtils.isPlaceholderOption(lowercaseStringMaterial)) {
             stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
+        if (ItemUtils.isItemStackOption(lowercaseStringMaterial)) {
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(STACK_PREFIX.length()));
+            ItemStack base64Item = base64ToItemStack(stringMaterial);
+            if (base64Item != null) {
+                itemStack = base64Item;
+                amount = itemStack.getAmount();
+                lowercaseStringMaterial = itemStack.getType().toString().toLowerCase(Locale.ENGLISH);
+            }
+        }
+
 
         if (ItemUtils.isPlayerItem(lowercaseStringMaterial)) {
             final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseStringMaterial).apply(viewer.getInventory());

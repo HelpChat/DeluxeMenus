@@ -36,8 +36,8 @@ public final class ItemUtils {
      * @param itemstack The string to check
      * @return true if the string starts with "stack-", false otherwise
      */
-    public static boolean isItemStackOption(@NotNull final String material) {
-        return material.toLowerCase(Locale.ROOT).startsWith(STACK_PREFIX);
+    public static boolean isItemStackOption(@NotNull final String itemstack) {
+        return itemstack.toLowerCase(Locale.ROOT).startsWith(STACK_PREFIX);
     }
 
     /**
@@ -94,7 +94,6 @@ public final class ItemUtils {
     public static boolean hasPotionMeta(@NotNull final ItemStack itemStack) {
         return itemStack.getItemMeta() instanceof PotionMeta;
     }
-
     /**
      * Creates water bottles stack
      * @param amount the amount of water bottles to put in the stack

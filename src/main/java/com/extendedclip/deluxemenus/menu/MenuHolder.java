@@ -13,9 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -35,6 +33,8 @@ public class MenuHolder implements InventoryHolder {
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
+    private boolean parseNestedPlaceholders;
+    private boolean enableBypassPerm;
     private Map<String, String> typedArgs;
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
@@ -109,7 +109,7 @@ public class MenuHolder implements InventoryHolder {
             return string;
         }
 
-        return StringUtils.replacePlaceholders(string, player);
+        return StringUtils.replacePlaceholders(string, player, parseNestedPlaceholders);
     }
 
     public @NotNull String setArguments(final @NotNull String string) {
@@ -153,14 +153,23 @@ public class MenuHolder implements InventoryHolder {
                 boolean m = false;
                 for (MenuItem item : e.values()) {
 
-                    if (item.options().viewRequirements().isPresent()) {
 
-                        if (item.options().viewRequirements().get().evaluate(this)) {
-                            m = true;
-                            active.add(item);
-                            break;
+                    boolean passesViewRequirements = true;
+                    if (item.options().viewRequirements().isPresent()) {
+                        passesViewRequirements = item.options().viewRequirements().get().evaluate(this);
+                    }
+
+                    boolean passesDynamicAmount = true;
+                    if (item.options().dynamicAmount().isPresent()) {
+                        try {
+                            int amt = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
+                            passesDynamicAmount = amt > 0;
+                        } catch (Exception exception) {
+                            passesDynamicAmount = false;
                         }
-                    } else {
+                    }
+
+                    if (passesViewRequirements && passesDynamicAmount) {
                         m = true;
                         active.add(item);
                         break;
@@ -343,21 +352,25 @@ public class MenuHolder implements InventoryHolder {
         this.typedArgs = typedArgs;
     }
 
-    public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
-        this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
-    }
+    public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;}
 
-    public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
-        this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
+    public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;}
+
+    public void parseNestedPlaceholders(final boolean parseNestedPlaceholders) {this.parseNestedPlaceholders = parseNestedPlaceholders;}
+
+    public void enableBypassPerm(final boolean enableBypassPerm) {
+        this.enableBypassPerm = enableBypassPerm;
     }
 
     public boolean parsePlaceholdersInArguments() {
         return parsePlaceholdersInArguments;
     }
 
-    public boolean parsePlaceholdersAfterArguments() {
-        return parsePlaceholdersAfterArguments;
-    }
+    public boolean parsePlaceholdersAfterArguments() {return parsePlaceholdersAfterArguments;}
+
+    public boolean parseNestedPlaceholders() {return parseNestedPlaceholders;}
+
+    public boolean enableBypassPerm() {return enableBypassPerm;}
 
     public void setPlaceholderPlayer(Player placeholderPlayer) {
         this.placeholderPlayer = placeholderPlayer;

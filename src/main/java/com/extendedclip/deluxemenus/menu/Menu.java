@@ -1,8 +1,6 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
 import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
@@ -285,6 +283,8 @@ public class Menu {
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
         holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
+        holder.parseNestedPlaceholders(this.options.parseNestedPlaceholders());
+        holder.enableBypassPerm(this.options.enableBypassPerm());
 
         if (!this.handleArgRequirements(holder)) {
             return;
@@ -314,15 +314,22 @@ public class Menu {
                         continue;
                     }
 
+                    boolean passesViewRequirements = true;
                     if (item.options().viewRequirements().isPresent()) {
+                        passesViewRequirements = item.options().viewRequirements().get().evaluate(holder);
+                    }
 
-                        if (item.options().viewRequirements().get().evaluate(holder)) {
-
-                            activeItems.add(item);
-                            break;
+                    boolean passesDynamicAmount = true;
+                    if (item.options().dynamicAmount().isPresent()) {
+                        try {
+                            int amt = Integer.parseInt(holder.setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
+                            passesDynamicAmount = amt > 0;
+                        } catch (Exception exception) {
+                            passesDynamicAmount = false;
                         }
-                    } else {
+                    }
 
+                    if (passesViewRequirements && passesDynamicAmount) {
                         activeItems.add(item);
                         break;
                     }

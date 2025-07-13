@@ -41,20 +41,36 @@ public class StringUtils {
     public static String replacePlaceholdersAndArguments(@NotNull String input, final @Nullable Map<String, String> arguments,
                                                          final @Nullable Player player,
                                                          final boolean parsePlaceholdersInsideArguments,
-                                                         final boolean parsePlaceholdersAfterArguments) {
+                                                         final boolean parsePlaceholdersAfterArguments,
+                                                         final boolean parseNestedPlaceholders) {
         if (player == null) {
             return replaceArguments(input, arguments, null, parsePlaceholdersInsideArguments);
         }
 
         if (parsePlaceholdersAfterArguments) {
-            return replacePlaceholders(replaceArguments(input, arguments, player, parsePlaceholdersInsideArguments), player);
+            return replacePlaceholders(replaceArguments(input, arguments, player, parsePlaceholdersInsideArguments), player, parseNestedPlaceholders);
         }
 
-        return replaceArguments(replacePlaceholders(input, player), arguments, player, parsePlaceholdersInsideArguments);
+        return replaceArguments(replacePlaceholders(input, player, parseNestedPlaceholders), arguments, player, parsePlaceholdersInsideArguments);
     }
 
     @NotNull
-    public static String replacePlaceholders(final @NotNull String input, final @NotNull Player player) {
+    public static String replacePlaceholders(@NotNull String input, final @NotNull Player player , boolean parseNestedPlaceholders) {
+        if (!parseNestedPlaceholders){
+            return PlaceholderAPI.setPlaceholders(player, input);
+        }
+
+        while (input.contains("{") && input.contains("}")) {
+            int startIndex = input.lastIndexOf("{");
+            int endIndex = input.indexOf("}", startIndex);
+            if (startIndex != -1 && endIndex != -1) {
+                String placeholderName = input.substring(startIndex + 1, endIndex);
+                String placeholderValue = PlaceholderAPI.setPlaceholders(player, "%" + placeholderName + "%");
+                input = ("%"+placeholderName+"%").equals(placeholderValue) ?  input.substring(0, startIndex) + placeholderName + input.substring(endIndex + 1) :  input.substring(0, startIndex) + placeholderValue + input.substring(endIndex + 1);
+            } else {
+                break;
+            }
+        }
         return PlaceholderAPI.setPlaceholders(player, input);
     }
 
@@ -67,7 +83,7 @@ public class StringUtils {
 
         for (final Map.Entry<String, String> entry : arguments.entrySet()) {
             final String value = player != null && parsePlaceholdersInsideArguments
-                    ? replacePlaceholders(entry.getValue(), player)
+                    ? replacePlaceholders(entry.getValue(), player, false)
                     : entry.getValue();
             input = input.replace("{" + entry.getKey() + "}", value);
         }

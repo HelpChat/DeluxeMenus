@@ -467,7 +467,7 @@ public class DeluxeMenusConfig {
             builder.registerCommands(c.getBoolean(pre + "register_command", false));
         }
 
-        List<String> argumentNames = new ArrayList<>();
+        Map<String, String> argumentNames = new HashMap<>();
         List<RequirementList> argumentRequirements = new ArrayList<>();
 
         if (c.contains(pre + "args")) {
@@ -483,14 +483,16 @@ public class DeluxeMenusConfig {
                         argumentRequirements.add(this.getRequirements(c, pre + "args." + arg));
                     }
                     // Always add the arg itself
-                    argumentNames.add(arg);
+                    argumentNames.put(arg,(c.getString(pre + "args." + arg + ".default", null)  ));
                 }
                 // Old list parsing
             } else if (c.isList(pre + "args")) {
-                argumentNames.addAll(c.getStringList(pre + "args"));
+                for(String str : c.getStringList(pre + "args")){
+                    argumentNames.put(str,null);
+                }
                 // Old singular item parsing
             } else if (c.isString(pre + "args")) {
-                argumentNames.add(c.getString(pre + "args"));
+                argumentNames.put(c.getString(pre + "args"),null);
             }
         }
 

@@ -245,8 +245,8 @@ public class MenuItem {
             }
         }
 
-        if (amount > 64) {
-            amount = 64;
+        if (amount > itemStack.getMaxStackSize()) {
+            amount = itemStack.getMaxStackSize();
         }
 
         itemStack.setAmount(amount);

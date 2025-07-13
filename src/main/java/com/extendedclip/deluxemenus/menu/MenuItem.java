@@ -64,6 +64,25 @@ public class MenuItem {
         this.options = options;
     }
 
+    public static ItemStack base64ToItemStack(String data) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            dataInput.close();
+            Object object = dataInput.readObject();
+            if (object instanceof ItemStack) {
+                return (ItemStack) object;
+            }
+            return null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
     public ItemStack getItemStack(@NotNull final MenuHolder holder) {
         final Player viewer = holder.getViewer();
 

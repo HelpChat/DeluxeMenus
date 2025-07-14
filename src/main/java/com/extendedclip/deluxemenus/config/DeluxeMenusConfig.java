@@ -72,7 +72,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.extendedclip.deluxemenus.utils.Constants.*;
+import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.STACK_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.PLAYER_ITEMS;
+import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
 
 public class DeluxeMenusConfig {
 

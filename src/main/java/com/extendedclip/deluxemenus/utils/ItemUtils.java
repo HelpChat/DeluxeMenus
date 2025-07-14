@@ -30,7 +30,7 @@ public final class ItemUtils {
     /**
      * Checks if the string starts with the substring "stack-". The check is case-insensitive.
      *
-     * @param material The string to check
+     * @param itemstack The string to check
      * @return true if the string starts with "stack-", false otherwise
      */
     public static boolean isItemStackOption(@NotNull final String material) {
@@ -51,7 +51,7 @@ public final class ItemUtils {
     /**
      * Checks if the material is a water bottle. The check is case-insensitive.
      *
-     * @param itemStack The material to check
+     * @param material The material to check
      * @return true if the material is a water bottle, false otherwise
      */
     public static boolean isWaterBottle(@NotNull final String material) {

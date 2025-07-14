@@ -8,8 +8,10 @@ import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
-
-import static com.extendedclip.deluxemenus.utils.Constants.*;
+import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
+import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.STACK_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
 
 public final class ItemUtils {
 

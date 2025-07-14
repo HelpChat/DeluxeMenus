@@ -92,7 +92,6 @@ public class MenuItem {
         String stringMaterial = this.options.material();
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
-
         if (ItemUtils.isPlaceholderOption(lowercaseStringMaterial)) {
             stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);

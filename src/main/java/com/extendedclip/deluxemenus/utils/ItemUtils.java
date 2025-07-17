@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.STACK_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
 
 public final class ItemUtils {
@@ -27,6 +28,16 @@ public final class ItemUtils {
      */
     public static boolean isPlaceholderOption(@NotNull final String material) {
         return material.toLowerCase(Locale.ROOT).startsWith(PLACEHOLDER_PREFIX);
+    }
+
+    /**
+     * Checks if the string starts with the substring "stack-". The check is case-insensitive.
+     *
+     * @param itemstack The string to check
+     * @return true if the string starts with "stack-", false otherwise
+     */
+    public static boolean isItemStackOption(@NotNull final String material) {
+        return material.toLowerCase(Locale.ROOT).startsWith(STACK_PREFIX);
     }
 
     /**

@@ -1,0 +1,5 @@
+name: DeluxeMenus
+version: '${version}'
+main: com.extendedclip.deluxemenus.DeluxeMenus
+description: All in one inventory menu system
+api-version: '1.13'

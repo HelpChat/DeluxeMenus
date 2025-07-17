@@ -1,6 +1,7 @@
 [versions]
 # Compile only
 spigot = "1.21.5-R0.1-SNAPSHOT"
+#paper = "1.17.1-R0.1-SNAPSHOT"
 paper = "1.21.7-R0.1-SNAPSHOT"
 vault = "1.7.1"
 authlib = "1.5.25"
@@ -22,7 +23,6 @@ adventure-minimessage = "4.21.0"
 
 [libraries]
 # Compile only
-spigot = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
 paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
 vault = { module = "com.github.milkbowl:VaultAPI", version.ref = "vault" }
 authlib = { module = "com.mojang:authlib", version.ref = "authlib" }

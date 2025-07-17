@@ -145,6 +145,7 @@ public class PersistentMetaHandler {
             return OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
         }
 
+        // TODO: Blitz: It seems that PersistentDataContainer#has(NamespacedKey) does not exist in 1.17.1.
         if (player.getPersistentDataContainer().has(key) &&
                 (!player.getPersistentDataContainer().has(key, type.getPDType()) || !type.isSupported(player.getPersistentDataContainer().get(key, type.getPDType())))) {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;

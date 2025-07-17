@@ -39,9 +39,13 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +58,7 @@ import java.util.stream.Collectors;
 
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.STACK_PREFIX;
 
 public class MenuItem {
 
@@ -65,6 +70,25 @@ public class MenuItem {
         this.options = options;
     }
 
+    public static ItemStack base64ToItemStack(String data) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            dataInput.close();
+            Object object = dataInput.readObject();
+            if (object instanceof ItemStack) {
+                return (ItemStack) object;
+            }
+            return null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
     public ItemStack getItemStack(@NotNull final MenuHolder holder) {
         final Player viewer = holder.getViewer();
 
@@ -78,6 +102,16 @@ public class MenuItem {
             stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
+        if (ItemUtils.isItemStackOption(lowercaseStringMaterial)) {
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(STACK_PREFIX.length()));
+            ItemStack base64Item = base64ToItemStack(stringMaterial);
+            if (base64Item != null) {
+                itemStack = base64Item;
+                amount = itemStack.getAmount();
+                lowercaseStringMaterial = itemStack.getType().toString().toLowerCase(Locale.ENGLISH);
+            }
+        }
+
 
         if (ItemUtils.isPlayerItem(lowercaseStringMaterial)) {
             final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseStringMaterial).apply(viewer.getInventory());

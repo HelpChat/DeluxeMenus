@@ -32,6 +32,7 @@ public final class Constants {
     public static final String BASE64_HEAD_TYPE = "basehead";
     public static final String HDB_HEAD_TYPE = "hdb";
 
+    public static final String STACK_PREFIX = "stack-";
     public static final String PLACEHOLDER_PREFIX = "placeholder-";
     public static final String WATER_BOTTLE = "water_bottle";
 

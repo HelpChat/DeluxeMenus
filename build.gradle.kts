@@ -1,7 +1,7 @@
 plugins {
     java
-    id("com.gradleup.shadow") version("8.3.5")
-    id("com.github.ben-manes.versions") version("0.51.0")
+    id("com.gradleup.shadow") version("8.3.8")
+    id("com.github.ben-manes.versions") version("0.52.0")
 }
 
 // Change to true when releasing
@@ -20,11 +20,12 @@ repositories {
     maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
     maven("https://repo.nexomc.com/releases/")
     maven("https://repo.oraxen.com/releases")
+    maven("https://maven.devs.beer/")
     maven("https://jitpack.io")
 }
 
 dependencies {
-    compileOnly(libs.spigot)
+    compileOnly(libs.paper)
 
     compileOnly(libs.vault)
     compileOnly(libs.authlib)
@@ -56,9 +57,10 @@ tasks {
         relocate("org.bstats", "com.extendedclip.deluxemenus.libs.bstats")
         archiveFileName.set("DeluxeMenus-${rootProject.version}.jar")
     }
+
     java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         disableAutoTargetJvm()
     }
 

@@ -42,8 +42,8 @@ dependencies {
     compileOnly(libs.papi)
 
     implementation(libs.nashorn)
-    implementation(libs.adventure.platform)
-    implementation(libs.adventure.minimessage)
+    compileOnly(libs.adventure.platform)
+    compileOnly(libs.adventure.minimessage)
     implementation(libs.bstats)
 
     compileOnly(libs.annotations)
@@ -64,7 +64,11 @@ tasks {
 
     processResources {
         filesMatching("plugin.yml") {
-            expand("version" to rootProject.version)
+            expand(
+                "version" to rootProject.version,
+                "adventurePlatform" to libs.adventure.platform.get().let { "${it.group}:${it.name}:${it.version}" },
+                "adventureMiniMessage" to libs.adventure.minimessage.get().let { "${it.group}:${it.name}:${it.version}" }
+            )
         }
     }
 }

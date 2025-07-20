@@ -5,6 +5,9 @@ version: ${version}
 authors: [ HelpChat ]
 softdepend: [ PlaceholderAPI, Vault, HeadDatabase, ItemsAdder, Nexo, Oraxen, ExecutableItems, ExecutableBlocks, Score, SimpleItemGenerator, MMOItems ]
 description: All in one inventory menu system
+libraries:
+  - "${adventurePlatform}"
+  - "${adventureMiniMessage}"
 commands:
   deluxemenus:
     description: DeluxeMenus main commands

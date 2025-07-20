@@ -234,7 +234,7 @@ public class MenuItem {
 
         if (this.options.displayName().isPresent()) {
             final String displayName = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.displayName().get()));
-            if (VersionHelper.IS_PAPER) itemMeta.displayName(AdventureUtils.fromString(displayName));
+            if (VersionHelper.IS_PAPER) itemMeta.displayName(AdventureUtils.fromString(displayName, holder.getPlaceholderPlayer()));
             else itemMeta.setDisplayName(displayName);
         }
 
@@ -519,7 +519,7 @@ public class MenuItem {
                 .map(line -> line.split("\\\\n"))
                 .flatMap(Arrays::stream)
                 .map(line -> VersionHelper.IS_PAPER
-                        ? AdventureUtils.fromString(line)
+                        ? AdventureUtils.fromString(line, holder.getPlaceholderPlayer())
                         : line
                 ).collect(Collectors.toList());
 

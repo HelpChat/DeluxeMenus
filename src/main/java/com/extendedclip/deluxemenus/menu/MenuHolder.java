@@ -299,7 +299,7 @@ public class MenuHolder implements InventoryHolder {
 
                         if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
                             String displayName = StringUtils.color(setPlaceholdersAndArguments(item.options().displayName().get()));
-                            if (VersionHelper.IS_PAPER) meta.displayName(AdventureUtils.fromString(displayName));
+                            if (VersionHelper.IS_PAPER) meta.displayName(AdventureUtils.fromString(displayName, getPlaceholderPlayer()));
                             else meta.setDisplayName(displayName);
                         }
 

@@ -298,9 +298,9 @@ public class MenuHolder implements InventoryHolder {
                         ItemMeta meta = i.getItemMeta();
 
                         if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
-                            String displayName = setPlaceholdersAndArguments(item.options().displayName().get());
+                            String displayName = StringUtils.color(setPlaceholdersAndArguments(item.options().displayName().get()));
                             if (VersionHelper.IS_PAPER) meta.displayName(AdventureUtils.fromString(displayName));
-                            else meta.setDisplayName(StringUtils.color(displayName));
+                            else meta.setDisplayName(displayName);
                         }
 
                         if (item.options().loreHasPlaceholders()) {

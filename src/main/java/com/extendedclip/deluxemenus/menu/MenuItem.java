@@ -233,9 +233,9 @@ public class MenuItem {
         }
 
         if (this.options.displayName().isPresent()) {
-            final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
+            final String displayName = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.displayName().get()));
             if (VersionHelper.IS_PAPER) itemMeta.displayName(AdventureUtils.fromString(displayName));
-            else itemMeta.setDisplayName(StringUtils.color(displayName));
+            else itemMeta.setDisplayName(displayName);
         }
 
         setMenuItemLore(holder, this.options.lore(), itemMeta);

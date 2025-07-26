@@ -91,9 +91,6 @@ public class MenuOptions {
 
     public boolean parsePlaceholdersInArguments() {return this.parsePlaceholdersInArguments;}
 
-    public boolean parsePlaceholdersAfterArguments() {
-        return this.parsePlaceholdersAfterArguments;
-    }
     public boolean parsePlaceholdersAfterArguments() {return this.parsePlaceholdersAfterArguments;}
 
     public boolean parseNestedPlaceholders() {return this.parseNestedPlaceholders;}

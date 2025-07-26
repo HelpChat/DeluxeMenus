@@ -35,6 +35,7 @@ public class MenuHolder implements InventoryHolder {
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
+    private boolean parseNestedPlaceholders;
     private Map<String, String> typedArgs;
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
@@ -109,7 +110,7 @@ public class MenuHolder implements InventoryHolder {
             return string;
         }
 
-        return StringUtils.replacePlaceholders(string, player);
+        return StringUtils.replacePlaceholders(string, player, parseNestedPlaceholders);
     }
 
     public @NotNull String setArguments(final @NotNull String string) {
@@ -350,14 +351,17 @@ public class MenuHolder implements InventoryHolder {
     public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
         this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
     }
+    public void parseNestedPlaceholders(final boolean parseNestedPlaceholders) {
+        this.parseNestedPlaceholders = parseNestedPlaceholders;
+    }
 
     public boolean parsePlaceholdersInArguments() {
         return parsePlaceholdersInArguments;
     }
 
-    public boolean parsePlaceholdersAfterArguments() {
-        return parsePlaceholdersAfterArguments;
-    }
+    public boolean parsePlaceholdersAfterArguments() {return parsePlaceholdersAfterArguments;}
+
+    public boolean parseNestedPlaceholders() {return parseNestedPlaceholders;}
 
     public void setPlaceholderPlayer(Player placeholderPlayer) {
         this.placeholderPlayer = placeholderPlayer;

@@ -33,6 +33,7 @@ import static net.kyori.adventure.text.Component.text;
 public class MetaCommand extends SubCommand {
 
     private static final List<String> SUB_COMMANDS = List.of("list", "show", "set", "remove", "add", "subtract", "switch");
+    private static final String META_COMMAND = "deluxemenus.open";
 
     public MetaCommand(@NotNull final DeluxeMenus plugin) {
         super(plugin);
@@ -45,7 +46,7 @@ public class MetaCommand extends SubCommand {
 
     @Override
     public void execute(@NotNull final CommandSender sender, @NotNull final List<String> arguments) {
-        if (!sender.isOp()) {
+        if (!sender.hasPermission(META_COMMAND)) {
             plugin.sms(sender, Messages.NO_PERMISSION);
             return;
         }
@@ -67,7 +68,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String actionName = StringUtils.replacePlaceholders(arguments.get(1), target);
+        final String AN = arguments.get(1);
+        final String actionName = StringUtils.replacePlaceholders(AN, target, AN.contains("{") && AN.contains("}"));
         final DataAction action = DataAction.getActionByName(actionName);
 
         if (action == null) {
@@ -90,7 +92,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String keyName = StringUtils.replacePlaceholders(arguments.get(2), target);
+        final String KN = arguments.get(2);
+        final String keyName = StringUtils.replacePlaceholders(KN, target, KN.contains("{") && KN.contains("}"));
         final NamespacedKey namespacedKey = plugin.getPersistentMetaHandler().getKey(keyName);
         if (namespacedKey == null) {
             plugin.sms(sender, Messages.META_KEY_INVALID.message().replaceText(KEY_REPLACER_BUILDER.replacement(keyName).build()));
@@ -110,7 +113,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String typeName = StringUtils.replacePlaceholders(arguments.get(3), target).toUpperCase(Locale.ROOT);
+        final String TN = arguments.get(3);
+        final String typeName = StringUtils.replacePlaceholders(TN, target, TN.contains("{") && TN.contains("}")).toUpperCase(Locale.ROOT);
         final DataType<?, ?> type = DataType.getSupportedTypeByName(typeName);
         if (type == null) {
             plugin.sms(sender, Messages.META_TYPE_UNSUPPORTED.message().replaceText(TYPE_REPLACER_BUILDER.replacement(typeName).build()));
@@ -129,7 +133,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String value = StringUtils.replacePlaceholders(String.join(" ", arguments.subList(4, arguments.size())), target);
+        final String VN = (String.join(" ", arguments.subList(4, arguments.size())));
+        final String value = StringUtils.replacePlaceholders(VN, target, VN.contains("{") && VN.contains("}"));
 
         if (action == DataAction.SET) {
             handleSetMeta(sender, target, namespacedKey, type, value, context);
@@ -151,7 +156,7 @@ public class MetaCommand extends SubCommand {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final List<String> arguments) {
-        if (!sender.isOp() || !VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
+        if (!sender.hasPermission(META_COMMAND) || !VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
             return null;
         }
 

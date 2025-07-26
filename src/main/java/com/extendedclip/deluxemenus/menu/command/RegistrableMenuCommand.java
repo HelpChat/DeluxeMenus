@@ -62,11 +62,6 @@ public class RegistrableMenuCommand extends Command {
             plugin.debug(DebugLevel.LOWEST, Level.INFO, "has args");
             argMap = new HashMap<>();
             int index = 0;
-            for (String arg : menu.options().arguments()) {
-                if (index + 1 == menu.options().arguments().size()) {
-                    String last = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
-                    plugin.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + last);
-                    argMap.put(arg, last);
 
             List<String> argumentNamesList = new ArrayList<>(menuArgumentNames.keySet());
             Collections.reverse(argumentNamesList);
@@ -87,9 +82,6 @@ public class RegistrableMenuCommand extends Command {
                         plugin.debug(DebugLevel.LOWEST, Level.INFO, "using default for arg: " + arg + " => " + value);
                     }
                 } else {
-                    argMap.put(arg, typedArgs[index]);
-                    plugin.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + typedArgs[index]);
-                }
                     String str = menuArgumentNames.get(arg);
                     if (str != null) {
                         value = str;

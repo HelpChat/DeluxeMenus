@@ -25,6 +25,7 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
+import org.bstats.charts.SimplePie;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -326,6 +327,8 @@ public class DeluxeMenus extends JavaPlugin {
                 .map(Menu::options)
                 .map(MenuOptions::type)
                 .collect(Collectors.groupingBy(Enum::name, Collectors.summingInt(type -> 1)))));
+
+        metrics.addCustomChart(new SimplePie("is_paper", () -> VersionHelper.IS_PAPER ? "true" : "false"));
 
         // added for 1.21 usage
         metrics.addCustomChart(new AdvancedPie("nbt_usage", () -> {

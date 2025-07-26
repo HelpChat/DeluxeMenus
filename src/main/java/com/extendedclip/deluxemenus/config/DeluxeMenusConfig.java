@@ -467,7 +467,7 @@ public class DeluxeMenusConfig {
             builder.registerCommands(c.getBoolean(pre + "register_command", false));
         }
 
-        List<String> argumentNames = new ArrayList<>();
+        Map<String, String> argumentNames = new HashMap<>();
         List<RequirementList> argumentRequirements = new ArrayList<>();
 
         if (c.contains(pre + "args")) {
@@ -483,14 +483,16 @@ public class DeluxeMenusConfig {
                         argumentRequirements.add(this.getRequirements(c, pre + "args." + arg));
                     }
                     // Always add the arg itself
-                    argumentNames.add(arg);
+                    argumentNames.put(arg,(c.getString(pre + "args." + arg + ".default", null)  ));
                 }
                 // Old list parsing
             } else if (c.isList(pre + "args")) {
-                argumentNames.addAll(c.getStringList(pre + "args"));
+                for(String str : c.getStringList(pre + "args")){
+                    argumentNames.put(str,null);
+                }
                 // Old singular item parsing
             } else if (c.isString(pre + "args")) {
-                argumentNames.add(c.getString(pre + "args"));
+                argumentNames.put(c.getString(pre + "args"),null);
             }
         }
 
@@ -564,6 +566,7 @@ public class DeluxeMenusConfig {
 
         builder.parsePlaceholdersInArguments(c.getBoolean(pre + "arguments_support_placeholders", false));
         builder.parsePlaceholdersAfterArguments(c.getBoolean(pre + "parse_placeholders_after_arguments", false));
+        builder.parseNestedPlaceholders(c.getBoolean(pre + "parse_nested_placeholders", false));
 
         // Don't need to register the menu since it's done in the constructor
         new Menu(plugin, builder.build(), items, path);
@@ -1228,7 +1231,7 @@ public class DeluxeMenusConfig {
                             continue;
                         }
 
-                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
+                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments(), holder.parseNestedPlaceholders());
 
                         if (action.hasDelay()) {
                             actionTask.runTaskLater(plugin, action.getDelay(holder));

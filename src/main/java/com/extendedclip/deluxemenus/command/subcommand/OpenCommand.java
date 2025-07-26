@@ -113,11 +113,11 @@ public class OpenCommand extends SubCommand {
         }
         List<String> argumentNamesList = new ArrayList<>(menuArgumentNames.keySet());
         Collections.reverse(argumentNamesList);
-        for (int i = 0; i < argumentNamesList.size(); i++) {
-            String argumentName = argumentNamesList.get(i);
+        for (int index = 0; index < argumentNamesList.size(); index++) {
+            String argumentName = argumentNamesList.get(index);
             String defaultValue = menuArgumentNames.get(argumentName);
 
-            if (i >= menuArgs.size()) {
+            if (index >= menuArgs.size()) {
                 // No more menu args available, use default if present
                 if (defaultValue != null) {
                     argumentsMap.put(argumentName, defaultValue);
@@ -125,16 +125,15 @@ public class OpenCommand extends SubCommand {
                 continue;
             }
 
-            String menuArgValue = menuArgs.get(i);
-
-            if (i == argumentNamesList.size() - 1) {
+            if (index == argumentNamesList.size() - 1) {
                 // Last argument: join remaining menu args
-                String lastArgumentValue = String.join(" ", menuArgs.subList(i, menuArgs.size()));
+                String lastArgumentValue = String.join(" ", menuArgs.subList(index, menuArgs.size()));
                 argumentsMap.put(argumentName, lastArgumentValue);
                 break;
             }
 
             // Use menu arg value or default if menu arg is null
+            String menuArgValue = menuArgs.get(index);
             String valueToUse = (menuArgValue != null) ? menuArgValue : defaultValue;
             if (valueToUse != null) {
                 argumentsMap.put(argumentName, valueToUse);

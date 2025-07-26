@@ -6,7 +6,9 @@ import org.bukkit.event.inventory.InventoryType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class MenuOptions {
@@ -20,10 +22,11 @@ public class MenuOptions {
     private final boolean refresh;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
+    private final boolean parseNestedPlaceholders;
 
     private final List<String> commands;
     private final boolean registerCommands;
-    private final List<String> arguments;
+    private final Map<String, String> arguments;
     private final List<RequirementList> argumentRequirements;
     private final String argumentsUsageMessage;
 
@@ -41,6 +44,7 @@ public class MenuOptions {
         this.refresh = builder.refresh;
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
+        this.parseNestedPlaceholders = builder.parseNestedPlaceholders;
 
         this.commands = builder.commands;
         this.registerCommands = builder.registerCommands;
@@ -85,13 +89,14 @@ public class MenuOptions {
         return this.refresh;
     }
 
-    public boolean parsePlaceholdersInArguments() {
-        return this.parsePlaceholdersInArguments;
-    }
+    public boolean parsePlaceholdersInArguments() {return this.parsePlaceholdersInArguments;}
 
     public boolean parsePlaceholdersAfterArguments() {
         return this.parsePlaceholdersAfterArguments;
     }
+    public boolean parsePlaceholdersAfterArguments() {return this.parsePlaceholdersAfterArguments;}
+
+    public boolean parseNestedPlaceholders() {return this.parseNestedPlaceholders;}
 
     public @NotNull List<@NotNull String> commands() {
         return this.commands;
@@ -101,7 +106,7 @@ public class MenuOptions {
         return this.registerCommands;
     }
 
-    public @NotNull List<@NotNull String> arguments() {
+    public @NotNull Map<@NotNull String, @Nullable String> arguments() {
         return this.arguments;
     }
 
@@ -109,9 +114,7 @@ public class MenuOptions {
         return this.argumentRequirements;
     }
 
-    public @NotNull Optional<String> argumentsUsageMessage() {
-        return Optional.ofNullable(this.argumentsUsageMessage);
-    }
+    public @NotNull Optional<String> argumentsUsageMessage() {return Optional.ofNullable(this.argumentsUsageMessage);}
 
     public @NotNull Optional<RequirementList> openRequirements() {
         return Optional.ofNullable(this.openRequirements);
@@ -134,6 +137,7 @@ public class MenuOptions {
                 .refresh(this.refresh)
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
+                .parseNestedPlaceholders(this.parseNestedPlaceholders)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
@@ -155,10 +159,11 @@ public class MenuOptions {
         private boolean refresh;
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
+        private boolean parseNestedPlaceholders = false;
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
-        private List<String> arguments = List.of();
+        private Map<String, String> arguments = new HashMap<>();
         private List<RequirementList> argumentRequirements = List.of();
         private String argumentsUsageMessage;
 
@@ -215,6 +220,10 @@ public class MenuOptions {
             this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
             return this;
         }
+        public MenuOptionsBuilder parseNestedPlaceholders(final boolean parseNestedPlaceholders) {
+            this.parseNestedPlaceholders = parseNestedPlaceholders;
+            return this;
+        }
 
         public MenuOptionsBuilder commands(final @NotNull List<@NotNull String> commands) {
             this.commands = commands;
@@ -226,7 +235,7 @@ public class MenuOptions {
             return this;
         }
 
-        public MenuOptionsBuilder arguments(final @NotNull List<@NotNull String> arguments) {
+        public MenuOptionsBuilder arguments(final @NotNull Map<@NotNull String, @Nullable String> arguments) {
             this.arguments = arguments;
             return this;
         }

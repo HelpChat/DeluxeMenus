@@ -285,6 +285,7 @@ public class Menu {
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
         holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
+        holder.parseNestedPlaceholders(this.options.parseNestedPlaceholders());
 
         if (!this.handleArgRequirements(holder)) {
             return;

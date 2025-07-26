@@ -266,13 +266,8 @@ public class MenuItem {
             itemMeta.setCustomModelDataComponent(parseCustomModelDataComponent(this.options.customModelDataComponent().get(), itemMeta.getCustomModelDataComponent(), holder));
         }
 
-        if (this.options.displayName().isPresent()) {
-            final String displayName = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.displayName().get()));
-            if (VersionHelper.IS_PAPER) itemMeta.displayName(AdventureUtils.fromString(displayName, holder.getPlaceholderPlayer()));
-            else itemMeta.setDisplayName(displayName);
-        }
-
-        setMenuItemLore(holder, this.options.lore(), itemMeta);
+        setMenuItemDisplayName(holder, itemMeta);
+        setMenuItemLore(holder, itemMeta);
 
         if (this.options.unbreakable()) {
             itemMeta.setUnbreakable(true);
@@ -543,47 +538,101 @@ public class MenuItem {
         return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
-    @SuppressWarnings("unchecked")
-    protected void setMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> configLore, @NotNull final ItemMeta meta) {
-        List<Object> parsedConfigLore = configLore.stream()
+    protected void setMenuItemDisplayName(@NotNull final MenuHolder holder, @NotNull final ItemMeta itemMeta) {
+        if (this.options.displayName().isPresent()) {
+            if (holder.useMiniMessages()) {
+                itemMeta.displayName(AdventureUtils.fromString(this.options.displayName().get(), holder.getTagResolvers()));
+            } else {
+                String displayName = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.displayName().get()));
+                //noinspection deprecation
+                itemMeta.setDisplayName(displayName);
+            }
+        }
+    }
+
+    protected void setMenuItemLore(@NotNull final MenuHolder holder, @NotNull final ItemMeta meta) {
+        if (holder.useMiniMessages()) {
+            this.setMenuItemLoreUsingMM(holder, meta);
+        } else {
+            this.setMenuItemLoreWithoutMM(holder, meta);
+        }
+    }
+
+    private void setMenuItemLoreWithoutMM(@NotNull final MenuHolder holder, @NotNull final ItemMeta meta) {
+        List<String> lore = new ArrayList<>();
+        // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
+        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<String> itemLore = Objects.requireNonNullElse(meta.getLore(), new ArrayList<>());
+        // Ensures backwards compatibility with how hooked items are currently handled
+        LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
+        if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) {
+            mode = LoreAppendMode.IGNORE;
+        }
+        switch (mode) {
+            case IGNORE: // DM lore is not added at all
+                lore.addAll(itemLore);
+                break;
+            case TOP: // DM lore is added at the top
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(itemLore);
+                break;
+            case BOTTOM: // DM lore is bottom at the bottom
+                lore.addAll(itemLore);
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
+            case OVERRIDE: // Lore from DM overrides the lore from the item
+                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                break;
+        }
+
+        meta.setLore(lore);
+    }
+
+    private void setMenuItemLoreUsingMM(@NotNull final MenuHolder holder, @NotNull final ItemMeta meta) {
+        List<Component> lore = new ArrayList<>();
+        // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
+        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<Component> itemLore = Objects.requireNonNullElse(meta.lore(), new ArrayList<>());
+        // Ensures backwards compatibility with how hooked items are currently handled
+        LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
+        if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) {
+            mode = LoreAppendMode.IGNORE;
+        }
+        switch (mode) {
+            case IGNORE: // DM lore is not added at all
+                lore.addAll(itemLore);
+                break;
+            case TOP: // DM lore is added at the top
+                lore.addAll(getMenuItemLoreUsingMM(holder, this.options.lore()));
+                lore.addAll(itemLore);
+                break;
+            case BOTTOM: // DM lore is bottom at the bottom
+                lore.addAll(itemLore);
+                lore.addAll(getMenuItemLoreUsingMM(holder, this.options.lore()));
+                break;
+            case OVERRIDE: // Lore from DM overrides the lore from the item
+                lore.addAll(getMenuItemLoreUsingMM(holder, this.options.lore()));
+                break;
+        }
+
+        meta.lore(lore);
+    }
+
+    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
                 .map(StringUtils::color)
                 .map(line -> line.split("\n"))
                 .flatMap(Arrays::stream)
                 .map(line -> line.split("\\\\n"))
                 .flatMap(Arrays::stream)
-                .map(line -> VersionHelper.IS_PAPER
-                        ? AdventureUtils.fromString(line, holder.getPlaceholderPlayer())
-                        : line
-                ).collect(Collectors.toList());
+                .collect(Collectors.toList());
+    }
 
-        List<Object> lore = new ArrayList<>();
-        // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
-        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
-        List<?> itemLore = Objects.requireNonNullElse(VersionHelper.IS_PAPER ? meta.lore() : meta.getLore(), new ArrayList<>());
-        // Ensures backwards compatibility with how hooked items are currently handled
-        LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
-        if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) mode = LoreAppendMode.IGNORE;
-        switch (mode) {
-            case IGNORE: // DM lore is not added at all
-                lore.addAll(itemLore);
-                break;
-            case TOP: // DM lore is added at the top
-                lore.addAll(parsedConfigLore);
-                lore.addAll(itemLore);
-                break;
-            case BOTTOM: // DM lore is bottom at the bottom
-                lore.addAll(itemLore);
-                lore.addAll(parsedConfigLore);
-                break;
-            case OVERRIDE: // Lore from DM overrides the lore from the item
-                lore.addAll(parsedConfigLore);
-                break;
-        }
-        if (VersionHelper.IS_PAPER) {
-            meta.lore((List<Component>) (List<?>) lore);
-        }
-        else meta.setLore((List<String>) (List<?>) lore);
+    private List<Component> getMenuItemLoreUsingMM(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        return lore.stream()
+                .map(line -> AdventureUtils.fromString(line, holder.getTagResolvers()))
+                .collect(Collectors.toList());
     }
 
     private @NotNull org.bukkit.inventory.meta.components.CustomModelDataComponent parseCustomModelDataComponent(

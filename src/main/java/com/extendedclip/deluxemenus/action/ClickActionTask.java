@@ -10,6 +10,7 @@ import com.extendedclip.deluxemenus.utils.ExpUtils;
 import com.extendedclip.deluxemenus.utils.SoundUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -30,8 +31,11 @@ public class ClickActionTask extends BukkitRunnable {
     private final UUID uuid;
     private final ActionType actionType;
     private final String exec;
+
     // Ugly hack to get around the fact that arguments are not available at task execution time
     private final Map<String, String> arguments;
+    private final TagResolver tagResolvers;
+
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
 
@@ -41,6 +45,7 @@ public class ClickActionTask extends BukkitRunnable {
             @NotNull final ActionType actionType,
             @NotNull final String exec,
             @NotNull final Map<String, String> arguments,
+            @NotNull final TagResolver tagResolvers,
             final boolean parsePlaceholdersInArguments,
             final boolean parsePlaceholdersAfterArguments
     ) {
@@ -49,6 +54,7 @@ public class ClickActionTask extends BukkitRunnable {
         this.actionType = actionType;
         this.exec = exec;
         this.arguments = arguments;
+        this.tagResolvers = tagResolvers;
         this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
     }
@@ -60,11 +66,20 @@ public class ClickActionTask extends BukkitRunnable {
             return;
         }
 
+        switch (actionType) { // Handle MiniMessage cases to prevent unnecessary executable parsing
+            case MINI_MESSAGE:
+                plugin.audiences().player(player).sendMessage(AdventureUtils.fromString(this.exec, tagResolvers));
+                return;
+
+            case MINI_BROADCAST:
+                plugin.audiences().all().sendMessage(AdventureUtils.fromString(this.exec, tagResolvers));
+                return;
+        }
+
         final Optional<MenuHolder> holder = Menu.getMenuHolder(player);
         final Player target = holder.isPresent() && holder.get().getPlaceholderPlayer() != null
                 ? holder.get().getPlaceholderPlayer()
                 : player;
-
 
         final String executable = StringUtils.replacePlaceholdersAndArguments(
                 this.exec,
@@ -115,14 +130,6 @@ public class ClickActionTask extends BukkitRunnable {
 
             case CONSOLE:
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), executable);
-                break;
-
-            case MINI_MESSAGE:
-                plugin.audiences().player(player).sendMessage(AdventureUtils.fromString(executable, player));
-                break;
-
-            case MINI_BROADCAST:
-                plugin.audiences().all().sendMessage(AdventureUtils.fromString(executable, player));
                 break;
 
             case MESSAGE:

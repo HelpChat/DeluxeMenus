@@ -193,8 +193,7 @@ public class ClickActionTask extends BukkitRunnable {
 
                 final Menu menuToOpen = optionalMenuToOpen.get();
 
-                List<String> menuArgumentNames = new ArrayList<>(menuToOpen.options().arguments().keySet());
-                Collections.reverse(menuArgumentNames);
+                Map<String, String> menuArgumentNames = menuToOpen.options().arguments();
 
                 String[] passedArgumentValues = null;
                 if (executableParts.length > 1) {
@@ -219,26 +218,6 @@ public class ClickActionTask extends BukkitRunnable {
                     break;
                 }
 
-                if (passedArgumentValues == null || passedArgumentValues.length == 0) {
-                    // Replicate old behavior: If no arguments are given, open the menu with the arguments from the current menu
-                    if (holder.isEmpty()) {
-                        menuToOpen.openMenu(player);
-                        break;
-                    }
-
-                    menuToOpen.openMenu(player, holder.get().getTypedArgs(), holder.get().getPlaceholderPlayer());
-                    break;
-                }
-
-                if (passedArgumentValues.length < menuArgumentNames.size()) {
-                    plugin.debug(
-                            DebugLevel.HIGHEST,
-                            Level.WARNING,
-                            "Not enough arguments given for menu " + menuName + " when opening using the [openguimenu] or [openmenu] action!"
-                    );
-                    break;
-                }
-
                 final Map<String, String> argumentsMap = new HashMap<>();
                 if (holder.isPresent() && holder.get().getTypedArgs() != null) {
                     // Pass the arguments from the current menu to the new menu. If the new menu has arguments with the
@@ -246,17 +225,18 @@ public class ClickActionTask extends BukkitRunnable {
                     argumentsMap.putAll(holder.get().getTypedArgs());
                 }
 
-                for (int index = 0; index < menuArgumentNames.size(); index++) {
-                    final String argumentName = menuArgumentNames.get(index);
+                List<String> argumentNamesList = new ArrayList<>(menuArgumentNames.keySet());
+                Collections.reverse(argumentNamesList);
+                for (int index = 0; index < argumentNamesList.size(); index++) {
+                    final String argumentName = argumentNamesList.get(index);
+                    String defaultValue = menuArgumentNames.get(argumentName);
 
-                    if (passedArgumentValues.length <= index) {
+                    if (passedArgumentValues == null || passedArgumentValues.length <= index) {
                         // This should never be the case!
-                        plugin.debug(
-                                DebugLevel.HIGHEST,
-                                Level.WARNING,
-                                "Not enough arguments given for menu " + menuName + " when opening using the [openguimenu] or [openmenu] action!"
-                        );
-                        break;
+                        if (defaultValue != null) {
+                            argumentsMap.put(argumentName, defaultValue);
+                        }
+                        continue;
                     }
 
                     if (menuArgumentNames.size() == index + 1) {
@@ -264,6 +244,11 @@ public class ClickActionTask extends BukkitRunnable {
                         final String lastArgumentValue = String.join(" ", Arrays.asList(passedArgumentValues).subList(index, passedArgumentValues.length));
                         argumentsMap.put(argumentName, lastArgumentValue);
                         break;
+                    }
+                    String menuArgValue = passedArgumentValues[index];
+                    String valueToUse = (menuArgValue != null) ? menuArgValue : defaultValue;
+                    if (valueToUse != null) {
+                        argumentsMap.put(argumentName, valueToUse);
                     }
 
                     argumentsMap.put(argumentName, passedArgumentValues[index]);

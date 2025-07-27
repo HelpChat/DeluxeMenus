@@ -13,9 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +34,7 @@ public class MenuHolder implements InventoryHolder {
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
     private boolean parseNestedPlaceholders;
+    private boolean enableBypassPerm;
     private Map<String, String> typedArgs;
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
@@ -351,8 +350,13 @@ public class MenuHolder implements InventoryHolder {
     public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
         this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
     }
+
     public void parseNestedPlaceholders(final boolean parseNestedPlaceholders) {
         this.parseNestedPlaceholders = parseNestedPlaceholders;
+    }
+
+    public void enableBypassPerm(final boolean enableBypassPerm) {
+        this.enableBypassPerm = enableBypassPerm;
     }
 
     public boolean parsePlaceholdersInArguments() {
@@ -362,6 +366,8 @@ public class MenuHolder implements InventoryHolder {
     public boolean parsePlaceholdersAfterArguments() {return parsePlaceholdersAfterArguments;}
 
     public boolean parseNestedPlaceholders() {return parseNestedPlaceholders;}
+
+    public boolean enableBypassPerm() {return enableBypassPerm;}
 
     public void setPlaceholderPlayer(Player placeholderPlayer) {
         this.placeholderPlayer = placeholderPlayer;

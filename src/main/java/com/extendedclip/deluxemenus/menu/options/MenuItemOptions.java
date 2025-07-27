@@ -27,6 +27,7 @@ public class MenuItemOptions {
     private final String customModelData;
     private final CustomModelDataComponent customModelDataComponent;
     private final String dynamicAmount;
+    private final String dynamicSlot;
     private final String lightLevel;
     private final String displayName;
     private final List<String> lore;
@@ -90,6 +91,7 @@ public class MenuItemOptions {
         this.customModelData = builder.customModelData;
         this.customModelDataComponent = builder.customModelDataComponent;
         this.dynamicAmount = builder.dynamicAmount;
+        this.dynamicSlot = builder.dynamicSlot;
         this.lightLevel = builder.lightLevel;
         this.displayName = builder.displayName;
         this.lore = builder.lore;
@@ -164,6 +166,10 @@ public class MenuItemOptions {
 
     public @NotNull Optional<String> dynamicAmount() {
         return Optional.ofNullable(dynamicAmount);
+    }
+
+    public @NotNull Optional<String> dynamicSlot() {
+        return Optional.ofNullable(dynamicSlot);
     }
 
     public @NotNull Optional<String> lightLevel() {
@@ -362,6 +368,7 @@ public class MenuItemOptions {
                 .customModelData(this.customModelData)
                 .customModelDataComponent(this.customModelDataComponent)
                 .dynamicAmount(this.dynamicAmount)
+                .dynamicSlot(this.dynamicSlot)
                 .lightLevel(this.lightLevel)
                 .displayName(this.displayName)
                 .lore(this.lore)
@@ -416,6 +423,7 @@ public class MenuItemOptions {
         private String customModelData;
         private CustomModelDataComponent customModelDataComponent;
         private String dynamicAmount;
+        private String dynamicSlot;
         private String lightLevel;
         private String displayName;
         private List<String> lore = Collections.emptyList();
@@ -502,6 +510,11 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder dynamicAmount(final @Nullable String configDynamicAmount) {
             this.dynamicAmount = configDynamicAmount;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder dynamicSlot(final @Nullable String configDynamicSlot) {
+            this.dynamicSlot = configDynamicSlot;
             return this;
         }
 

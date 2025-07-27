@@ -353,16 +353,34 @@ public class Menu {
             boolean update = false;
 
             for (MenuItem item : activeItems) {
-
                 ItemStack iStack = item.getItemStack(holder);
 
                 if (iStack == null) {
                     continue;
                 }
+                test
 
                 iStack = plugin.getMenuItemMarker().mark(iStack);
 
                 int slot = item.options().slot();
+
+                if (item.options().dynamicSlot().isPresent()) {
+                    try {
+                        String slotStr = holder.setPlaceholdersAndArguments(item.options().dynamicSlot().get());
+                        int dynamic = Integer.parseInt(slotStr);
+
+                        if (dynamic >= 0 && dynamic < this.options.size()) {
+                            slot = dynamic;
+                        } else {
+                            plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Dynamic slot " + dynamic + " is out of bounds for menu: " + this.options.name());
+                            continue;
+                        }
+
+                    } catch (NumberFormatException e) {
+                        plugin.printStacktrace("Invalid dynamic_slot value for item in menu " + this.options.name(), e);
+                        continue;
+                    }
+                }
 
                 if (slot >= this.options.size()) {
                     plugin.debug(
@@ -378,7 +396,7 @@ public class Menu {
                     update = true;
                 }
 
-                inventory.setItem(item.options().slot(), iStack);
+                inventory.setItem(slot, iStack);
             }
 
             final boolean updatePlaceholders = update;

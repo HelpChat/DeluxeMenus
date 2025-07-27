@@ -186,15 +186,27 @@ public class MenuHolder implements InventoryHolder {
 
                     int slot = item.options().slot();
 
+                    if (item.options().dynamicSlot().isPresent()) {
+                        try {
+                            String slotStr = setPlaceholdersAndArguments(item.options().dynamicSlot().get());
+                            Integer dynamic = Integer.parseInt(slotStr);
+
+                            if (dynamic >= 0 && dynamic < menu.options().size()) {
+                                slot = dynamic;
+                            } else {
+                                continue;
+                            }
+                        } catch (Exception e) {
+                            plugin.printStacktrace("Failed to parse dynamic_slot: " + item.options().dynamicSlot().get(), e);
+                            continue;
+                        }
+                    }
+
                     if (slot >= menu.options().size()) {
                         continue;
                     }
 
-                    if (item.options().updatePlaceholders()) {
-                        update = true;
-                    }
-
-                    getInventory().setItem(item.options().slot(), iStack);
+                    getInventory().setItem(slot, iStack);
                 }
 
                 setActiveItems(active);
@@ -272,7 +284,22 @@ public class MenuHolder implements InventoryHolder {
 
                     if (item.options().updatePlaceholders()) {
 
-                        ItemStack i = inventory.getItem(item.options().slot());
+                        int slot = item.options().slot();
+                        if (item.options().dynamicSlot().isPresent()) {
+                            try {
+                                slot = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicSlot().get()));
+                                if (slot <= 0) {
+                                    slot = 0;
+                                }
+                            } catch (Exception exception) {
+                                plugin.printStacktrace(
+                                        "Something went wrong while updating item in slot " + item.options().slot() +
+                                                ". Invalid dynamic slot: " + setPlaceholdersAndArguments(item.options().dynamicSlot().get()),
+                                        exception
+                                );
+                            }
+                        }
+                        ItemStack i = inventory.getItem(slot);
 
                         if (i == null) {
                             continue;

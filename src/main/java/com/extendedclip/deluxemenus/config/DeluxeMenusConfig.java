@@ -613,6 +613,7 @@ public class DeluxeMenusConfig {
                             .map(DyeColor::valueOf)
                             .orElse(null))
                     .slot(c.getInt(currentPath + "slot", 0))
+                    .dynamicSlot(c.getString(currentPath + "dynamic_slot", null))
                     .amount(c.getInt(currentPath + "amount", -1))
                     .dynamicAmount(c.getString(currentPath + "dynamic_amount", null))
                     .customModelData(c.getString(currentPath + "model_data", null))
@@ -835,8 +836,16 @@ public class DeluxeMenusConfig {
                 } else {
                     slotPriorityMap = menuItems.get(slot);
                 }
-                slotPriorityMap.put(menuItem.options().priority(), new MenuItem(plugin, menuItem.options().asBuilder().slot(slot).build()));
-            }
+                MenuItemOptions originalOptions = menuItem.options();
+                MenuItemOptions.MenuItemOptionsBuilder itemBuilder = originalOptions.asBuilder();
+
+                if (originalOptions.dynamicSlot().isEmpty()) {
+                    itemBuilder.slot(slot);
+                }
+
+                MenuItem updatedItem = new MenuItem(plugin, itemBuilder.build());
+
+                slotPriorityMap.put(originalOptions.priority(), updatedItem);            }
         }
         return menuItems;
     }

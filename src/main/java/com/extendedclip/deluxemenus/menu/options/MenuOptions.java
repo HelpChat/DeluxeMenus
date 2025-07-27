@@ -23,6 +23,7 @@ public class MenuOptions {
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
     private final boolean parseNestedPlaceholders;
+    private final boolean enableBypassPerm;
 
     private final List<String> commands;
     private final boolean registerCommands;
@@ -45,6 +46,7 @@ public class MenuOptions {
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
         this.parseNestedPlaceholders = builder.parseNestedPlaceholders;
+        this.enableBypassPerm = builder.enableBypassPerm;
 
         this.commands = builder.commands;
         this.registerCommands = builder.registerCommands;
@@ -95,6 +97,8 @@ public class MenuOptions {
 
     public boolean parseNestedPlaceholders() {return this.parseNestedPlaceholders;}
 
+    public boolean enableBypassPerm() {return this.enableBypassPerm;}
+
     public @NotNull List<@NotNull String> commands() {
         return this.commands;
     }
@@ -135,6 +139,7 @@ public class MenuOptions {
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
                 .parseNestedPlaceholders(this.parseNestedPlaceholders)
+                .enableBypassPerm(this.enableBypassPerm)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
@@ -157,6 +162,7 @@ public class MenuOptions {
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
         private boolean parseNestedPlaceholders = false;
+        private boolean enableBypassPerm = false;
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
@@ -217,8 +223,14 @@ public class MenuOptions {
             this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
             return this;
         }
+
         public MenuOptionsBuilder parseNestedPlaceholders(final boolean parseNestedPlaceholders) {
             this.parseNestedPlaceholders = parseNestedPlaceholders;
+            return this;
+        }
+
+        public MenuOptionsBuilder enableBypassPerm(final boolean enableBypassPerm) {
+            this.enableBypassPerm = enableBypassPerm;
             return this;
         }
 

@@ -567,6 +567,7 @@ public class DeluxeMenusConfig {
         builder.parsePlaceholdersInArguments(c.getBoolean(pre + "arguments_support_placeholders", false));
         builder.parsePlaceholdersAfterArguments(c.getBoolean(pre + "parse_placeholders_after_arguments", false));
         builder.parseNestedPlaceholders(c.getBoolean(pre + "parse_nested_placeholders", false));
+        builder.enableBypassPerm(c.getBoolean(pre + "enable_open_requirements_bypass_permissions", false));
 
         // Don't need to register the menu since it's done in the constructor
         new Menu(plugin, builder.build(), items, path);

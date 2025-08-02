@@ -153,14 +153,23 @@ public class MenuHolder implements InventoryHolder {
                 boolean m = false;
                 for (MenuItem item : e.values()) {
 
-                    if (item.options().viewRequirements().isPresent()) {
 
-                        if (item.options().viewRequirements().get().evaluate(this)) {
-                            m = true;
-                            active.add(item);
-                            break;
+                    boolean passesViewRequirements = true;
+                    if (item.options().viewRequirements().isPresent()) {
+                        passesViewRequirements = item.options().viewRequirements().get().evaluate(this);
+                    }
+
+                    boolean passesDynamicAmount = true;
+                    if (item.options().dynamicAmount().isPresent()) {
+                        try {
+                            int amt = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
+                            passesDynamicAmount = amt > 0;
+                        } catch (Exception exception) {
+                            passesDynamicAmount = false;
                         }
-                    } else {
+                    }
+
+                    if (passesViewRequirements && passesDynamicAmount) {
                         m = true;
                         active.add(item);
                         break;
@@ -343,17 +352,11 @@ public class MenuHolder implements InventoryHolder {
         this.typedArgs = typedArgs;
     }
 
-    public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
-        this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
-    }
+    public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;}
 
-    public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
-        this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
-    }
+    public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;}
 
-    public void parseNestedPlaceholders(final boolean parseNestedPlaceholders) {
-        this.parseNestedPlaceholders = parseNestedPlaceholders;
-    }
+    public void parseNestedPlaceholders(final boolean parseNestedPlaceholders) {this.parseNestedPlaceholders = parseNestedPlaceholders;}
 
     public void enableBypassPerm(final boolean enableBypassPerm) {
         this.enableBypassPerm = enableBypassPerm;

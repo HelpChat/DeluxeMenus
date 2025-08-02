@@ -314,15 +314,22 @@ public class Menu {
                         continue;
                     }
 
+                    boolean passesViewRequirements = true;
                     if (item.options().viewRequirements().isPresent()) {
+                        passesViewRequirements = item.options().viewRequirements().get().evaluate(holder);
+                    }
 
-                        if (item.options().viewRequirements().get().evaluate(holder)) {
-
-                            activeItems.add(item);
-                            break;
+                    boolean passesDynamicAmount = true;
+                    if (item.options().dynamicAmount().isPresent()) {
+                        try {
+                            int amt = Integer.parseInt(holder.setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
+                            passesDynamicAmount = amt > 0;
+                        } catch (Exception exception) {
+                            passesDynamicAmount = false;
                         }
-                    } else {
+                    }
 
+                    if (passesViewRequirements && passesDynamicAmount) {
                         activeItems.add(item);
                         break;
                     }

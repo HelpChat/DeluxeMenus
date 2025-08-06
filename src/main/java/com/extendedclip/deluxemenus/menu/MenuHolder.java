@@ -2,7 +2,10 @@ package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.utils.AdventureUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
+import com.extendedclip.deluxemenus.utils.VersionHelper;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -13,9 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -35,6 +36,8 @@ public class MenuHolder implements InventoryHolder {
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
+    private boolean useMiniMessages;
+    private TagResolver tagResolvers = TagResolver.empty();
     private Map<String, String> typedArgs;
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
@@ -201,7 +204,7 @@ public class MenuHolder implements InventoryHolder {
 
                 if (update && updateTask == null) {
                     startUpdatePlaceholdersTask();
-                } else if(!update && updateTask != null) {
+                } else if (!update && updateTask != null) {
                     stopPlaceholderUpdate();
                 }
 
@@ -221,7 +224,7 @@ public class MenuHolder implements InventoryHolder {
     }
 
     public void stopRefreshTask() {
-        if(refreshTask != null) {
+        if (refreshTask != null) {
             try {
                 refreshTask.cancel();
             } catch (Exception ignored) {
@@ -231,7 +234,7 @@ public class MenuHolder implements InventoryHolder {
     }
 
     public void startRefreshTask() {
-        if(refreshTask != null) {
+        if (refreshTask != null) {
             stopRefreshTask();
         }
 
@@ -257,34 +260,28 @@ public class MenuHolder implements InventoryHolder {
 
             @Override
             public void run() {
-
                 if (updating) {
                     return;
                 }
 
-                Set<MenuItem> items = getActiveItems();
-
+                final Set<MenuItem> items = getActiveItems();
                 if (items == null) {
                     return;
                 }
 
                 for (MenuItem item : items) {
-
                     if (item.options().updatePlaceholders()) {
-
-                        ItemStack i = inventory.getItem(item.options().slot());
-
-                        if (i == null) {
+                        final ItemStack itemStack = inventory.getItem(item.options().slot());
+                        if (itemStack == null) {
                             continue;
                         }
 
-                        int amt = i.getAmount();
-
+                        int amount = itemStack.getAmount();
                         if (item.options().dynamicAmount().isPresent()) {
                             try {
-                                amt = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
-                                if (amt <= 0) {
-                                    amt = 1;
+                                amount = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
+                                if (amount <= 0) {
+                                    amount = 1;
                                 }
                             } catch (Exception exception) {
                                 plugin.printStacktrace(
@@ -295,22 +292,19 @@ public class MenuHolder implements InventoryHolder {
                             }
                         }
 
-                        ItemMeta meta = i.getItemMeta();
-
-                        if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
-                            meta.setDisplayName(StringUtils.color(setPlaceholdersAndArguments(item.options().displayName().get())));
+                        final ItemMeta meta = itemStack.getItemMeta();
+                        if (meta == null) {
+                            continue;
                         }
 
-                        if (item.options().loreHasPlaceholders()) {
-                            meta.setLore(item.getMenuItemLore(getHolder(), item.options().lore()));
-                        }
+                        item.setMenuItemDisplayName(getHolder(), meta);
+                        item.setMenuItemLore(getHolder(), meta);
 
-                        i.setItemMeta(meta);
-                        i.setAmount(amt);
+                        itemStack.setItemMeta(meta);
+                        itemStack.setAmount(amount);
                     }
                 }
             }
-
         }.runTaskTimerAsynchronously(plugin, 20L,
                 20L * Menu.getMenuByName(menuName)
                         .map(Menu::options)
@@ -351,6 +345,29 @@ public class MenuHolder implements InventoryHolder {
         this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
     }
 
+    public void useMiniMessages(final boolean useMiniMessages) {
+        this.useMiniMessages = useMiniMessages;
+    }
+
+    public boolean useMiniMessages() {
+        return VersionHelper.IS_PAPER && this.useMiniMessages;
+    }
+
+    public void loadTagResolvers() {
+        final Player target = getPlaceholderPlayer() != null
+                ? getPlaceholderPlayer()
+                : getViewer();
+
+        this.tagResolvers = TagResolver.resolver(
+                AdventureUtils.createPlaceholderAPITagResolver(target),
+                AdventureUtils.createArgumentTagResolver(typedArgs)
+        );
+    }
+
+    public TagResolver getTagResolvers() {
+        return this.tagResolvers;
+    }
+
     public boolean parsePlaceholdersInArguments() {
         return parsePlaceholdersInArguments;
     }
@@ -359,12 +376,12 @@ public class MenuHolder implements InventoryHolder {
         return parsePlaceholdersAfterArguments;
     }
 
-    public void setPlaceholderPlayer(Player placeholderPlayer) {
-        this.placeholderPlayer = placeholderPlayer;
-    }
-
     public Player getPlaceholderPlayer() {
         return placeholderPlayer;
+    }
+
+    public void setPlaceholderPlayer(Player placeholderPlayer) {
+        this.placeholderPlayer = placeholderPlayer;
     }
 
     public @NotNull DeluxeMenus getPlugin() {

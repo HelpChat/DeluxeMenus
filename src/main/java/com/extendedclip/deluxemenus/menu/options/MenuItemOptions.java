@@ -1,7 +1,6 @@
 package com.extendedclip.deluxemenus.menu.options;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import org.bukkit.DyeColor;
 import org.bukkit.block.banner.Pattern;
@@ -50,8 +49,6 @@ public class MenuItemOptions {
 
     private final boolean unbreakable;
 
-    private final boolean displayNameHasPlaceholders;
-    private final boolean loreHasPlaceholders;
     private final boolean hasLore;
     private final LoreAppendMode loreAppendMode;
 
@@ -110,8 +107,6 @@ public class MenuItemOptions {
         this.bannerMeta = builder.bannerMeta;
         this.itemFlags.addAll(builder.itemFlags);
         this.unbreakable = builder.unbreakable;
-        this.displayNameHasPlaceholders = builder.displayNameHasPlaceholders;
-        this.loreHasPlaceholders = builder.loreHasPlaceholders;
         this.nbtString = builder.nbtString;
         this.nbtByte = builder.nbtByte;
         this.nbtShort = builder.nbtShort;
@@ -240,14 +235,6 @@ public class MenuItemOptions {
 
     public boolean unbreakable() {
         return unbreakable;
-    }
-
-    public boolean displayNameHasPlaceholders() {
-        return displayNameHasPlaceholders;
-    }
-
-    public boolean loreHasPlaceholders() {
-        return loreHasPlaceholders;
     }
 
     public boolean hasLore() {
@@ -439,8 +426,6 @@ public class MenuItemOptions {
 
         private boolean unbreakable;
 
-        private boolean displayNameHasPlaceholders;
-        private boolean loreHasPlaceholders;
         private boolean hasLore;
         private LoreAppendMode loreAppendMode;
 
@@ -512,15 +497,11 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder displayName(final @Nullable String configDisplayName) {
             this.displayName = configDisplayName;
-            if (this.displayName != null) {
-                this.displayNameHasPlaceholders = DeluxeMenusConfig.containsPlaceholders(this.displayName);
-            }
             return this;
         }
 
         public MenuItemOptionsBuilder lore(final @NotNull List<String> configLore) {
             this.lore = configLore;
-            this.loreHasPlaceholders = configLore.stream().anyMatch(DeluxeMenusConfig::containsPlaceholders);
             return this;
         }
 

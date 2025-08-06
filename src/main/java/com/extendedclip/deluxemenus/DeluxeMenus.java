@@ -25,6 +25,7 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
+import org.bstats.charts.SimplePie;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -169,7 +170,7 @@ public class DeluxeMenus extends JavaPlugin {
     }
 
     public void sms(CommandSender s, Messages msg) {
-        audiences().sender(s).sendMessage(msg.message());
+        sms(s, msg.message());
     }
 
     public void debug(@NotNull final DebugLevel messageDebugLevel, @NotNull final Level level, @NotNull final String... messages) {
@@ -243,11 +244,11 @@ public class DeluxeMenus extends JavaPlugin {
                 "DeluxeMenus will continue to work but some features (such as the 'has money' requirement) may not be available.");
     }
 
-    @SuppressWarnings("deprecation")
     private void setUpItemHooks() {
         if (!VersionHelper.IS_ITEM_LEGACY) {
             this.head = new ItemStack(Material.PLAYER_HEAD, 1);
         } else {
+            //noinspection deprecation
             this.head = new ItemStack(Material.valueOf("SKULL_ITEM"), 1, (short) 3);
         }
 
@@ -326,6 +327,8 @@ public class DeluxeMenus extends JavaPlugin {
                 .map(Menu::options)
                 .map(MenuOptions::type)
                 .collect(Collectors.groupingBy(Enum::name, Collectors.summingInt(type -> 1)))));
+
+        metrics.addCustomChart(new SimplePie("is_paper", () -> VersionHelper.IS_PAPER ? "true" : "false"));
 
         // added for 1.21 usage
         metrics.addCustomChart(new AdvancedPie("nbt_usage", () -> {

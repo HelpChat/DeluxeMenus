@@ -46,7 +46,7 @@ public final class VersionHelper {
 
     public static final int CURRENT_VERSION = getCurrentVersion();
 
-    private static final boolean IS_PAPER = checkPaper();
+    public static final boolean IS_PAPER = checkPaper();
 
     /**
      * Checks if the current version includes the setTooltipStyle and setItemModel

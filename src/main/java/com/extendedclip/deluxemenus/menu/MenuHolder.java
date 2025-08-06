@@ -35,6 +35,8 @@ public class MenuHolder implements InventoryHolder {
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
+    private boolean parseNestedPlaceholders;
+    private boolean enableBypassPerm;
     private Map<String, String> typedArgs;
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
@@ -109,7 +111,7 @@ public class MenuHolder implements InventoryHolder {
             return string;
         }
 
-        return StringUtils.replacePlaceholders(string, player);
+        return StringUtils.replacePlaceholders(string, player, parseNestedPlaceholders);
     }
 
     public @NotNull String setArguments(final @NotNull String string) {
@@ -343,21 +345,21 @@ public class MenuHolder implements InventoryHolder {
         this.typedArgs = typedArgs;
     }
 
-    public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
-        this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
-    }
+    public void parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;}
 
-    public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
-        this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
-    }
+    public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;}
 
-    public boolean parsePlaceholdersInArguments() {
-        return parsePlaceholdersInArguments;
-    }
+    public void parseNestedPlaceholders(final boolean parseNestedPlaceholders) {this.parseNestedPlaceholders = parseNestedPlaceholders;}
 
-    public boolean parsePlaceholdersAfterArguments() {
-        return parsePlaceholdersAfterArguments;
-    }
+    public void enableBypassPerm(final boolean enableBypassPerm) {this.enableBypassPerm = enableBypassPerm;}
+
+    public boolean parsePlaceholdersInArguments() {return parsePlaceholdersInArguments;}
+
+    public boolean parsePlaceholdersAfterArguments() {return parsePlaceholdersAfterArguments;}
+
+    public boolean parseNestedPlaceholders() {return parseNestedPlaceholders;}
+
+    public boolean enableBypassPerm() {return enableBypassPerm;}
 
     public void setPlaceholderPlayer(Player placeholderPlayer) {
         this.placeholderPlayer = placeholderPlayer;

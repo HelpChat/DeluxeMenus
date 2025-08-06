@@ -67,7 +67,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String actionName = StringUtils.replacePlaceholders(arguments.get(1), target);
+        final String AN = arguments.get(1);
+        final String actionName = StringUtils.replacePlaceholders(AN, target, AN.contains("{") && AN.contains("}"));
         final DataAction action = DataAction.getActionByName(actionName);
 
         if (action == null) {
@@ -90,7 +91,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String keyName = StringUtils.replacePlaceholders(arguments.get(2), target);
+        final String KN = arguments.get(2);
+        final String keyName = StringUtils.replacePlaceholders(KN, target, KN.contains("{") && KN.contains("}"));
         final NamespacedKey namespacedKey = plugin.getPersistentMetaHandler().getKey(keyName);
         if (namespacedKey == null) {
             plugin.sms(sender, Messages.META_KEY_INVALID.message().replaceText(KEY_REPLACER_BUILDER.replacement(keyName).build()));
@@ -110,7 +112,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String typeName = StringUtils.replacePlaceholders(arguments.get(3), target).toUpperCase(Locale.ROOT);
+        final String TN = arguments.get(3);
+        final String typeName = StringUtils.replacePlaceholders(TN, target, TN.contains("{") && TN.contains("}")).toUpperCase(Locale.ROOT);
         final DataType<?, ?> type = DataType.getSupportedTypeByName(typeName);
         if (type == null) {
             plugin.sms(sender, Messages.META_TYPE_UNSUPPORTED.message().replaceText(TYPE_REPLACER_BUILDER.replacement(typeName).build()));
@@ -129,7 +132,8 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String value = StringUtils.replacePlaceholders(String.join(" ", arguments.subList(4, arguments.size())), target);
+        final String VN = (String.join(" ", arguments.subList(4, arguments.size())));
+        final String value = StringUtils.replacePlaceholders(VN, target, VN.contains("{") && VN.contains("}"));
 
         if (action == DataAction.SET) {
             handleSetMeta(sender, target, namespacedKey, type, value, context);

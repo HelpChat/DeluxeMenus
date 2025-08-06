@@ -234,7 +234,7 @@ public class Menu {
             return true;
         }
 
-        if (holder.getViewer() != null && this.hasOpenBypassPerm(holder.getViewer())) {
+        if (holder.getViewer() != null && (this.options.enableBypassPerm() && this.hasOpenBypassPerm(holder.getViewer()))) {
             return true;
         }
 
@@ -285,6 +285,8 @@ public class Menu {
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
         holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
+        holder.parseNestedPlaceholders(this.options.parseNestedPlaceholders());
+        holder.enableBypassPerm(this.options.enableBypassPerm());
 
         if (!this.handleArgRequirements(holder)) {
             return;

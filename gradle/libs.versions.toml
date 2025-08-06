@@ -16,8 +16,8 @@ bstats = "3.1.0"
 
 # Implementation
 nashorn = "15.6"
-adventure-platform = "4.4.0"
-adventure-minimessage = "4.21.0"
+adventure-platform = "4.4.1"
+adventure-minimessage = "4.24.0"
 
 [libraries]
 # Compile only

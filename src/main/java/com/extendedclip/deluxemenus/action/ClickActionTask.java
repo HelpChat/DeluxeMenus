@@ -36,7 +36,6 @@ public class ClickActionTask extends BukkitRunnable {
     private final Map<String, String> arguments;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
-    private final boolean parseNestedPlaceholders;
 
     public ClickActionTask(
             @NotNull final DeluxeMenus plugin,
@@ -45,8 +44,7 @@ public class ClickActionTask extends BukkitRunnable {
             @NotNull final String exec,
             @NotNull final Map<String, String> arguments,
             final boolean parsePlaceholdersInArguments,
-            final boolean parsePlaceholdersAfterArguments,
-            final boolean parseNestedPlaceholders
+            final boolean parsePlaceholdersAfterArguments
     ) {
         this.plugin = plugin;
         this.uuid = uuid;
@@ -55,7 +53,6 @@ public class ClickActionTask extends BukkitRunnable {
         this.arguments = arguments;
         this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
-        this.parseNestedPlaceholders = parseNestedPlaceholders;
     }
 
     @Override
@@ -76,8 +73,7 @@ public class ClickActionTask extends BukkitRunnable {
                 this.arguments,
                 target,
                 this.parsePlaceholdersInArguments,
-                this.parsePlaceholdersAfterArguments,
-                this.parseNestedPlaceholders);
+                this.parsePlaceholdersAfterArguments);
 
         switch (actionType) {
             case META:

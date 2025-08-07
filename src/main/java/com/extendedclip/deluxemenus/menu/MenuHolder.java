@@ -35,7 +35,6 @@ public class MenuHolder implements InventoryHolder {
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
-    private boolean parseNestedPlaceholders;
     private boolean enableBypassPerm;
     private Map<String, String> typedArgs;
 
@@ -111,7 +110,7 @@ public class MenuHolder implements InventoryHolder {
             return string;
         }
 
-        return StringUtils.replacePlaceholders(string, player, parseNestedPlaceholders);
+        return StringUtils.replacePlaceholders(string, player);
     }
 
     public @NotNull String setArguments(final @NotNull String string) {
@@ -349,15 +348,11 @@ public class MenuHolder implements InventoryHolder {
 
     public void parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;}
 
-    public void parseNestedPlaceholders(final boolean parseNestedPlaceholders) {this.parseNestedPlaceholders = parseNestedPlaceholders;}
-
     public void enableBypassPerm(final boolean enableBypassPerm) {this.enableBypassPerm = enableBypassPerm;}
 
     public boolean parsePlaceholdersInArguments() {return parsePlaceholdersInArguments;}
 
     public boolean parsePlaceholdersAfterArguments() {return parsePlaceholdersAfterArguments;}
-
-    public boolean parseNestedPlaceholders() {return parseNestedPlaceholders;}
 
     public boolean enableBypassPerm() {return enableBypassPerm;}
 

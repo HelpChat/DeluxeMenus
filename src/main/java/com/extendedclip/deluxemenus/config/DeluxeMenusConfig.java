@@ -564,7 +564,6 @@ public class DeluxeMenusConfig {
 
         builder.parsePlaceholdersInArguments(c.getBoolean(pre + "arguments_support_placeholders", false));
         builder.parsePlaceholdersAfterArguments(c.getBoolean(pre + "parse_placeholders_after_arguments", false));
-        builder.parseNestedPlaceholders(c.getBoolean(pre + "parse_nested_placeholders", false));
         builder.enableBypassPerm(c.getBoolean(pre + "enable_open_requirements_bypass_permissions", false));
 
         // Don't need to register the menu since it's done in the constructor
@@ -1230,7 +1229,7 @@ public class DeluxeMenusConfig {
                             continue;
                         }
 
-                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments(), holder.parseNestedPlaceholders());
+                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
 
                         if (action.hasDelay()) {
                             actionTask.runTaskLater(plugin, action.getDelay(holder));

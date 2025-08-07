@@ -54,7 +54,7 @@ public class StringUtils {
     }
 
     @NotNull
-    public static String replacePlaceholders(@NotNull String input, final @NotNull Player player) {
+    public static String replacePlaceholders(final @NotNull String input, final @NotNull Player player) {
         return PlaceholderAPI.setPlaceholders(player, input);
     }
 

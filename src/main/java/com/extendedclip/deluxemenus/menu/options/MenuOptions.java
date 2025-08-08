@@ -95,7 +95,9 @@ public class MenuOptions {
         return this.parsePlaceholdersAfterArguments;
     }
 
-    public boolean enableBypassPerm() {return this.enableBypassPerm;}
+    public boolean enableBypassPerm() {
+        return this.enableBypassPerm;
+    }
 
     public @NotNull List<@NotNull String> commands() {
         return this.commands;

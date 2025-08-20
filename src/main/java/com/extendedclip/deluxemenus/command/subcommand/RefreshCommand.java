@@ -51,7 +51,7 @@ public class RefreshCommand extends SubCommand {
 
         menu.get().refreshForAll();
 
-        if(arguments.size() < 2 || !arguments.get(1).equalsIgnoreCase("-s")) {
+        if (arguments.size() < 2 || !arguments.get(1).equalsIgnoreCase("-s")) {
             plugin.sms(sender, Messages.MENU_REFRESHED.message()
                     .replaceText(MENU_REPLACER_BUILDER.replacement(menu.get().options().name()).build())
                     .replaceText(AMOUNT_REPLACER_BUILDER.replacement(String.valueOf(menu.get().activeViewers())).build())

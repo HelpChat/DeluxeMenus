@@ -5,7 +5,6 @@ import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.extendedclip.deluxemenus.utils.SkullUtils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 

@@ -55,21 +55,19 @@ public class DupeFixer extends Listener {
 
     @EventHandler
     private void onLogin(@NotNull final PlayerJoinEvent event) {
-        plugin.getServer().getScheduler().runTaskLater(
-                plugin,
-                () -> {
-                    for (final ItemStack itemStack : event.getPlayer().getInventory().getContents()) {
-                        if (itemStack == null) continue;
-                        if (!marker.isMarked(itemStack)) continue;
+        plugin.getScheduler().runTaskLater(() -> {
+                for (final ItemStack itemStack : event.getPlayer().getInventory().getContents()) {
+                    if (itemStack == null) continue;
+                    if (!marker.isMarked(itemStack)) continue;
 
-                        plugin.debug(
-                                DebugLevel.LOWEST,
-                                Level.INFO,
-                                "Player logged in with a DeluxeMenus item in their inventory. Removing it."
-                        );
-                        event.getPlayer().getInventory().remove(itemStack);
-                    }},
-                10L
+                    plugin.debug(
+                            DebugLevel.LOWEST,
+                            Level.INFO,
+                            "Player logged in with a DeluxeMenus item in their inventory. Removing it."
+                    );
+                    event.getPlayer().getInventory().remove(itemStack);
+                }
+            }, 10L
         );
     }
 }

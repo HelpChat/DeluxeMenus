@@ -21,7 +21,7 @@ adventure-minimessage = "4.24.0"
 
 [libraries]
 # Compile only
-spigot = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
+spigot = { module = "io.papermc.paper:paper-api", version.ref = "spigot" }
 vault = { module = "com.github.milkbowl:VaultAPI", version.ref = "vault" }
 authlib = { module = "com.mojang:authlib", version.ref = "authlib" }
 headdb = { module = "com.arcaniax:HeadDatabase-API", version.ref = "headdb" }

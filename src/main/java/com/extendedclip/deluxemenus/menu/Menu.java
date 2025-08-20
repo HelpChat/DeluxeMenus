@@ -1,8 +1,6 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
 import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
@@ -10,11 +8,18 @@ import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -25,9 +30,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class Menu {
 
-    private static final Map<String, Menu> menus = new HashMap<>();
-    private static final Set<MenuHolder> menuHolders = new HashSet<>();
-    private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
+    private static final Map<String, Menu> menus = new ConcurrentHashMap<>();
+    private static final Set<MenuHolder> menuHolders = ConcurrentHashMap.newKeySet();
+    private static final Map<UUID, Menu> lastOpenedMenus = new ConcurrentHashMap<>();
 
     private final DeluxeMenus plugin;
     private final MenuOptions options;
@@ -50,7 +55,7 @@ public class Menu {
 
         if (this.options.registerCommands()) {
             this.command = new RegistrableMenuCommand(plugin, this);
-            this.command.register();
+            plugin.getScheduler().runTask(() -> this.command.register());
         }
 
         menus.put(this.options.name(), this);
@@ -199,7 +204,7 @@ public class Menu {
         }
 
         if (close) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getScheduler().runTask(player, () -> {
                 player.closeInventory();
                 cleanInventory(plugin, player);
             });
@@ -274,11 +279,13 @@ public class Menu {
         }
 
         DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
-    Bukkit.getPluginManager().callEvent(preOpenEvent);
+        Bukkit.getPluginManager().callEvent(preOpenEvent);
 
-    if (preOpenEvent.isCancelled()) return;
+        if (preOpenEvent.isCancelled()) {
+            return;
+        }
 
-    final MenuHolder holder = new MenuHolder(plugin, viewer);
+        final MenuHolder holder = new MenuHolder(plugin, viewer);
         if (placeholderPlayer != null) {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
@@ -294,7 +301,7 @@ public class Menu {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getScheduler().runTaskAsynchronously(() -> {
 
             Set<MenuItem> activeItems = new HashSet<>();
 
@@ -383,7 +390,7 @@ public class Menu {
 
             final boolean updatePlaceholders = update;
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getScheduler().runTask(viewer, () -> {
                 if(options.refresh()) {
                     holder.startRefreshTask();
                 }
@@ -400,7 +407,7 @@ public class Menu {
         }
       });
 
-      Bukkit.getScheduler().runTask(plugin, () -> {
+      plugin.getScheduler().runTask(viewer, () -> {
         DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
         Bukkit.getPluginManager().callEvent(openEvent);
       });

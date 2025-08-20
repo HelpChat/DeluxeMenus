@@ -391,7 +391,7 @@ public class Menu {
             final boolean updatePlaceholders = update;
 
             plugin.getScheduler().runTask(viewer, () -> {
-                if(options.refresh()) {
+                if (options.refresh()) {
                     holder.startRefreshTask();
                 }
 

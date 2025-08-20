@@ -5,14 +5,24 @@ import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.scheduler.UniversalRunnable;
-import com.extendedclip.deluxemenus.utils.*;
+import com.extendedclip.deluxemenus.utils.AdventureUtils;
+import com.extendedclip.deluxemenus.utils.DebugLevel;
+import com.extendedclip.deluxemenus.utils.ExpUtils;
+import com.extendedclip.deluxemenus.utils.SoundUtils;
+import com.extendedclip.deluxemenus.utils.StringUtils;
+import com.extendedclip.deluxemenus.utils.VersionHelper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class ClickActionTask extends UniversalRunnable {

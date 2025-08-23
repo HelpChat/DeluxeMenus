@@ -33,6 +33,7 @@ public final class ItemUtils {
     /**
      * Checks if the string starts with the substring "stack-". The check is case-insensitive.
      *
+     * @param material The string to check
      * @return true if the string starts with "stack-", false otherwise
      */
     public static boolean isItemStackOption(@NotNull final String material) {

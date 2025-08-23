@@ -5,6 +5,7 @@ import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.scheduler.UniversalRunnable;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.AdventureUtils;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
@@ -28,6 +29,7 @@ import java.util.logging.Level;
 public class ClickActionTask extends UniversalRunnable {
 
     private final DeluxeMenus plugin;
+    private final TaskScheduler scheduler;
     private final UUID uuid;
     private final ActionType actionType;
     private final String exec;
@@ -46,6 +48,7 @@ public class ClickActionTask extends UniversalRunnable {
             final boolean parsePlaceholdersAfterArguments
     ) {
         this.plugin = plugin;
+        this.scheduler = plugin.getScheduler();
         this.uuid = uuid;
         this.actionType = actionType;
         this.exec = exec;
@@ -61,7 +64,7 @@ public class ClickActionTask extends UniversalRunnable {
             return;
         }
 
-        plugin.getScheduler().runTask(player, () -> {
+        scheduler.runTask(player, () -> {
 
             final Optional<MenuHolder> holder = Menu.getMenuHolder(player);
             final Player target = holder.isPresent() && holder.get().getPlaceholderPlayer() != null
@@ -116,7 +119,7 @@ public class ClickActionTask extends UniversalRunnable {
                     break;
 
                 case CONSOLE:
-                    plugin.getScheduler().runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), executable));
+                    scheduler.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), executable));
                     break;
 
                 case MINI_MESSAGE:

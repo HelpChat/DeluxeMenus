@@ -6,6 +6,7 @@ import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class Menu {
     private static final Map<UUID, Menu> lastOpenedMenus = new ConcurrentHashMap<>();
 
     private final DeluxeMenus plugin;
+    private final TaskScheduler scheduler;
     private final MenuOptions options;
     private final Map<Integer, TreeMap<Integer, MenuItem>> items;
     // menu path starting from the plugin directory
@@ -49,13 +51,14 @@ public class Menu {
             final @NotNull String path
     ) {
         this.plugin = plugin;
+        this.scheduler = plugin.getScheduler();
         this.options = options;
         this.items = items;
         this.path = path;
 
         if (this.options.registerCommands()) {
             this.command = new RegistrableMenuCommand(plugin, this);
-            plugin.getScheduler().runTask(() -> this.command.register());
+            scheduler.runTask(() -> this.command.register());
         }
 
         menus.put(this.options.name(), this);
@@ -301,7 +304,7 @@ public class Menu {
             return;
         }
 
-        plugin.getScheduler().runTaskAsynchronously(() -> {
+        scheduler.runTaskAsynchronously(() -> {
 
             Set<MenuItem> activeItems = new HashSet<>();
 
@@ -390,7 +393,7 @@ public class Menu {
 
             final boolean updatePlaceholders = update;
 
-            plugin.getScheduler().runTask(viewer, () -> {
+            scheduler.runTask(viewer, () -> {
                 if (options.refresh()) {
                     holder.startRefreshTask();
                 }
@@ -402,17 +405,17 @@ public class Menu {
                 viewer.openInventory(inventory);
                 menuHolders.add(holder);
 
-        if (updatePlaceholders) {
-          holder.startUpdatePlaceholdersTask();
-        }
-      });
+                if (updatePlaceholders) {
+                    holder.startUpdatePlaceholdersTask();
+                }
+            });
 
-      plugin.getScheduler().runTask(viewer, () -> {
-        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
-        Bukkit.getPluginManager().callEvent(openEvent);
-      });
-    });
-  }
+            scheduler.runTask(viewer, () -> {
+                DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+                Bukkit.getPluginManager().callEvent(openEvent);
+            });
+        });
+    }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

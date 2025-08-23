@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.scheduler.scheduling.tasks.MyScheduledTask;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import org.bukkit.entity.Player;
@@ -19,6 +20,7 @@ import java.util.TreeMap;
 public class MenuHolder implements InventoryHolder {
 
     private final DeluxeMenus plugin;
+    private final TaskScheduler scheduler;
     private final Player viewer;
 
     private Player placeholderPlayer;
@@ -34,12 +36,14 @@ public class MenuHolder implements InventoryHolder {
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
         this.plugin = plugin;
+        this.scheduler = plugin.getScheduler();
         this.viewer = viewer;
     }
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer, final @NotNull String menuName,
                       final @NotNull Set<@NotNull MenuItem> activeItems, final @NotNull Inventory inventory) {
         this.plugin = plugin;
+        this.scheduler = plugin.getScheduler();
         this.viewer = viewer;
         this.menuName = menuName;
         this.activeItems = activeItems;
@@ -133,7 +137,7 @@ public class MenuHolder implements InventoryHolder {
 
         setUpdating(true);
 
-        plugin.getScheduler().runTaskAsynchronously(() -> {
+        scheduler.runTaskAsynchronously(() -> {
 
             final Set<MenuItem> active = new HashSet<>();
             final Set<Integer> slotsToClear = new HashSet<>();
@@ -169,11 +173,11 @@ public class MenuHolder implements InventoryHolder {
             }
 
             if (active.isEmpty()) {
-                plugin.getScheduler().runTask(getViewer(), () -> Menu.closeMenu(plugin, getViewer(), true));
+                scheduler.runTask(getViewer(), () -> Menu.closeMenu(plugin, getViewer(), true));
                 return;
             }
 
-            plugin.getScheduler().runTask(getViewer(), () -> {
+            scheduler.runTask(getViewer(), () -> {
 
                 for (int slot : slotsToClear) {
                     getInventory().setItem(slot, null);
@@ -242,7 +246,7 @@ public class MenuHolder implements InventoryHolder {
                 .map(MenuOptions::refreshInterval)
                 .orElse(10);
 
-        refreshTask = plugin.getScheduler().runTaskTimerAsynchronously(
+        refreshTask = scheduler.runTaskTimerAsynchronously(
                 this::refreshMenu,
                 initialDelay,
                 period
@@ -261,7 +265,7 @@ public class MenuHolder implements InventoryHolder {
                 .map(MenuOptions::updateInterval)
                 .orElse(10);
 
-        updateTask = plugin.getScheduler().runTaskTimer(
+        updateTask = scheduler.runTaskTimer(
                 getViewer(),
                 () -> {
 

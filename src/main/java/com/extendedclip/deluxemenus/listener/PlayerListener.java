@@ -6,6 +6,7 @@ import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.bukkit.entity.Player;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 public class PlayerListener extends Listener {
 
+    private final TaskScheduler scheduler;
     private final Cache<UUID, Long> cache = CacheBuilder.newBuilder().expireAfterWrite(75, TimeUnit.MILLISECONDS).build();
 
     // This is so dumb. Mojang fix your shit.
@@ -32,6 +34,7 @@ public class PlayerListener extends Listener {
 
     public PlayerListener(@NotNull final DeluxeMenus plugin) {
         super(plugin);
+        this.scheduler = plugin.getScheduler();
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -91,7 +94,7 @@ public class PlayerListener extends Listener {
         final Player player = (Player) event.getPlayer();
 
         if (Menu.isInMenu(player)) {
-            plugin.getScheduler().runTaskLater(player, () -> {
+            scheduler.runTaskLater(player, () -> {
                 Menu.closeMenu(plugin, player, false);
                 Menu.cleanInventory(plugin, player);
                 player.updateInventory();

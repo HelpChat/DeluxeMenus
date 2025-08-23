@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.dupe;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.listener.Listener;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -18,10 +19,12 @@ import java.util.logging.Level;
  */
 public class DupeFixer extends Listener {
 
+    private final TaskScheduler scheduler;
     private final MenuItemMarker marker;
 
     public DupeFixer(@NotNull final DeluxeMenus plugin, @NotNull final MenuItemMarker marker) {
         super(plugin);
+        this.scheduler = plugin.getScheduler();
         this.marker = marker;
     }
 
@@ -55,7 +58,7 @@ public class DupeFixer extends Listener {
 
     @EventHandler
     private void onLogin(@NotNull final PlayerJoinEvent event) {
-        plugin.getScheduler().runTaskLater(() -> {
+        scheduler.runTaskLater(() -> {
                 for (final ItemStack itemStack : event.getPlayer().getInventory().getContents()) {
                     if (itemStack == null) continue;
                     if (!marker.isMarked(itemStack)) continue;

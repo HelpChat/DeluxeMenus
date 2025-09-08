@@ -2,7 +2,6 @@ package com.extendedclip.deluxemenus.command;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.command.subcommand.*;
-import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;

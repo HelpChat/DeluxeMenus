@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.updatechecker;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.listener.Listener;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import java.io.BufferedReader;
@@ -15,7 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 public class UpdateChecker extends Listener {
@@ -25,28 +25,20 @@ public class UpdateChecker extends Listener {
   private static final TextReplacementConfig.Builder CURRENT_VERSION_REPLACER_BUILDER
       = TextReplacementConfig.builder().matchLiteral("<current-version>");
 
-  final int resourceId = 11734;
+  private static final int RESOURCE_ID = 11734;
+  private final TaskScheduler scheduler;
   private String latestVersion = null;
   private boolean updateAvailable = false;
 
   public UpdateChecker(final @NotNull DeluxeMenus instance) {
     super(instance);
+    this.scheduler = plugin.getScheduler();
 
-    new BukkitRunnable() {
-      @Override
-      public void run() {
-        if (check()) {
-          new BukkitRunnable() {
-
-            @Override
-            public void run() {
-              register();
-            }
-          }.runTask(plugin);
-        }
+    scheduler.runTaskAsynchronously(() -> {
+      if (check()) {
+        scheduler.runTask(this::register);
       }
-
-    }.runTaskAsynchronously(plugin);
+    });
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
@@ -74,7 +66,7 @@ public class UpdateChecker extends Listener {
   private String getSpigotVersion() {
     try {
       HttpURLConnection connection = (HttpURLConnection) new URL(
-          "https://api.spigotmc.org/legacy/update.php?resource=" + resourceId).openConnection();
+          "https://api.spigotmc.org/legacy/update.php?resource=" + RESOURCE_ID).openConnection();
       connection.setDoOutput(true);
       connection.setRequestMethod("GET");
       return new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();

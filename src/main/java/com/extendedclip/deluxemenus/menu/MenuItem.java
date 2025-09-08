@@ -2,10 +2,10 @@ package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
+import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
-import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
@@ -15,8 +15,8 @@ import com.google.common.collect.ImmutableMultimap;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
-import org.bukkit.Registry;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.block.Banner;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Light;
@@ -45,14 +45,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -89,6 +89,7 @@ public class MenuItem {
             return null;
         }
     }
+
     public ItemStack getItemStack(@NotNull final MenuHolder holder) {
         final Player viewer = holder.getViewer();
 
@@ -111,7 +112,6 @@ public class MenuItem {
                 lowercaseStringMaterial = itemStack.getType().toString().toLowerCase(Locale.ENGLISH);
             }
         }
-
 
         if (ItemUtils.isPlayerItem(lowercaseStringMaterial)) {
             final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseStringMaterial).apply(viewer.getInventory());

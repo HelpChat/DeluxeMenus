@@ -242,7 +242,7 @@ public class Menu {
             return true;
         }
 
-        if (holder.getViewer() != null && this.hasOpenBypassPerm(holder.getViewer())) {
+        if (holder.getViewer() != null && (this.options.enableBypassPerm() && this.hasOpenBypassPerm(holder.getViewer()))) {
             return true;
         }
 

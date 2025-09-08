@@ -33,6 +33,7 @@ import static net.kyori.adventure.text.Component.text;
 public class MetaCommand extends SubCommand {
 
     private static final List<String> SUB_COMMANDS = List.of("list", "show", "set", "remove", "add", "subtract", "switch");
+    private static final String META_COMMAND = "deluxemenus.meta";
 
     public MetaCommand(@NotNull final DeluxeMenus plugin) {
         super(plugin);
@@ -45,7 +46,7 @@ public class MetaCommand extends SubCommand {
 
     @Override
     public void execute(@NotNull final CommandSender sender, @NotNull final List<String> arguments) {
-        if (!sender.isOp()) {
+        if (!sender.hasPermission(META_COMMAND)) {
             plugin.sms(sender, Messages.NO_PERMISSION);
             return;
         }
@@ -151,7 +152,7 @@ public class MetaCommand extends SubCommand {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final List<String> arguments) {
-        if (!sender.isOp() || !VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
+        if (!sender.hasPermission(META_COMMAND) || !VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
             return null;
         }
 

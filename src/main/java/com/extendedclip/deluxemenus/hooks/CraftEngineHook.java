@@ -3,7 +3,6 @@ package com.extendedclip.deluxemenus.hooks;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
-import net.momirealms.craftengine.core.item.BuildableItem;
 import net.momirealms.craftengine.core.item.CustomItem;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Material;
@@ -27,11 +26,14 @@ public class CraftEngineHook implements ItemHook, SimpleCache {
     @Override
     public ItemStack getItem(@NotNull String... arguments) {
         if (arguments.length == 0) return EMPTY.clone();
-        return cache.computeIfAbsent(arguments[0], namespaceId ->
-                Optional.ofNullable(CraftEngineItems.byId(Key.of(namespaceId)))
-                        .map(BuildableItem::buildItemStack)
-                        .orElse(EMPTY)
-        ).clone();
+        String namespaceId = arguments[0];
+        ItemStack cached = cache.get(namespaceId);
+        if (cached != null) return cached.clone();
+        CustomItem<ItemStack> customItem = CraftEngineItems.byId(Key.of(namespaceId));
+        if (customItem == null) return EMPTY.clone();
+        ItemStack result = customItem.buildItemStack();
+        cache.put(namespaceId, result);
+        return result.clone();
     }
 
     @Override
@@ -40,7 +42,7 @@ public class CraftEngineHook implements ItemHook, SimpleCache {
         Key id = Key.of(arguments[0]);
         return Optional.ofNullable(CraftEngineItems.byId(id))
                 .map(item -> item.buildItemStack(BukkitAdaptors.adapt(holder)))
-                .orElse(EMPTY.clone());
+                .orElseGet(EMPTY::clone);
     }
 
     @Override

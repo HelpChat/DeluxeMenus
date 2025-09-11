@@ -3,7 +3,7 @@ name: DeluxeMenus
 main: com.extendedclip.deluxemenus.DeluxeMenus
 version: ${version}
 authors: [ HelpChat ]
-softdepend: [ PlaceholderAPI, Vault, HeadDatabase, ItemsAdder, Nexo, Oraxen, ExecutableItems, ExecutableBlocks, Score, SimpleItemGenerator, MMOItems ]
+softdepend: [ PlaceholderAPI, Vault, HeadDatabase, CraftEngine, ItemsAdder, Nexo, Oraxen, ExecutableItems, ExecutableBlocks, Score, SimpleItemGenerator, MMOItems ]
 description: All in one inventory menu system
 commands:
   deluxemenus:

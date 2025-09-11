@@ -18,6 +18,7 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
+    maven("https://repo.momirealms.net/releases/")
     maven("https://repo.nexomc.com/releases/")
     maven("https://repo.oraxen.com/releases")
     maven("https://jitpack.io")
@@ -30,6 +31,8 @@ dependencies {
     compileOnly(libs.authlib)
 
     compileOnly(libs.headdb)
+    compileOnly(libs.craftengine.core)
+    compileOnly(libs.craftengine.bukkit)
     compileOnly(libs.itemsadder)
     compileOnly(libs.nexo)
     compileOnly(libs.oraxen)

@@ -269,6 +269,10 @@ public class DeluxeMenus extends JavaPlugin {
             }
         }
 
+        if (Bukkit.getPluginManager().isPluginEnabled("CraftEngine")) {
+            this.itemHooks.put("craftengine", new CraftEngineHook());
+        }
+
         if (Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) {
             this.itemHooks.put("itemsadder", new ItemsAdderHook());
         }

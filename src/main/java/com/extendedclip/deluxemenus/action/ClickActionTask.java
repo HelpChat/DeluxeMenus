@@ -240,7 +240,7 @@ public class ClickActionTask extends BukkitRunnable {
                         break;
                     }
                     String menuArgValue = passedArgumentValues[index];
-                    String valueToUse = (menuArgValue != null) ? menuArgValue : StringUtils.replacePlaceholders(defaultValue, target);
+                    String valueToUse = (menuArgValue != null) ? menuArgValue : (defaultValue != null) ? StringUtils.replacePlaceholders(defaultValue, target) : null;
                     if (valueToUse != null) {
                         argumentsMap.put(argumentName, valueToUse);
                     }

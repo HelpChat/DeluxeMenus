@@ -13,9 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -153,14 +151,23 @@ public class MenuHolder implements InventoryHolder {
                 boolean m = false;
                 for (MenuItem item : e.values()) {
 
-                    if (item.options().viewRequirements().isPresent()) {
 
-                        if (item.options().viewRequirements().get().evaluate(this)) {
-                            m = true;
-                            active.add(item);
-                            break;
+                    boolean passesViewRequirements = true;
+                    if (item.options().viewRequirements().isPresent()) {
+                        passesViewRequirements = item.options().viewRequirements().get().evaluate(this);
+                    }
+
+                    boolean passesDynamicAmount = true;
+                    if (item.options().dynamicAmount().isPresent()) {
+                        try {
+                            int amt = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
+                            passesDynamicAmount = amt > 0;
+                        } catch (Exception exception) {
+                            passesDynamicAmount = false;
                         }
-                    } else {
+                    }
+
+                    if (passesViewRequirements && passesDynamicAmount) {
                         m = true;
                         active.add(item);
                         break;

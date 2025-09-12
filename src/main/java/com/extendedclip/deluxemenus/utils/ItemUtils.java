@@ -36,8 +36,8 @@ public final class ItemUtils {
      * @param itemstack The string to check
      * @return true if the string starts with "stack-", false otherwise
      */
-    public static boolean isItemStackOption(@NotNull final String material) {
-        return material.toLowerCase(Locale.ROOT).startsWith(STACK_PREFIX);
+    public static boolean isItemStackOption(@NotNull final String itemstack) {
+        return itemstack.toLowerCase(Locale.ROOT).startsWith(STACK_PREFIX);
     }
 
     /**

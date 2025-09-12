@@ -60,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -467,7 +468,7 @@ public class DeluxeMenusConfig {
             builder.registerCommands(c.getBoolean(pre + "register_command", false));
         }
 
-        List<String> argumentNames = new ArrayList<>();
+        Map<String, String> argumentNames = new LinkedHashMap<>();
         List<RequirementList> argumentRequirements = new ArrayList<>();
 
         if (c.contains(pre + "args")) {
@@ -483,14 +484,16 @@ public class DeluxeMenusConfig {
                         argumentRequirements.add(this.getRequirements(c, pre + "args." + arg));
                     }
                     // Always add the arg itself
-                    argumentNames.add(arg);
+                    argumentNames.put(arg,(c.getString(pre + "args." + arg + ".default", null)  ));
                 }
                 // Old list parsing
             } else if (c.isList(pre + "args")) {
-                argumentNames.addAll(c.getStringList(pre + "args"));
+                for(String str : c.getStringList(pre + "args")){
+                    argumentNames.put(str,null);
+                }
                 // Old singular item parsing
             } else if (c.isString(pre + "args")) {
-                argumentNames.add(c.getString(pre + "args"));
+                argumentNames.put(c.getString(pre + "args"),null);
             }
         }
 

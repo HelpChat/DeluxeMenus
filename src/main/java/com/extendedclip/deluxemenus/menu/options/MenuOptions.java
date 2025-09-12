@@ -6,7 +6,9 @@ import org.bukkit.event.inventory.InventoryType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class MenuOptions {
@@ -24,7 +26,7 @@ public class MenuOptions {
 
     private final List<String> commands;
     private final boolean registerCommands;
-    private final List<String> arguments;
+    private final Map<String, String> arguments;
     private final List<RequirementList> argumentRequirements;
     private final String argumentsUsageMessage;
 
@@ -107,7 +109,7 @@ public class MenuOptions {
         return this.registerCommands;
     }
 
-    public @NotNull List<@NotNull String> arguments() {
+    public @NotNull Map<@NotNull String, @Nullable String> arguments() {
         return this.arguments;
     }
 
@@ -166,7 +168,7 @@ public class MenuOptions {
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
-        private List<String> arguments = List.of();
+        private Map<String, String> arguments = new HashMap<>();
         private List<RequirementList> argumentRequirements = List.of();
         private String argumentsUsageMessage;
 
@@ -239,7 +241,7 @@ public class MenuOptions {
             return this;
         }
 
-        public MenuOptionsBuilder arguments(final @NotNull List<@NotNull String> arguments) {
+        public MenuOptionsBuilder arguments(final @NotNull Map<@NotNull String, @Nullable String> arguments) {
             this.arguments = arguments;
             return this;
         }

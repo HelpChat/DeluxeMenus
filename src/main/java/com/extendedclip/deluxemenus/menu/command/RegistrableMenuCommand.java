@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.menu.command;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
+import com.extendedclip.deluxemenus.utils.StringUtils;
 import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -13,7 +14,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -53,26 +56,43 @@ public class RegistrableMenuCommand extends Command {
         }
 
         Map<String, String> argMap = null;
-
-        if (!menu.options().arguments().isEmpty()) {
+        Map<String, String> menuArgumentNames = menu.options().arguments();
+        if (!menuArgumentNames.isEmpty()) {
             plugin.debug(DebugLevel.LOWEST, Level.INFO, "has args");
-            if (typedArgs.length < menu.options().arguments().size()) {
-                if (menu.options().argumentsUsageMessage().isPresent()) {
-                    Msg.msg(sender, menu.options().argumentsUsageMessage().get());
-                }
-                return true;
-            }
             argMap = new HashMap<>();
             int index = 0;
-            for (String arg : menu.options().arguments()) {
-                if (index + 1 == menu.options().arguments().size()) {
-                    String last = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
-                    plugin.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + last);
-                    argMap.put(arg, last);
+
+            List<String> argumentNamesList = new ArrayList<>(menuArgumentNames.keySet());
+            for (String arg : argumentNamesList) {
+                String value;
+                if (index < typedArgs.length) {
+                    if (index + 1 == menuArgumentNames.size()) {
+                        value = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
+                    } else {
+                        value = typedArgs[index];
+                    }
+
+                    String str = menuArgumentNames.get(arg);
+                    if ((value == null || value.trim().isEmpty()) && str !=null) {
+                        value = str;
+                        plugin.debug(DebugLevel.LOWEST, Level.INFO, "using default for arg: " + arg + " => " + value);
+                    }
                 } else {
-                    argMap.put(arg, typedArgs[index]);
-                    plugin.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + typedArgs[index]);
+                    String defaultValue = menuArgumentNames.get(arg);
+                    if (defaultValue != null) {
+                        value = StringUtils.replacePlaceholders(defaultValue,(Player) sender);
+                        plugin.debug(DebugLevel.LOWEST, Level.INFO, "using default for missing arg: " + arg + " => " + value);
+                    } else {
+                        if (menu.options().argumentsUsageMessage().isPresent()) {
+                            final String usageMessage = menu.options().argumentsUsageMessage().get();
+                            Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage,(Player) sender));
+                        }
+                        return true;
+                    }
                 }
+
+                plugin.debug(DebugLevel.LOWEST, Level.INFO, "arg: " + arg + " => " + value);
+                argMap.put(arg, value);
                 index++;
             }
         }

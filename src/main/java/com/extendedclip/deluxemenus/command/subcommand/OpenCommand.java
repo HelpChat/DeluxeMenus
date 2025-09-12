@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.command.subcommand;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.Messages;
+import com.extendedclip.deluxemenus.utils.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -12,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -92,7 +92,7 @@ public class OpenCommand extends SubCommand {
             viewer = (Player) sender;
         }
 
-        Player placeholder = null;
+        Player placeholder;
         if (placeholderPlayer != null) {
             placeholder = Bukkit.getPlayerExact(placeholderPlayer);
             if (placeholder == null) {
@@ -103,43 +103,42 @@ public class OpenCommand extends SubCommand {
                 plugin.sms(sender, Messages.PLAYER_IS_EXEMPT.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayer).build()));
                 return;
             }
+        }else {
+            if (isPlayer && !sender.hasPermission("deluxemenus.open.others")) {
+                plugin.sms(sender, Messages.NO_PERMISSION);
+                return;
+            }
+            placeholder = viewer;
         }
 
         List<String> menuArgs = actualArgs.size() > 2 ? actualArgs.subList(2, actualArgs.size()) : new ArrayList<>();
         Map<String, String> menuArgumentNames = menu.get().options().arguments();
-        Map<String, String> argumentsMap = new HashMap<>();
         if (menuArgumentNames.isEmpty()) {
             return;
         }
+
+        Map<String, String> argumentsMap = new HashMap<>();
         List<String> argumentNamesList = new ArrayList<>(menuArgumentNames.keySet());
-        Collections.reverse(argumentNamesList);
         for (int index = 0; index < argumentNamesList.size(); index++) {
             String argumentName = argumentNamesList.get(index);
-            String defaultValue = menuArgumentNames.get(argumentName);
-
-            if (index >= menuArgs.size()) {
-                // No more menu args available, use default if present
-                if (defaultValue != null) {
-                    argumentsMap.put(argumentName, defaultValue);
+            String valueToPut = null;
+            if (index < menuArgs.size()) {
+                if (index == argumentNamesList.size() - 1) {
+                    valueToPut = String.join(" ", menuArgs.subList(index, menuArgs.size()));
+                    argumentsMap.put(argumentName, valueToPut);
+                    break;
                 }
-                continue;
+                valueToPut = menuArgs.get(index);
+            } else {
+                String defaultValue = menuArgumentNames.get(argumentName);
+                if (defaultValue != null) {
+                    valueToPut = StringUtils.replacePlaceholders(defaultValue, placeholder);
+                }
             }
-
-            if (index == argumentNamesList.size() - 1) {
-                // Last argument: join remaining menu args
-                String lastArgumentValue = String.join(" ", menuArgs.subList(index, menuArgs.size()));
-                argumentsMap.put(argumentName, lastArgumentValue);
-                break;
-            }
-
-            // Use menu arg value or default if menu arg is null
-            String menuArgValue = menuArgs.get(index);
-            String valueToUse = (menuArgValue != null) ? menuArgValue : defaultValue;
-            if (valueToUse != null) {
-                argumentsMap.put(argumentName, valueToUse);
+            if (valueToPut != null) {
+                argumentsMap.put(argumentName, valueToPut);
             }
         }
-
         menu.get().openMenu(viewer, argumentsMap, placeholder);
     }
 

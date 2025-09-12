@@ -283,8 +283,6 @@ public class Menu {
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
         holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
-        holder.parseNestedPlaceholders(this.options.parseNestedPlaceholders());
-        holder.enableBypassPerm(this.options.enableBypassPerm());
 
         if (!this.handleArgRequirements(holder)) {
             return;

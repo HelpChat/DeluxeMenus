@@ -94,6 +94,7 @@ public final class ItemUtils {
     public static boolean hasPotionMeta(@NotNull final ItemStack itemStack) {
         return itemStack.getItemMeta() instanceof PotionMeta;
     }
+
     /**
      * Creates water bottles stack
      * @param amount the amount of water bottles to put in the stack

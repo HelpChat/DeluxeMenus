@@ -17,7 +17,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,7 +36,6 @@ public class ClickActionTask extends BukkitRunnable {
     private final Map<String, String> arguments;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
-    private final boolean parseNestedPlaceholders;
 
     public ClickActionTask(
             @NotNull final DeluxeMenus plugin,
@@ -46,8 +44,7 @@ public class ClickActionTask extends BukkitRunnable {
             @NotNull final String exec,
             @NotNull final Map<String, String> arguments,
             final boolean parsePlaceholdersInArguments,
-            final boolean parsePlaceholdersAfterArguments,
-            final boolean parseNestedPlaceholders
+            final boolean parsePlaceholdersAfterArguments
     ) {
         this.plugin = plugin;
         this.uuid = uuid;
@@ -56,7 +53,6 @@ public class ClickActionTask extends BukkitRunnable {
         this.arguments = arguments;
         this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
-        this.parseNestedPlaceholders = parseNestedPlaceholders;
     }
 
     @Override
@@ -77,8 +73,7 @@ public class ClickActionTask extends BukkitRunnable {
                 this.arguments,
                 target,
                 this.parsePlaceholdersInArguments,
-                this.parsePlaceholdersAfterArguments,
-                this.parseNestedPlaceholders);
+                this.parsePlaceholdersAfterArguments);
 
         switch (actionType) {
             case META:
@@ -226,7 +221,6 @@ public class ClickActionTask extends BukkitRunnable {
                 }
 
                 List<String> argumentNamesList = new ArrayList<>(menuArgumentNames.keySet());
-                Collections.reverse(argumentNamesList);
                 for (int index = 0; index < argumentNamesList.size(); index++) {
                     final String argumentName = argumentNamesList.get(index);
                     String defaultValue = menuArgumentNames.get(argumentName);
@@ -234,7 +228,7 @@ public class ClickActionTask extends BukkitRunnable {
                     if (passedArgumentValues == null || passedArgumentValues.length <= index) {
                         // This should never be the case!
                         if (defaultValue != null) {
-                            argumentsMap.put(argumentName, defaultValue);
+                            argumentsMap.put(argumentName, StringUtils.replacePlaceholders(defaultValue, target));
                         }
                         continue;
                     }
@@ -246,7 +240,7 @@ public class ClickActionTask extends BukkitRunnable {
                         break;
                     }
                     String menuArgValue = passedArgumentValues[index];
-                    String valueToUse = (menuArgValue != null) ? menuArgValue : defaultValue;
+                    String valueToUse = (menuArgValue != null) ? menuArgValue : StringUtils.replacePlaceholders(defaultValue, target);
                     if (valueToUse != null) {
                         argumentsMap.put(argumentName, valueToUse);
                     }
@@ -259,7 +253,7 @@ public class ClickActionTask extends BukkitRunnable {
                     break;
                 }
 
-                menuToOpen.openMenu(player, argumentsMap, holder.get().getPlaceholderPlayer());
+                menuToOpen.openMenu(player, argumentsMap, target);
                 break;
 
             case CONNECT:

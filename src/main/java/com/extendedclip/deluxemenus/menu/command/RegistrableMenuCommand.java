@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -64,15 +63,12 @@ public class RegistrableMenuCommand extends Command {
             int index = 0;
 
             List<String> argumentNamesList = new ArrayList<>(menuArgumentNames.keySet());
-            Collections.reverse(argumentNamesList);
             for (String arg : argumentNamesList) {
                 String value;
-
                 if (index < typedArgs.length) {
                     if (index + 1 == menuArgumentNames.size()) {
                         value = String.join(" ", Arrays.asList(typedArgs).subList(index, typedArgs.length));
                     } else {
-                        // Regular argument
                         value = typedArgs[index];
                     }
 
@@ -82,14 +78,14 @@ public class RegistrableMenuCommand extends Command {
                         plugin.debug(DebugLevel.LOWEST, Level.INFO, "using default for arg: " + arg + " => " + value);
                     }
                 } else {
-                    String str = menuArgumentNames.get(arg);
-                    if (str != null) {
-                        value = str;
+                    String defaultValue = menuArgumentNames.get(arg);
+                    if (defaultValue != null) {
+                        value = StringUtils.replacePlaceholders(defaultValue,(Player) sender);
                         plugin.debug(DebugLevel.LOWEST, Level.INFO, "using default for missing arg: " + arg + " => " + value);
                     } else {
                         if (menu.options().argumentsUsageMessage().isPresent()) {
                             final String usageMessage = menu.options().argumentsUsageMessage().get();
-                            Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage,(Player) sender,usageMessage.contains("{") && usageMessage.contains("}")));
+                            Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage,(Player) sender));
                         }
                         return true;
                     }

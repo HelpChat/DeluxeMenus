@@ -1029,6 +1029,8 @@ public class DeluxeMenusConfig {
                 case STRING_DOES_NOT_CONTAIN:
                 case STRING_DOES_NOT_EQUAL:
                 case STRING_DOES_NOT_EQUAL_IGNORECASE:
+                case STRING_CONTAINS_IGNORECASE:
+                case STRING_DOES_NOT_CONTAIN_IGNORECASE:
                     if (c.contains(rPath + ".input") && c.contains(rPath + ".output")) {
                         req = new InputResultRequirement(type, c.getString(rPath + ".input"), c.getString(rPath + ".output"));
                     } else {

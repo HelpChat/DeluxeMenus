@@ -564,6 +564,7 @@ public class DeluxeMenusConfig {
 
         builder.parsePlaceholdersInArguments(c.getBoolean(pre + "arguments_support_placeholders", false));
         builder.parsePlaceholdersAfterArguments(c.getBoolean(pre + "parse_placeholders_after_arguments", false));
+        builder.enableBypassPerm(c.getBoolean(pre + "enable_open_requirements_bypass_permissions", false));
 
         // Don't need to register the menu since it's done in the constructor
         new Menu(plugin, builder.build(), items, path);
@@ -1037,6 +1038,8 @@ public class DeluxeMenusConfig {
                 case STRING_DOES_NOT_CONTAIN:
                 case STRING_DOES_NOT_EQUAL:
                 case STRING_DOES_NOT_EQUAL_IGNORECASE:
+                case STRING_CONTAINS_IGNORECASE:
+                case STRING_DOES_NOT_CONTAIN_IGNORECASE:
                     if (c.contains(rPath + ".input") && c.contains(rPath + ".output")) {
                         req = new InputResultRequirement(type, c.getString(rPath + ".input"), c.getString(rPath + ".output"));
                     } else {

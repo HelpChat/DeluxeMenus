@@ -33,6 +33,10 @@ public class InputResultRequirement extends Requirement {
         return !parsedInput.equals(parsedResult);
       case STRING_DOES_NOT_EQUAL_IGNORECASE:
         return !parsedInput.equalsIgnoreCase(parsedResult);
+      case STRING_CONTAINS_IGNORECASE:
+        return parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
+      case STRING_DOES_NOT_CONTAIN_IGNORECASE:
+        return !parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
       default:
         break;
     }
@@ -79,3 +83,4 @@ public class InputResultRequirement extends Requirement {
     return false;
   }
 }
+

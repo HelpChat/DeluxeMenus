@@ -20,6 +20,7 @@ public class MenuOptions {
     private final boolean refresh;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
+    private final boolean enableBypassPerm;
 
     private final List<String> commands;
     private final boolean registerCommands;
@@ -41,6 +42,7 @@ public class MenuOptions {
         this.refresh = builder.refresh;
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
+        this.enableBypassPerm = builder.enableBypassPerm;
 
         this.commands = builder.commands;
         this.registerCommands = builder.registerCommands;
@@ -93,6 +95,10 @@ public class MenuOptions {
         return this.parsePlaceholdersAfterArguments;
     }
 
+    public boolean enableBypassPerm() {
+        return this.enableBypassPerm;
+    }
+
     public @NotNull List<@NotNull String> commands() {
         return this.commands;
     }
@@ -134,6 +140,7 @@ public class MenuOptions {
                 .refresh(this.refresh)
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
+                .enableBypassPerm(this.enableBypassPerm)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
@@ -155,6 +162,7 @@ public class MenuOptions {
         private boolean refresh;
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
+        private boolean enableBypassPerm = false;
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
@@ -213,6 +221,11 @@ public class MenuOptions {
 
         public MenuOptionsBuilder parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
             this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
+            return this;
+        }
+
+        public MenuOptionsBuilder enableBypassPerm(final boolean enableBypassPerm) {
+            this.enableBypassPerm = enableBypassPerm;
             return this;
         }
 

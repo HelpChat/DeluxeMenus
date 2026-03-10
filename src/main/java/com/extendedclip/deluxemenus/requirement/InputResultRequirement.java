@@ -1,6 +1,5 @@
 package com.extendedclip.deluxemenus.requirement;
 
-import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 
 public class InputResultRequirement extends Requirement {
@@ -34,6 +33,10 @@ public class InputResultRequirement extends Requirement {
         return !parsedInput.equals(parsedResult);
       case STRING_DOES_NOT_EQUAL_IGNORECASE:
         return !parsedInput.equalsIgnoreCase(parsedResult);
+      case STRING_CONTAINS_IGNORECASE:
+        return parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
+      case STRING_DOES_NOT_CONTAIN_IGNORECASE:
+        return !parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
       default:
         break;
     }
@@ -44,7 +47,7 @@ public class InputResultRequirement extends Requirement {
     try {
       in = Double.parseDouble(parsedInput);
     } catch (final NumberFormatException exception) {
-      DeluxeMenus.printStacktrace(
+      holder.getPlugin().printStacktrace(
          "Input for comparison requirement is an invalid number: " + parsedInput,
           exception
       );
@@ -54,7 +57,7 @@ public class InputResultRequirement extends Requirement {
     try {
       res = Double.parseDouble(parsedResult);
     } catch (final NumberFormatException exception) {
-      DeluxeMenus.printStacktrace(
+      holder.getPlugin().printStacktrace(
           "Output for comparison requirement is an invalid number: " + parsedResult,
           exception
       );
@@ -80,3 +83,4 @@ public class InputResultRequirement extends Requirement {
     return false;
   }
 }
+

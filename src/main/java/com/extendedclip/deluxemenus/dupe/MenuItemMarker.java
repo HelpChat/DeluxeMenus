@@ -12,6 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
 
+/**
+ * Mark inventory items created by DeluxeMenus to prevent duplication. Marked items will be removed from all inventories
+ * except the one they were created in.
+ */
 public class MenuItemMarker implements ItemMarker {
 
     private final static String DEFAULT_MARK = "DM";

@@ -41,10 +41,20 @@ public enum RequirementType {
       Arrays.asList("!has permission", "!has perm", "!haspermission", "!hasperm", "!perm"),
       "Checks if a player does not have a specific permission",
       Collections.singletonList("permission")),
+  HAS_PERMISSIONS(Arrays.asList("has permissions", "has perms", "haspermissions", "hasperms", "perms"),
+          "Checks if a player has a set amount of permissions", Collections.singletonList("permissions")),
+  DOES_NOT_HAVE_PERMISSIONS(
+          Arrays.asList("!has permissions", "!has perms", "!haspermissions", "!hasperms", "!perms"),
+          "Checks if a player does not have a set amount of permission",
+          Arrays.asList("permissions", "minimum")),
   STRING_CONTAINS(Arrays.asList("string contains", "stringcontains", "contains"),
       "Checks if a string contains another string", Arrays.asList("input", "output")),
   STRING_DOES_NOT_CONTAIN(Arrays.asList("!string contains", "!stringcontains", "!contains"),
       "Checks if a string does not contain another string", Arrays.asList("input", "output")),
+  STRING_CONTAINS_IGNORECASE(Arrays.asList("string contains ignorecase", "stringcontainsignorecase", "containsignorecase"),
+      "Checks if a string contains another string ignoring case", Arrays.asList("input", "output")),
+  STRING_DOES_NOT_CONTAIN_IGNORECASE(Arrays.asList("!string contains ignorecase", "!stringcontainsignorecase", "!containsignorecase"),
+      "Checks if a string does not contain another string ignoring case", Arrays.asList("input", "output")),
   STRING_EQUALS(Arrays.asList("string equals", "stringequals", "equals"),
       "Checks if a string equals another string", Arrays.asList("input", "output")),
   STRING_DOES_NOT_EQUAL(Arrays.asList("!string equals", "!stringequals", "!equals"),
@@ -116,3 +126,4 @@ public enum RequirementType {
     return configOptions;
   }
 }
+

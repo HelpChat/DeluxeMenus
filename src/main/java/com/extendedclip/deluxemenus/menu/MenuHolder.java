@@ -23,23 +23,28 @@ import java.util.TreeMap;
 
 public class MenuHolder implements InventoryHolder {
 
+    private final DeluxeMenus plugin;
     private final Player viewer;
+
     private Player placeholderPlayer;
     private String menuName;
     private Set<MenuItem> activeItems;
     private BukkitTask updateTask = null;
+    private BukkitTask refreshTask = null;
     private Inventory inventory;
     private boolean updating;
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
     private Map<String, String> typedArgs;
 
-    public MenuHolder(Player viewer) {
+    public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
+        this.plugin = plugin;
         this.viewer = viewer;
     }
 
-    public MenuHolder(Player viewer, String menuName,
-                      Set<MenuItem> activeItems, Inventory inventory) {
+    public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer, final @NotNull String menuName,
+                      final @NotNull Set<@NotNull MenuItem> activeItems, final @NotNull Inventory inventory) {
+        this.plugin = plugin;
         this.viewer = viewer;
         this.menuName = menuName;
         this.activeItems = activeItems;
@@ -133,9 +138,7 @@ public class MenuHolder implements InventoryHolder {
 
         setUpdating(true);
 
-        stopPlaceholderUpdate();
-
-        Bukkit.getScheduler().runTaskAsynchronously(DeluxeMenus.getInstance(), () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
 
             final Set<MenuItem> active = new HashSet<>();
 
@@ -170,10 +173,10 @@ public class MenuHolder implements InventoryHolder {
             }
 
             if (active.isEmpty()) {
-                Menu.closeMenu(getViewer(), true);
+                Menu.closeMenu(plugin, getViewer(), true);
             }
 
-            Bukkit.getScheduler().runTask(DeluxeMenus.getInstance(), () -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
 
                 boolean update = false;
 
@@ -196,8 +199,10 @@ public class MenuHolder implements InventoryHolder {
 
                 setActiveItems(active);
 
-                if (update) {
+                if (update && updateTask == null) {
                     startUpdatePlaceholdersTask();
+                } else if(!update && updateTask != null) {
+                    stopPlaceholderUpdate();
                 }
 
                 setUpdating(false);
@@ -213,6 +218,33 @@ public class MenuHolder implements InventoryHolder {
             }
             updateTask = null;
         }
+    }
+
+    public void stopRefreshTask() {
+        if(refreshTask != null) {
+            try {
+                refreshTask.cancel();
+            } catch (Exception ignored) {
+            }
+            refreshTask = null;
+        }
+    }
+
+    public void startRefreshTask() {
+        if(refreshTask != null) {
+            stopRefreshTask();
+        }
+
+        refreshTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                refreshMenu();
+            }
+        }.runTaskTimerAsynchronously(plugin, 20L,
+                20L * Menu.getMenuByName(menuName)
+                        .map(Menu::options)
+                        .map(MenuOptions::refreshInterval)
+                        .orElse(10));
     }
 
     public void startUpdatePlaceholdersTask() {
@@ -255,7 +287,7 @@ public class MenuHolder implements InventoryHolder {
                                     amt = 1;
                                 }
                             } catch (Exception exception) {
-                                DeluxeMenus.printStacktrace(
+                                plugin.printStacktrace(
                                         "Something went wrong while updating item in slot " + item.options().slot() +
                                                 ". Invalid dynamic amount: " + setPlaceholdersAndArguments(item.options().dynamicAmount().get()),
                                         exception
@@ -270,14 +302,7 @@ public class MenuHolder implements InventoryHolder {
                         }
 
                         if (item.options().loreHasPlaceholders()) {
-
-                            List<String> updated = new ArrayList<>();
-
-                            for (String line : item.options().lore()) {
-                                updated.add(StringUtils
-                                        .color(setPlaceholdersAndArguments(line)));
-                            }
-                            meta.setLore(updated);
+                            meta.setLore(item.getMenuItemLore(getHolder(), item.options().lore()));
                         }
 
                         i.setItemMeta(meta);
@@ -286,7 +311,7 @@ public class MenuHolder implements InventoryHolder {
                 }
             }
 
-        }.runTaskTimerAsynchronously(DeluxeMenus.getInstance(), 20L,
+        }.runTaskTimerAsynchronously(plugin, 20L,
                 20L * Menu.getMenuByName(menuName)
                         .map(Menu::options)
                         .map(MenuOptions::updateInterval)
@@ -340,5 +365,9 @@ public class MenuHolder implements InventoryHolder {
 
     public Player getPlaceholderPlayer() {
         return placeholderPlayer;
+    }
+
+    public @NotNull DeluxeMenus getPlugin() {
+        return plugin;
     }
 }

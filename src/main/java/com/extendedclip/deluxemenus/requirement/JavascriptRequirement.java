@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
+import org.jetbrains.annotations.NotNull;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 public class JavascriptRequirement extends Requirement {
@@ -18,9 +19,11 @@ public class JavascriptRequirement extends Requirement {
   private final ScriptEngineFactory factory = new NashornScriptEngineFactory();
   private final ServicesManager manager = Bukkit.getServer().getServicesManager();
   private static ScriptEngineManager engine;
+  private final DeluxeMenus plugin;
   private final String expression;
 
-  public JavascriptRequirement(String expression) {
+  public JavascriptRequirement(final @NotNull DeluxeMenus plugin, String expression) {
+    this.plugin = plugin;
     this.expression = expression;
     if (engine == null) {
       if (manager.isProvidedFor(ScriptEngineManager.class)) {
@@ -28,7 +31,7 @@ public class JavascriptRequirement extends Requirement {
         engine = (ScriptEngineManager) provider.getProvider();
       } else {
         engine = new ScriptEngineManager();
-        manager.register(ScriptEngineManager.class, engine, DeluxeMenus.getInstance(), ServicePriority.Highest);
+        manager.register(ScriptEngineManager.class, engine, plugin, ServicePriority.Highest);
       }
       engine.registerEngineName("JavaScript", factory);
       engine.put("BukkitServer", Bukkit.getServer());
@@ -45,7 +48,7 @@ public class JavascriptRequirement extends Requirement {
       Object result = engine.getEngineByName("JavaScript").eval(exp);
 
       if (!(result instanceof Boolean)) {
-        DeluxeMenus.debug(
+        plugin.debug(
             DebugLevel.HIGHEST,
             Level.WARNING,
             "Requirement javascript <" + this.expression + "> is invalid and does not return a boolean!"
@@ -56,13 +59,13 @@ public class JavascriptRequirement extends Requirement {
       return (boolean) result;
 
     } catch (final ScriptException | NullPointerException exception) {
-      DeluxeMenus.debug(
+      plugin.debug(
           DebugLevel.HIGHEST,
           Level.WARNING,
           "Error in requirement javascript syntax - " + this.expression
       );
 
-      DeluxeMenus.printStacktrace(
+      plugin.printStacktrace(
           "Error in requirement javascript syntax - " + this.expression,
           exception
       );

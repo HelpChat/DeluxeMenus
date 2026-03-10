@@ -1,6 +1,5 @@
 package com.extendedclip.deluxemenus.requirement;
 
-import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 
@@ -38,10 +37,6 @@ public abstract class Requirement {
 
   public void setOptional(boolean optional) {
     this.optional = optional;
-  }
-
-  public DeluxeMenus getInstance() {
-    return DeluxeMenus.getInstance();
   }
 
   public ClickHandler getSuccessHandler() {

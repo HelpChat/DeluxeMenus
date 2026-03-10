@@ -29,6 +29,14 @@ public class OraxenHook implements ItemHook, SimpleCache {
     }
 
     @Override
+    public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+        if (arguments.length == 0) {
+            return false;
+        }
+        return arguments[0].equalsIgnoreCase(OraxenItems.getIdByItem(item));
+    }
+
+    @Override
     public String getPrefix() {
         return "oraxen-";
     }

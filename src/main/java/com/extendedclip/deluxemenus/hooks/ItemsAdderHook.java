@@ -37,6 +37,15 @@ public class ItemsAdderHook implements ItemHook, SimpleCache {
     }
 
     @Override
+    public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
+        if (arguments.length == 0) {
+            return false;
+        }
+        CustomStack stack = CustomStack.byItemStack(item);
+        return stack != null && stack.getId().equalsIgnoreCase(arguments[0]);
+    }
+
+    @Override
     public String getPrefix() {
         return "itemsadder-";
     }

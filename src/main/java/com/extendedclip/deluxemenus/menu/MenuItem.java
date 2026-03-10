@@ -3,7 +3,9 @@ package com.extendedclip.deluxemenus.menu;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
+import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
+import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
@@ -14,12 +16,14 @@ import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.Registry;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Banner;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BannerMeta;
@@ -35,8 +39,13 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,15 +58,37 @@ import java.util.stream.Collectors;
 
 import static com.extendedclip.deluxemenus.utils.Constants.INVENTORY_ITEM_ACCESSORS;
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
+import static com.extendedclip.deluxemenus.utils.Constants.STACK_PREFIX;
 
 public class MenuItem {
 
-    private final @NotNull MenuItemOptions options;
+    private final DeluxeMenus plugin;
+    private final MenuItemOptions options;
 
-    public MenuItem(@NotNull final MenuItemOptions options) {
+    public MenuItem(@NotNull final DeluxeMenus plugin, @NotNull final MenuItemOptions options) {
+        this.plugin = plugin;
         this.options = options;
     }
 
+    public static ItemStack base64ToItemStack(String data) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            dataInput.close();
+            Object object = dataInput.readObject();
+            if (object instanceof ItemStack) {
+                return (ItemStack) object;
+            }
+            return null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
     public ItemStack getItemStack(@NotNull final MenuHolder holder) {
         final Player viewer = holder.getViewer();
 
@@ -71,6 +102,16 @@ public class MenuItem {
             stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
+        if (ItemUtils.isItemStackOption(lowercaseStringMaterial)) {
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(STACK_PREFIX.length()));
+            ItemStack base64Item = base64ToItemStack(stringMaterial);
+            if (base64Item != null) {
+                itemStack = base64Item;
+                amount = itemStack.getAmount();
+                lowercaseStringMaterial = itemStack.getType().toString().toLowerCase(Locale.ENGLISH);
+            }
+        }
+
 
         if (ItemUtils.isPlayerItem(lowercaseStringMaterial)) {
             final ItemStack playerItem = INVENTORY_ITEM_ACCESSORS.get(lowercaseStringMaterial).apply(viewer.getInventory());
@@ -86,14 +127,17 @@ public class MenuItem {
         final int temporaryAmount = amount;
 
         final String finalMaterial = lowercaseStringMaterial;
-        final ItemHook pluginHook = DeluxeMenus.getInstance().getItemHooks().values()
+        final ItemHook pluginHook = plugin.getItemHooks().values()
             .stream()
             .filter(x -> finalMaterial.startsWith(x.getPrefix()))
             .findFirst()
             .orElse(null);
 
         if (pluginHook != null) {
-            itemStack = pluginHook.getItem(holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length())));
+            itemStack = pluginHook.getItem(
+                    viewer,
+                    holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length()))
+            );
         }
 
         if (ItemUtils.isWaterBottle(stringMaterial)) {
@@ -104,7 +148,7 @@ public class MenuItem {
         if (itemStack == null) {
             final Material material = Material.getMaterial(stringMaterial.toUpperCase(Locale.ROOT));
             if (material == null) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Material: " + stringMaterial + " is not valid! Setting to Stone."
@@ -150,13 +194,9 @@ public class MenuItem {
 
             if (meta != null) {
                 if (this.options.rgb().isPresent()) {
-                    final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
-                    final String[] parts = rgbString.split(",");
-
-                    try {
-                        meta.setColor(Color.fromRGB(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()),
-                                Integer.parseInt(parts[2].trim())));
-                    } catch (Exception ignored) {
+                    final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+                    if (color != null) {
+                        meta.setColor(color);
                     }
                 }
 
@@ -186,7 +226,7 @@ public class MenuItem {
                     }
                 }
             } catch (final NumberFormatException exception) {
-                DeluxeMenus.printStacktrace(
+                plugin.printStacktrace(
                         "Invalid damage found: " + parsedDamage + ".",
                         exception
                 );
@@ -216,12 +256,16 @@ public class MenuItem {
             return itemStack;
         }
 
-        if (this.options.customModelData().isPresent() && VersionHelper.IS_CUSTOM_MODEL_DATA) {
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA && this.options.customModelData().isPresent()) {
             try {
                 final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get()));
                 itemMeta.setCustomModelData(modelData);
             } catch (final Exception ignored) {
             }
+        }
+
+        if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT && this.options.customModelDataComponent().isPresent()) {
+            itemMeta.setCustomModelDataComponent(parseCustomModelDataComponent(this.options.customModelDataComponent().get(), itemMeta.getCustomModelDataComponent(), holder));
         }
 
         if (this.options.displayName().isPresent()) {
@@ -259,6 +303,39 @@ public class MenuItem {
             itemMeta.setUnbreakable(true);
         }
 
+        if (VersionHelper.HAS_DATA_COMPONENTS) {
+            if (this.options.hideTooltip().isPresent()) {
+                String hideTooltip = holder.setPlaceholdersAndArguments(this.options.hideTooltip().get());
+                itemMeta.setHideTooltip(Boolean.parseBoolean(hideTooltip));
+            }
+            if (this.options.enchantmentGlintOverride().isPresent()) {
+                String enchantmentGlintOverride = holder.setPlaceholdersAndArguments(this.options.enchantmentGlintOverride().get());
+                itemMeta.setEnchantmentGlintOverride(Boolean.parseBoolean(enchantmentGlintOverride));
+            }
+            if (this.options.rarity().isPresent()) {
+                String rarity = holder.setPlaceholdersAndArguments(this.options.rarity().get());
+                try {
+                    itemMeta.setRarity(ItemRarity.valueOf(rarity.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    plugin.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Rarity " + rarity + " is not a valid!"
+                    );
+                }
+            }
+        }
+        if (VersionHelper.HAS_TOOLTIP_STYLE) {
+            if (this.options.tooltipStyle().isPresent()) {
+                NamespacedKey tooltipStyle = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.tooltipStyle().get()));
+                if (tooltipStyle != null) itemMeta.setTooltipStyle(tooltipStyle);
+            }
+            if (this.options.itemModel().isPresent()) {
+                NamespacedKey itemModel = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.itemModel().get()));
+                if (itemModel != null) itemMeta.setItemModel(itemModel);
+            }
+        }
+
         if (VersionHelper.HAS_ARMOR_TRIMS && ItemUtils.hasArmorMeta(itemStack)) {
             final Optional<String> trimMaterialName = this.options.trimMaterial();
             final Optional<String> trimPatternName = this.options.trimPattern();
@@ -274,7 +351,7 @@ public class MenuItem {
                     itemStack.setItemMeta(armorMeta);
                 } else {
                     if (trimMaterial == null) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
                                 "Trim material " + trimMaterialName.get() + " is not a valid!"
@@ -282,7 +359,7 @@ public class MenuItem {
                     }
 
                     if (trimPattern == null) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
                                 "Trim pattern " + trimPatternName.get() + " is not a valid!"
@@ -290,13 +367,13 @@ public class MenuItem {
                     }
                 }
             } else if (trimMaterialName.isPresent()) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Trim pattern is not set for item with trim material " + trimMaterialName.get()
                 );
             } else if (trimPatternName.isPresent()) {
-                DeluxeMenus.debug(
+                plugin.debug(
                         DebugLevel.HIGHEST,
                         Level.WARNING,
                         "Trim material is not set for item with trim pattern " + trimPatternName.get()
@@ -305,43 +382,39 @@ public class MenuItem {
         }
 
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
-            final String[] parts = rgbString.split(",");
             final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 
-            try {
-                leatherArmorMeta.setColor(Color.fromRGB(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()),
-                        Integer.parseInt(parts[2].trim())));
-                itemStack.setItemMeta(leatherArmorMeta);
-            } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
-                        "Invalid rgb colors found for leather armor: " + parts[0].trim() + ", " + parts[1].trim() + ", " +
-                                parts[2].trim(),
-                        exception
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            if (color != null) {
+                leatherArmorMeta.setColor(color);
+            } else {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Invalid rgb colors found for leather armor: " + this.options.rgb().get()
                 );
             }
-        } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
-            final String rgbString = holder.setPlaceholdersAndArguments(this.options.rgb().get());
-            final String[] parts = rgbString.split(",");
-            final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
 
-            try {
-                fireworkEffectMeta.setEffect(FireworkEffect.builder().withColor(Color.fromRGB(Integer.parseInt(parts[0].trim()),
-                        Integer.parseInt(parts[1].trim()), Integer.parseInt(parts[2].trim()))).build());
-                itemStack.setItemMeta(fireworkEffectMeta);
-            } catch (final Exception exception) {
-                DeluxeMenus.printStacktrace(
-                        "Invalid rgb colors found for firework or firework star: " + parts[0].trim() + ", "
-                                + parts[1].trim() + ", " + parts[2].trim(),
-                        exception
+            itemStack.setItemMeta(leatherArmorMeta);
+        } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
+            final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            if (color != null) {
+                fireworkEffectMeta.setEffect(FireworkEffect.builder().withColor(color).build());
+            } else {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Invalid RGB color found for firework or firework star: " + this.options.rgb().get()
                 );
             }
+            itemStack.setItemMeta(fireworkEffectMeta);
         } else if (itemMeta instanceof EnchantmentStorageMeta && !this.options.enchantments().isEmpty()) {
             final EnchantmentStorageMeta enchantmentStorageMeta = (EnchantmentStorageMeta) itemMeta;
             for (final Map.Entry<Enchantment, Integer> entry : this.options.enchantments().entrySet()) {
                 final boolean result = enchantmentStorageMeta.addStoredEnchant(entry.getKey(), entry.getValue(), true);
                 if (!result) {
-                    DeluxeMenus.debug(
+                    plugin.debug(
                             DebugLevel.HIGHEST,
                             Level.INFO,
                             "Failed to add enchantment " + entry.getKey().getName() + " to item " + itemStack.getType()
@@ -358,7 +431,7 @@ public class MenuItem {
         }
 
         if (this.options.lightLevel().isPresent() && itemMeta instanceof BlockDataMeta) {
-            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemStack.getItemMeta();
+            final BlockDataMeta blockDataMeta = (BlockDataMeta) itemMeta;
             final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
             if (blockData instanceof Light) {
                 final Light light = (Light) blockData;
@@ -367,14 +440,14 @@ public class MenuItem {
                     final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), light.getMaximumLevel());
                     light.setLevel(Math.max(lightLevel, 0));
                     if (lightLevel < 0) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.MEDIUM,
                                 Level.WARNING,
                                 "Invalid light level found for light block: " + parsedLightLevel + ". Setting to 0."
                         );
                     }
                     if (lightLevel > light.getMaximumLevel()) {
-                        DeluxeMenus.debug(
+                        plugin.debug(
                                 DebugLevel.MEDIUM,
                                 Level.WARNING,
                                 "Invalid light level found for light block: " + parsedLightLevel + ". Setting to " + light.getMaximumLevel() + "."
@@ -382,9 +455,8 @@ public class MenuItem {
                     }
 
                     blockDataMeta.setBlockData(light);
-                    itemStack.setItemMeta(blockDataMeta);
                 } catch (final Exception exception) {
-                    DeluxeMenus.printStacktrace(
+                    plugin.printStacktrace(
                             "Invalid light level found for light block: " + parsedLightLevel,
                             exception
                     );
@@ -413,6 +485,22 @@ public class MenuItem {
                 }
             }
 
+            if (this.options.nbtByte().isPresent()) {
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtByte().get());
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
+                }
+            }
+
+            if (this.options.nbtShort().isPresent()) {
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtShort().get());
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
+                }
+            }
+
             if (this.options.nbtInt().isPresent()) {
                 final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
                 if (tag.contains(":")) {
@@ -426,6 +514,22 @@ public class MenuItem {
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
+                }
+            }
+
+            for (String nbtTag : this.options.nbtBytes()) {
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
+                }
+            }
+
+            for (String nbtTag : this.options.nbtShorts()) {
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                if (tag.contains(":")) {
+                    final String[] parts = tag.split(":");
+                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
                 }
             }
 
@@ -461,12 +565,10 @@ public class MenuItem {
     }
 
     private @NotNull Optional<ItemStack> getItemFromHook(String hookName, String... args) {
-        return DeluxeMenus.getInstance()
-                .getItemHook(hookName)
-                .map(itemHook -> itemHook.getItem(args));
+        return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
-    private List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
         return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
                 .map(StringUtils::color)
@@ -475,6 +577,62 @@ public class MenuItem {
                 .map(line -> line.split("\\\\n"))
                 .flatMap(Arrays::stream)
                 .collect(Collectors.toList());
+    }
+
+    private @NotNull org.bukkit.inventory.meta.components.CustomModelDataComponent parseCustomModelDataComponent(
+            @NotNull final CustomModelDataComponent unparsedComponent,
+            @NotNull final org.bukkit.inventory.meta.components.CustomModelDataComponent component,
+            @NotNull final MenuHolder holder
+    ) {
+        if (!unparsedComponent.colors().isEmpty()) {
+            final List<Color> colors = unparsedComponent.colors()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(this::parseRGBColor)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            component.setColors(colors);
+        }
+
+        if (!unparsedComponent.flags().isEmpty()) {
+            final List<Boolean> flags = unparsedComponent.flags()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(Boolean::parseBoolean)
+                    .collect(Collectors.toList());
+            component.setFlags(flags);
+        }
+
+        if (!unparsedComponent.floats().isEmpty()) {
+            final List<Float> floats = unparsedComponent.floats()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .map(Float::parseFloat)
+                    .collect(Collectors.toList());
+            component.setFloats(floats);
+        }
+
+        if (!unparsedComponent.strings().isEmpty()) {
+            final List<String> strings = unparsedComponent.strings()
+                    .stream()
+                    .map(holder::setPlaceholdersAndArguments)
+                    .collect(Collectors.toList());
+            component.setStrings(strings);
+        }
+
+        return component;
+    }
+
+    private @Nullable Color parseRGBColor(@NotNull final String input) {
+        final Color color = StringUtils.parseRGBColor(input);
+        if (color == null) {
+            plugin.debug(
+                    DebugLevel.HIGHEST,
+                    Level.WARNING,
+                    "Invalid RGB color found: " + input
+            );
+        }
+        return color;
     }
 
     public @NotNull MenuItemOptions options() {

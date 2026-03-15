@@ -392,9 +392,15 @@ public class ClickActionTask extends UniversalRunnable {
                     break;
 
                 case BROADCAST_SOUND:
+                case BROADCAST_RAW_SOUND:
                 case BROADCAST_WORLD_SOUND:
+                case BROADCAST_WORLD_RAW_SOUND:
+                case PLAY_RAW_SOUND:
                 case PLAY_SOUND:
-                    final Sound sound;
+                    boolean isRaw = isRaw(actionType);
+    
+                    Sound sound = null;
+                    String soundName = executable;
                     float volume = 1;
                     float pitch = 1;
 
@@ -455,6 +461,22 @@ public class ClickActionTask extends UniversalRunnable {
                     }
 
                     switch (actionType) {
+                        case BROADCAST_WORLD_RAW_SOUND:
+                            for (final Player broadcastTarget : player.getWorld().getPlayers()) {
+                                broadcastTarget.playSound(broadcastTarget.getLocation(), soundName, volume, pitch);
+                            }
+                            break;
+
+                        case BROADCAST_RAW_SOUND:
+                            for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
+                                broadcastTarget.playSound(broadcastTarget.getLocation(), soundName, volume, pitch);
+                            }
+                            break;
+
+                        case PLAY_RAW_SOUND:
+                            player.playSound(player.getLocation(), soundName, volume, pitch);
+                            break;
+
                         case BROADCAST_SOUND:
                             for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
                                 broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
@@ -477,5 +499,9 @@ public class ClickActionTask extends UniversalRunnable {
                     break;
             }
         });
+    }
+
+    private boolean isRaw(ActionType actionType) {
+        return actionType == ActionType.PLAY_RAW_SOUND || actionType == ActionType.BROADCAST_RAW_SOUND || actionType == ActionType.BROADCAST_WORLD_RAW_SOUND;
     }
 }

@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.menu.command;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
+import com.extendedclip.deluxemenus.utils.StringUtils;
 import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -58,7 +59,8 @@ public class RegistrableMenuCommand extends Command {
             plugin.debug(DebugLevel.LOWEST, Level.INFO, "has args");
             if (typedArgs.length < menu.options().arguments().size()) {
                 if (menu.options().argumentsUsageMessage().isPresent()) {
-                    Msg.msg(sender, menu.options().argumentsUsageMessage().get());
+                    String usageMessage = menu.options().argumentsUsageMessage().get();
+                    Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage, (Player) sender));
                 }
                 return true;
             }

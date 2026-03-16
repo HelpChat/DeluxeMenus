@@ -17,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class ExecuteCommand extends SubCommand {
 
@@ -84,7 +83,13 @@ public class ExecuteCommand extends SubCommand {
             return;
         }
 
-        final ClickActionTask actionTask = new ClickActionTask(plugin, target.getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), true, true);
+        holder.loadTagResolvers();
+
+        final ClickActionTask actionTask = new ClickActionTask(
+                plugin, target.getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(),
+                holder.getTagResolvers(),
+                true, true
+        );
 
         if (action.hasDelay()) {
             actionTask.runTaskLater(plugin, action.getDelay(holder));

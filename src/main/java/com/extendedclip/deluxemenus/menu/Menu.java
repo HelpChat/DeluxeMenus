@@ -1,20 +1,15 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
 import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.extendedclip.deluxemenus.utils.AdventureUtils;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -22,6 +17,19 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.logging.Level;
 
 public class Menu {
 
@@ -84,16 +92,6 @@ public class Menu {
         menus.clear();
         menuHolders.clear();
         lastOpenedMenus.clear();
-    }
-
-    private void unregisterCommand() {
-        if (this.command != null) {
-            this.command.unregister();
-        }
-
-        // WARNING! A reference to the command is stored by CraftBukkit for their `/help` command. There is currently
-        // no way to remove this reference!
-        this.command = null;
     }
 
     public static void unloadForShutdown(final @NotNull DeluxeMenus plugin) {
@@ -219,6 +217,16 @@ public class Menu {
         closeMenu(plugin, player, close, false);
     }
 
+    private void unregisterCommand() {
+        if (this.command != null) {
+            this.command.unregister();
+        }
+
+        // WARNING! A reference to the command is stored by CraftBukkit for their `/help` command. There is currently
+        // no way to remove this reference!
+        this.command = null;
+    }
+
     private boolean hasOpenBypassPerm(final @NotNull Player viewer) {
         return viewer.hasPermission("deluxemenus.openrequirement.bypass." + this.options.name())
                 || viewer.hasPermission("deluxemenus.openrequirement.bypass.*");
@@ -274,17 +282,19 @@ public class Menu {
         }
 
         DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
-    Bukkit.getPluginManager().callEvent(preOpenEvent);
+        Bukkit.getPluginManager().callEvent(preOpenEvent);
 
-    if (preOpenEvent.isCancelled()) return;
+        if (preOpenEvent.isCancelled()) return;
 
-    final MenuHolder holder = new MenuHolder(plugin, viewer);
+        final MenuHolder holder = new MenuHolder(plugin, viewer);
         if (placeholderPlayer != null) {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
         holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
+        holder.useMiniMessages(this.options.useMiniMessages());
+        holder.loadTagResolvers();
 
         if (!this.handleArgRequirements(holder)) {
             return;
@@ -295,15 +305,10 @@ public class Menu {
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-
-            Set<MenuItem> activeItems = new HashSet<>();
-
-            for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
-
-                for (MenuItem item : entry.getValue().values()) {
-
+            final Set<MenuItem> activeItems = new HashSet<>();
+            for (final Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
+                for (final MenuItem item : entry.getValue().values()) {
                     int slot = item.options().slot();
-
                     if (slot >= this.options.size()) {
                         plugin.debug(
                                 DebugLevel.HIGHEST,
@@ -315,14 +320,11 @@ public class Menu {
                     }
 
                     if (item.options().viewRequirements().isPresent()) {
-
                         if (item.options().viewRequirements().get().evaluate(holder)) {
-
                             activeItems.add(item);
                             break;
                         }
                     } else {
-
                         activeItems.add(item);
                         break;
                     }
@@ -337,15 +339,19 @@ public class Menu {
             holder.setActiveItems(activeItems);
 
             this.options.openHandler().ifPresent(h -> h.onClick(holder));
+            final Inventory inventory;
 
-            String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
-
-            Inventory inventory;
-
-            if (this.options.type() != InventoryType.CHEST) {
-                inventory = Bukkit.createInventory(holder, this.options.type(), title);
+            if (holder.useMiniMessages()) {
+                final Component title = AdventureUtils.fromString(this.options.title(), holder.getTagResolvers());
+                inventory = this.options.type() == InventoryType.CHEST
+                        ? Bukkit.createInventory(holder, this.options.size(), title)
+                        : Bukkit.createInventory(holder, this.options.type(), title);
             } else {
-                inventory = Bukkit.createInventory(holder, this.options.size(), title);
+                final String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
+                // noinspection deprecation
+                inventory = this.options.type() == InventoryType.CHEST
+                        ? Bukkit.createInventory(holder, this.options.size(), title)
+                        : Bukkit.createInventory(holder, this.options.type(), title);
             }
 
             holder.setInventory(inventory);
@@ -384,7 +390,7 @@ public class Menu {
             final boolean updatePlaceholders = update;
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if(options.refresh()) {
+                if (options.refresh()) {
                     holder.startRefreshTask();
                 }
 
@@ -395,17 +401,17 @@ public class Menu {
                 viewer.openInventory(inventory);
                 menuHolders.add(holder);
 
-        if (updatePlaceholders) {
-          holder.startUpdatePlaceholdersTask();
-        }
-      });
+                if (updatePlaceholders) {
+                    holder.startUpdatePlaceholdersTask();
+                }
+            });
 
-      Bukkit.getScheduler().runTask(plugin, () -> {
-        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
-        Bukkit.getPluginManager().callEvent(openEvent);
-      });
-    });
-  }
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+                Bukkit.getPluginManager().callEvent(openEvent);
+            });
+        });
+    }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

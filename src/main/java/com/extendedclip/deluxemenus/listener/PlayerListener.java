@@ -152,6 +152,17 @@ public class PlayerListener extends Listener {
             this.shiftCache.put(player.getUniqueId(), System.currentTimeMillis());
         }
 
+        if (item.options().openGui().isPresent()) {
+            final String targetMenuName = holder.setPlaceholdersAndArguments(item.options().openGui().get());
+            final Optional<Menu> targetMenu = Menu.getMenuByName(targetMenuName);
+            if (targetMenu.isPresent()) {
+                this.cache.put(player.getUniqueId(), System.currentTimeMillis());
+                targetMenu.get().openMenu(player, holder.getTypedArgs(), holder.getPlaceholderPlayer());
+                return;
+            }
+            plugin.getLogger().warning("open_gui target menu '" + targetMenuName + "' not found!");
+        }
+
         if (handleClick(player, holder, item.options().clickHandler(), item.options().clickRequirements())) {
             return;
         }

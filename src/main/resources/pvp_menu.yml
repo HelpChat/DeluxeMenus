@@ -1,0 +1,74 @@
+#  PvP Category Menu
+#=========================================================
+menu_title: '&8&lPvP'
+open_command: pvpmenu
+register_command: true
+size: 27
+items:
+  # Navigation bar - highlight current category
+  'filler':
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - '0-1'
+      - '3'
+      - '5'
+      - '7-8'
+  'pvp_tab':
+    material: DIAMOND_SWORD
+    slot: 2
+    display_name: '&c&lPvP'
+    lore:
+      - '&aCurrently viewing'
+    enchantments:
+      - 'UNBREAKING;1'
+    hide_enchantments: true
+  'kits_tab':
+    material: CHEST
+    slot: 4
+    display_name: '&7&lKits'
+    lore:
+      - '&eClick to switch!'
+    open_gui: 'kits_menu'
+  'settings_tab':
+    material: COMPARATOR
+    slot: 6
+    display_name: '&7&lSettings'
+    lore:
+      - '&eClick to switch!'
+    open_gui: 'settings_menu'
+  # PvP items
+  'arena_1v1':
+    material: IRON_SWORD
+    slot: 19
+    display_name: '&c1v1 Arena'
+    lore:
+      - ''
+      - '&7Classic 1v1 duel arena'
+      - '&7Map: &fColosseum'
+      - ''
+      - '&eClick to join!'
+    click_commands:
+      - '[close]'
+      - '[player] arena join 1v1'
+  'arena_ffa':
+    material: GOLDEN_SWORD
+    slot: 21
+    display_name: '&6Free For All'
+    lore:
+      - ''
+      - '&7Fight everyone in the pit'
+      - '&7Map: &fWarzone'
+      - ''
+      - '&eClick to join!'
+    click_commands:
+      - '[close]'
+      - '[player] arena join ffa'
+  # Back button
+  'back':
+    material: ARROW
+    slot: 18
+    display_name: '&f&lBack'
+    lore:
+      - '&7Return to main menu'
+    open_gui: 'category_menu_example'

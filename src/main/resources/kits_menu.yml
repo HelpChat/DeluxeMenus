@@ -1,0 +1,60 @@
+#  Kits Category Menu
+#=========================================================
+menu_title: '&8&lKits'
+open_command: kitsmenu
+register_command: true
+size: 27
+items:
+  # Navigation bar - highlight current category
+  'filler':
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - '0-1'
+      - '3'
+      - '5'
+      - '7-8'
+  'pvp_tab':
+    material: DIAMOND_SWORD
+    slot: 2
+    display_name: '&7&lPvP'
+    lore:
+      - '&eClick to switch!'
+    open_gui: 'pvp_menu'
+  'kits_tab':
+    material: CHEST
+    slot: 4
+    display_name: '&6&lKits'
+    lore:
+      - '&aCurrently viewing'
+    enchantments:
+      - 'UNBREAKING;1'
+    hide_enchantments: true
+  'settings_tab':
+    material: COMPARATOR
+    slot: 6
+    display_name: '&7&lSettings'
+    lore:
+      - '&eClick to switch!'
+    open_gui: 'settings_menu'
+  # Kit items
+  'warrior_kit':
+    material: DIAMOND_CHESTPLATE
+    slot: 20
+    display_name: '&b&lWarrior Kit'
+    lore:
+      - ''
+      - '&7Full diamond armor + sword'
+      - ''
+      - '&eClick to select!'
+    click_commands:
+      - '[close]'
+      - '[player] kit warrior'
+  # Back button
+  'back':
+    material: ARROW
+    slot: 18
+    display_name: '&f&lBack'
+    lore:
+      - '&7Return to main menu'
+    open_gui: 'category_menu_example'

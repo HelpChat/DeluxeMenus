@@ -42,6 +42,7 @@ public class MenuItemOptions {
     private final String rarity;
     private final String tooltipStyle;
     private final String itemModel;
+    private final String openGui;
 
     private final Map<Enchantment, Integer> enchantments;
     private final List<PotionEffect> potionEffects;
@@ -105,6 +106,7 @@ public class MenuItemOptions {
         this.rarity = builder.rarity;
         this.tooltipStyle = builder.tooltipStyle;
         this.itemModel = builder.itemModel;
+        this.openGui = builder.openGui;
         this.enchantments = builder.enchantments;
         this.potionEffects = builder.potionEffects;
         this.bannerMeta = builder.bannerMeta;
@@ -220,6 +222,10 @@ public class MenuItemOptions {
 
     public @NotNull Optional<String> itemModel() {
         return Optional.ofNullable(itemModel);
+    }
+
+    public @NotNull Optional<String> openGui() {
+        return Optional.ofNullable(openGui);
     }
 
     public @NotNull Map<Enchantment, Integer> enchantments() {
@@ -377,6 +383,7 @@ public class MenuItemOptions {
                 .rarity(this.rarity)
                 .tooltipStyle(this.tooltipStyle)
                 .itemModel(this.itemModel)
+                .openGui(this.openGui)
                 .enchantments(this.enchantments)
                 .potionEffects(this.potionEffects)
                 .bannerMeta(this.bannerMeta)
@@ -431,6 +438,7 @@ public class MenuItemOptions {
         private String rarity;
         private String tooltipStyle;
         private String itemModel;
+        private String openGui;
 
         private Map<Enchantment, Integer> enchantments = Collections.emptyMap();
         private List<PotionEffect> potionEffects = Collections.emptyList();
@@ -571,6 +579,11 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder itemModel(final @Nullable String itemModel) {
             this.itemModel = itemModel;
+            return this;
+        }
+
+        public MenuItemOptionsBuilder openGui(final @Nullable String openGui) {
+            this.openGui = openGui;
             return this;
         }
 

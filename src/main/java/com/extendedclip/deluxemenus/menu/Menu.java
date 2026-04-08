@@ -32,6 +32,7 @@ public class Menu {
     private final DeluxeMenus plugin;
     private final MenuOptions options;
     private final Map<Integer, TreeMap<Integer, MenuItem>> items;
+    private final List<MenuItemTemplate> itemTemplates;
     // menu path starting from the plugin directory
     private final String path;
 
@@ -41,11 +42,13 @@ public class Menu {
             final @NotNull DeluxeMenus plugin,
             final @NotNull MenuOptions options,
             final @NotNull Map<Integer, TreeMap<Integer, MenuItem>> items,
+            final @NotNull List<MenuItemTemplate> itemTemplates,
             final @NotNull String path
     ) {
         this.plugin = plugin;
         this.options = options;
         this.items = items;
+        this.itemTemplates = itemTemplates;
         this.path = path;
 
         if (this.options.registerCommands()) {
@@ -381,6 +384,24 @@ public class Menu {
                 inventory.setItem(item.options().slot(), iStack);
             }
 
+            // Expand item_templates for this player
+            Set<MenuItem> templateExpandedItems = holder.expandTemplateItems(this, activeItems);
+            for (MenuItem templateItem : templateExpandedItems) {
+                ItemStack tStack = templateItem.getItemStack(holder);
+                if (tStack != null) {
+                    tStack = plugin.getMenuItemMarker().mark(tStack);
+                }
+                int tSlot = templateItem.options().slot();
+                if (tSlot < this.options.size()) {
+                    inventory.setItem(tSlot, tStack);
+                }
+                if (templateItem.options().updatePlaceholders()) {
+                    update = true;
+                }
+            }
+            activeItems.addAll(templateExpandedItems);
+            holder.setActiveItems(activeItems);
+
             final boolean updatePlaceholders = update;
 
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -413,6 +434,10 @@ public class Menu {
 
     public @NotNull Map<Integer, TreeMap<Integer, MenuItem>> getMenuItems() {
         return this.items;
+    }
+
+    public @NotNull List<MenuItemTemplate> getItemTemplates() {
+        return this.itemTemplates;
     }
 
     public @NotNull Optional<String> getMenuCommandUsed(final @NotNull String command) {

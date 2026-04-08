@@ -9,6 +9,7 @@ import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
+import com.extendedclip.deluxemenus.menu.MenuItemTemplate;
 import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
@@ -566,8 +567,10 @@ public class DeluxeMenusConfig {
         builder.parsePlaceholdersAfterArguments(c.getBoolean(pre + "parse_placeholders_after_arguments", false));
         builder.enableBypassPerm(c.getBoolean(pre + "enable_open_requirements_bypass_permissions", false));
 
+        List<MenuItemTemplate> itemTemplates = loadMenuItemTemplates(c, key, mainConfig);
+
         // Don't need to register the menu since it's done in the constructor
-        new Menu(plugin, builder.build(), items, path);
+        new Menu(plugin, builder.build(), items, itemTemplates, path);
     }
 
     private Map<Integer, TreeMap<Integer, MenuItem>> loadMenuItems(FileConfiguration c, String name, boolean mainConfig) {
@@ -840,6 +843,201 @@ public class DeluxeMenusConfig {
             }
         }
         return menuItems;
+    }
+
+    private List<MenuItemTemplate> loadMenuItemTemplates(FileConfiguration c, String name, boolean mainConfig) {
+        String templatesPath = "gui_menus." + name + ".item_templates";
+
+        if (!mainConfig) {
+            templatesPath = "item_templates";
+        }
+
+        if (!c.contains(templatesPath) || !c.isConfigurationSection(templatesPath)) {
+            return Collections.emptyList();
+        }
+
+        Set<String> templateKeys = c.getConfigurationSection(templatesPath).getKeys(false);
+
+        if (templateKeys.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<MenuItemTemplate> templates = new ArrayList<>();
+
+        for (String key : templateKeys) {
+            String currentPath = templatesPath + "." + key + ".";
+
+            if (!c.contains(currentPath + "material")) {
+                plugin.debug(DebugLevel.HIGHEST, Level.WARNING,
+                        "Material for item_template: " + key + " in menu: " + name + " is not present!",
+                        "Skipping template: " + key);
+                continue;
+            }
+
+            if (!c.contains(currentPath + "based-on")) {
+                plugin.debug(DebugLevel.HIGHEST, Level.WARNING,
+                        "based-on for item_template: " + key + " in menu: " + name + " is not present!",
+                        "Skipping template: " + key);
+                continue;
+            }
+
+            String basedOn = c.getString(currentPath + "based-on");
+            if (basedOn == null || basedOn.isEmpty()) {
+                plugin.debug(DebugLevel.HIGHEST, Level.WARNING,
+                        "based-on for item_template: " + key + " in menu: " + name + " is empty!",
+                        "Skipping template: " + key);
+                continue;
+            }
+
+            List<Integer> slots = new ArrayList<>();
+            if (c.contains(currentPath + "slots") && c.isList(currentPath + "slots")) {
+                List<String> confSlots = c.getStringList(currentPath + "slots");
+                for (String slot : confSlots) {
+                    String[] values = slot.split("-", 2);
+                    if (values.length == 2) {
+                        for (int i = Integer.parseInt(values[0]); i <= Integer.parseInt(values[1]); i++) {
+                            slots.add(i);
+                        }
+                    } else {
+                        slots.add(Integer.parseInt(slot));
+                    }
+                }
+            }
+
+            if (slots.isEmpty()) {
+                plugin.debug(DebugLevel.HIGHEST, Level.WARNING,
+                        "No slots defined for item_template: " + key + " in menu: " + name + "!",
+                        "Skipping template: " + key);
+                continue;
+            }
+
+            final String material = c.getString(currentPath + "material");
+
+            MenuItemOptions.MenuItemOptionsBuilder builder = MenuItemOptions.builder()
+                    .material(material)
+                    .baseColor(Optional.ofNullable(c.getString(currentPath + "base_color"))
+                            .map(String::toUpperCase)
+                            .map(DyeColor::valueOf)
+                            .orElse(null))
+                    .slot(0)
+                    .amount(c.getInt(currentPath + "amount", -1))
+                    .dynamicAmount(c.getString(currentPath + "dynamic_amount", null))
+                    .customModelData(c.getString(currentPath + "model_data", null))
+                    .lightLevel(c.getString(currentPath + "light_level", null))
+                    .displayName(c.getString(currentPath + "display_name"))
+                    .lore(c.getStringList(currentPath + "lore"))
+                    .hasLore(c.contains(currentPath + "lore"))
+                    .rgb(c.getString(currentPath + "rgb", null))
+                    .unbreakable(c.getBoolean(currentPath + "unbreakable", false))
+                    .updatePlaceholders(c.getBoolean(currentPath + "update", false))
+                    .hideAttributes(c.getBoolean(currentPath + "hide_attributes", false))
+                    .hideUnbreakable(c.getBoolean(currentPath + "hide_unbreakable", false))
+                    .hideEnchants(c.getBoolean(currentPath + "hide_enchantments", false))
+                    .nbtString(c.getString(currentPath + "nbt_string", null))
+                    .nbtByte(c.getString(currentPath + "nbt_byte", null))
+                    .nbtShort(c.getString(currentPath + "nbt_short", null))
+                    .nbtInt(c.getString(currentPath + "nbt_int", null))
+                    .nbtStrings(c.getStringList(currentPath + "nbt_strings"))
+                    .nbtBytes(c.getStringList(currentPath + "nbt_bytes"))
+                    .nbtShorts(c.getStringList(currentPath + "nbt_shorts"))
+                    .nbtInts(c.getStringList(currentPath + "nbt_ints"))
+                    .priority(c.getInt(currentPath + "priority", 1))
+                    .hideTooltip(c.getString(currentPath + "hide_tooltip", null))
+                    .enchantmentGlintOverride(c.getString(currentPath + "enchantment_glint_override", null))
+                    .rarity(c.getString(currentPath + "rarity", null))
+                    .tooltipStyle(c.getString(currentPath + "tooltip_style", null))
+                    .itemModel(c.getString(currentPath + "item_model", null));
+
+            if (c.contains(currentPath + "model_data_component") && c.isConfigurationSection(currentPath + "model_data_component")) {
+                final ConfigurationSection modelDataComponent = c.getConfigurationSection(currentPath + "model_data_component");
+                if (modelDataComponent != null) {
+                    builder.customModelDataComponent(CustomModelDataComponent.builder()
+                            .colors(modelDataComponent.getStringList("colors"))
+                            .flags(modelDataComponent.getStringList("flags"))
+                            .floats(modelDataComponent.getStringList("floats"))
+                            .strings(modelDataComponent.getStringList("strings")));
+                }
+            }
+
+            if (c.contains(currentPath + "lore_append_mode")) {
+                String loreAppendMode = c.getString(currentPath + "lore_append_mode", "OVERRIDE").toUpperCase();
+                try {
+                    builder.loreAppendMode(LoreAppendMode.valueOf(loreAppendMode));
+                } catch (IllegalArgumentException | NullPointerException ignored) {
+                    builder.loreAppendMode(LoreAppendMode.OVERRIDE);
+                }
+            }
+
+            if (c.contains(currentPath + "item_flags")) {
+                List<ItemFlag> itemFlags = new ArrayList<>();
+                for (String flagAsString : getStringListFromConfig(c, currentPath + "item_flags")) {
+                    ItemFlag flag = Enums.getIfPresent(ItemFlag.class, flagAsString.toUpperCase()).orNull();
+                    if (flag == null) {
+                        plugin.debug(DebugLevel.HIGHEST, Level.WARNING,
+                                "Item flag: " + flagAsString + " for template: " + key + " in menu: " + name + " is not a valid item flag!");
+                        continue;
+                    }
+                    itemFlags.add(flag);
+                }
+                builder.itemFlags(itemFlags);
+            }
+
+            addDamageOptionToBuilder(c, currentPath, key, name, builder);
+
+            if (VersionHelper.HAS_ARMOR_TRIMS) {
+                builder.trimMaterial(c.getString(currentPath + "trim_material", null));
+                builder.trimPattern(c.getString(currentPath + "trim_pattern", null));
+            }
+
+            addEnchantmentsOptionToBuilder(c, currentPath, key, name, builder);
+
+            if (c.contains(currentPath + "view_requirement")) {
+                builder.viewRequirements(this.getRequirements(c, currentPath + "view_requirement"));
+            }
+
+            // Store raw command strings for <template:name> replacement at expansion time
+            List<String> clickCommands = c.getStringList(currentPath + "click_commands");
+            List<String> leftClickCommands = c.getStringList(currentPath + "left_click_commands");
+            List<String> rightClickCommands = c.getStringList(currentPath + "right_click_commands");
+            List<String> shiftLeftClickCommands = c.getStringList(currentPath + "shift_left_click_commands");
+            List<String> shiftRightClickCommands = c.getStringList(currentPath + "shift_right_click_commands");
+            List<String> middleClickCommands = c.getStringList(currentPath + "middle_click_commands");
+
+            // Parse click requirements (these do not use <template:name>)
+            if (c.contains(currentPath + "click_requirement")) {
+                builder.clickRequirements(this.getRequirements(c, currentPath + "click_requirement"));
+            }
+            if (c.contains(currentPath + "left_click_requirement")) {
+                builder.leftClickRequirements(this.getRequirements(c, currentPath + "left_click_requirement"));
+            }
+            if (c.contains(currentPath + "right_click_requirement")) {
+                builder.rightClickRequirements(this.getRequirements(c, currentPath + "right_click_requirement"));
+            }
+            if (c.contains(currentPath + "shift_left_click_requirement")) {
+                builder.shiftLeftClickRequirements(this.getRequirements(c, currentPath + "shift_left_click_requirement"));
+            }
+            if (c.contains(currentPath + "shift_right_click_requirement")) {
+                builder.shiftRightClickRequirements(this.getRequirements(c, currentPath + "shift_right_click_requirement"));
+            }
+            if (c.contains(currentPath + "middle_click_requirement")) {
+                builder.middleClickRequirements(this.getRequirements(c, currentPath + "middle_click_requirement"));
+            }
+
+            templates.add(new MenuItemTemplate(
+                    key,
+                    basedOn,
+                    slots,
+                    builder.build(),
+                    clickCommands,
+                    leftClickCommands,
+                    rightClickCommands,
+                    shiftLeftClickCommands,
+                    shiftRightClickCommands,
+                    middleClickCommands
+            ));
+        }
+
+        return templates;
     }
 
     private RequirementList getRequirements(FileConfiguration c, String path) {
@@ -1169,8 +1367,11 @@ public class DeluxeMenusConfig {
     }
 
     private ClickHandler getClickHandler(FileConfiguration c, String configPath) {
-
         List<String> commands = c.getStringList(configPath);
+        return parseClickHandler(plugin, commands);
+    }
+
+    public static ClickHandler parseClickHandler(final @NotNull DeluxeMenus pluginInstance, final @NotNull List<String> commands) {
 
         if (commands.isEmpty()) {
             return null;
@@ -1231,14 +1432,14 @@ public class DeluxeMenusConfig {
                             continue;
                         }
 
-                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
+                        final ClickActionTask actionTask = new ClickActionTask(pluginInstance, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
 
                         if (action.hasDelay()) {
-                            actionTask.runTaskLater(plugin, action.getDelay(holder));
+                            actionTask.runTaskLater(pluginInstance, action.getDelay(holder));
                             continue;
                         }
 
-                        actionTask.runTask(plugin);
+                        actionTask.runTask(pluginInstance);
                     }
                 }
             };

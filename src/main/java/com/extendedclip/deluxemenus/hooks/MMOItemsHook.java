@@ -3,8 +3,6 @@ package com.extendedclip.deluxemenus.hooks;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
@@ -17,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class MMOItemsHook implements ItemHook, SimpleCache {
 
-    private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+    private final ItemStackCache cache = new ItemStackCache();
     private final DeluxeMenus plugin;
 
     public MMOItemsHook(final @NotNull DeluxeMenus plugin) {
@@ -82,6 +80,6 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
 
     @Override
     public void clearCache() {
-        cache.clear();
+        cache.clearCache();
     }
 }

@@ -2,16 +2,13 @@ package com.extendedclip.deluxemenus.hooks;
 
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import dev.lone.itemsadder.api.CustomStack;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class ItemsAdderHook implements ItemHook, SimpleCache {
 
-    private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+    private final ItemStackCache cache = new ItemStackCache();
 
     @Override
     public ItemStack getItem(@NotNull final String... arguments) {
@@ -52,6 +49,6 @@ public class ItemsAdderHook implements ItemHook, SimpleCache {
 
     @Override
     public void clearCache() {
-        cache.clear();
+        cache.clearCache();
     }
 }

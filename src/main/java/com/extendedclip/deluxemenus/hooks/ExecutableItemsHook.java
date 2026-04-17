@@ -2,10 +2,7 @@ package com.extendedclip.deluxemenus.hooks;
 
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.ssomar.score.api.executableitems.ExecutableItemsAPI;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.ssomar.score.api.executableitems.config.ExecutableItemInterface;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -13,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ExecutableItemsHook implements ItemHook, SimpleCache {
 
-  private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+  private final ItemStackCache cache = new ItemStackCache();
 
   @Override
   public ItemStack getItem(@NotNull String... arguments) {
@@ -50,7 +47,7 @@ public class ExecutableItemsHook implements ItemHook, SimpleCache {
 
   @Override
   public void clearCache() {
-    this.cache.clear();
+    this.cache.clearCache();
   }
 
 }

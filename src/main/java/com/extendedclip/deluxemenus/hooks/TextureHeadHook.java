@@ -6,13 +6,10 @@ import com.extendedclip.deluxemenus.utils.SkullUtils;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class TextureHeadHook implements ItemHook, SimpleCache {
 
     private final DeluxeMenus plugin;
-    private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+    private final ItemStackCache cache = new ItemStackCache();
 
     public TextureHeadHook(@NotNull final DeluxeMenus plugin) {
         this.plugin = plugin;
@@ -48,6 +45,6 @@ public class TextureHeadHook implements ItemHook, SimpleCache {
 
     @Override
     public void clearCache() {
-        cache.clear();
+        cache.clearCache();
     }
 }

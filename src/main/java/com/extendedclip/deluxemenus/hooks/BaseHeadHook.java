@@ -3,16 +3,13 @@ package com.extendedclip.deluxemenus.hooks;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.extendedclip.deluxemenus.utils.SkullUtils;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class BaseHeadHook implements ItemHook, SimpleCache {
 
   private final DeluxeMenus plugin;
-  private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
+  private final ItemStackCache cache = new ItemStackCache();
 
     public BaseHeadHook(@NotNull final DeluxeMenus plugin) {
         this.plugin = plugin;
@@ -56,6 +53,6 @@ public class BaseHeadHook implements ItemHook, SimpleCache {
 
   @Override
   public void clearCache() {
-    cache.clear();
+    cache.clearCache();
   }
 }

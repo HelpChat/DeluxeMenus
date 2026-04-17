@@ -2,7 +2,10 @@ package com.extendedclip.deluxemenus.hooks;
 
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.ssomar.score.api.executableblocks.ExecutableBlocksAPI;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.ssomar.score.api.executableblocks.config.ExecutableBlockInterface;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -10,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ExecutableBlocksHook implements ItemHook, SimpleCache {
 
-  private final ItemStackCache cache = new ItemStackCache();
+  private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
 
   @SuppressWarnings("deprecation")
   @Override
@@ -40,7 +43,7 @@ public class ExecutableBlocksHook implements ItemHook, SimpleCache {
 
   @Override
   public void clearCache() {
-    this.cache.clearCache();
+    this.cache.clear();
   }
 
 }

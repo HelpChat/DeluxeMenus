@@ -4,6 +4,9 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.extendedclip.deluxemenus.listener.Listener;
 import com.extendedclip.deluxemenus.utils.SkullUtils;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -11,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class NamedHeadHook extends Listener implements ItemHook, SimpleCache {
 
-    private final ItemStackCache cache = new ItemStackCache();
+    private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
 
     public NamedHeadHook(@NotNull final DeluxeMenus plugin) {
         super(plugin);
@@ -56,6 +59,6 @@ public class NamedHeadHook extends Listener implements ItemHook, SimpleCache {
 
     @Override
     public void clearCache() {
-        cache.clearCache();
+        cache.clear();
     }
 }

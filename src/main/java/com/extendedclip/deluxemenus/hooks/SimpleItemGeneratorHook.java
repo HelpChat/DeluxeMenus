@@ -9,12 +9,14 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import ua.valeriishymchuk.simpleitemgenerator.api.SimpleItemGenerator;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class SimpleItemGeneratorHook implements ItemHook, SimpleCache {
 
 
-    private final ItemStackCache cache = new ItemStackCache();
+    private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
     private final DeluxeMenus plugin;
 
     public SimpleItemGeneratorHook(DeluxeMenus plugin) {
@@ -23,7 +25,7 @@ public class SimpleItemGeneratorHook implements ItemHook, SimpleCache {
 
     @Override
     public void clearCache() {
-        cache.clearCache();
+        cache.clear();
     }
 
     @Override

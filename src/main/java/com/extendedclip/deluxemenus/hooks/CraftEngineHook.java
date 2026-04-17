@@ -10,15 +10,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CraftEngineHook implements ItemHook, SimpleCache {
     private static final ItemStack EMPTY = new ItemStack(Material.STONE);
-    private final ItemStackCache cache = new ItemStackCache();
+    private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
 
     @Override
     public void clearCache() {
-        cache.clearCache();
+        cache.clear();
     }
 
     @Override

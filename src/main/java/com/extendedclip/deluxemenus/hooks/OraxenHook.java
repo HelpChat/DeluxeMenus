@@ -7,9 +7,12 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class OraxenHook implements ItemHook, SimpleCache {
 
-    private final ItemStackCache cache = new ItemStackCache();
+    private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
 
     @Override
     public ItemStack getItem(@NotNull String... arguments) {
@@ -40,6 +43,6 @@ public class OraxenHook implements ItemHook, SimpleCache {
 
     @Override
     public void clearCache() {
-        cache.clearCache();
+        cache.clear();
     }
 }

@@ -6,6 +6,8 @@ import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,10 +21,15 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class PlayerListener extends Listener {
 
-    private final ClickDebouncer clickDebouncer = new ClickDebouncer();
+    private final Cache<UUID, Long> cache = CacheBuilder.newBuilder().expireAfterWrite(75, TimeUnit.MILLISECONDS).build();
+
+    // This is so dumb. Mojang fix your shit.
+    private final Cache<UUID, Long> shiftCache = CacheBuilder.newBuilder().expireAfterWrite(200, TimeUnit.MILLISECONDS).build();
 
     public PlayerListener(@NotNull final DeluxeMenus plugin) {
         super(plugin);
@@ -129,7 +136,11 @@ public class PlayerListener extends Listener {
             return;
         }
 
-        if (clickDebouncer.shouldIgnoreClick(player)) {
+        if (this.cache.getIfPresent(player.getUniqueId()) != null) {
+            return;
+        }
+
+        if (this.shiftCache.getIfPresent(player.getUniqueId()) != null) {
             return;
         }
 
@@ -138,7 +149,7 @@ public class PlayerListener extends Listener {
         }
 
         if (event.getClick() == ClickType.SHIFT_LEFT) {
-            clickDebouncer.markShiftClick(player);
+            this.shiftCache.put(player.getUniqueId(), System.currentTimeMillis());
         }
 
         if (handleClick(player, holder, item.options().clickHandler(), item.options().clickRequirements())) {
@@ -202,7 +213,7 @@ public class PlayerListener extends Listener {
             }
         }
 
-        clickDebouncer.markClick(player);
+        this.cache.put(player.getUniqueId(), System.currentTimeMillis());
         handler.get().onClick(holder);
 
         return true;

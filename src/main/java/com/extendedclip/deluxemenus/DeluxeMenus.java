@@ -37,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -256,44 +255,50 @@ public class DeluxeMenus extends JavaPlugin {
 
         final NamedHeadHook namedHeadHook = new NamedHeadHook(this);
         namedHeadHook.register();
-        registerItemHook(HeadType.NAMED.getHookName(), namedHeadHook);
-        registerItemHook(HeadType.BASE64.getHookName(), new BaseHeadHook(this));
-        registerItemHook(HeadType.TEXTURE.getHookName(), new TextureHeadHook(this));
+        this.itemHooks.put(HeadType.NAMED.getHookName(), namedHeadHook);
+        this.itemHooks.put(HeadType.BASE64.getHookName(), new BaseHeadHook(this));
+        this.itemHooks.put(HeadType.TEXTURE.getHookName(), new TextureHeadHook(this));
 
-        registerHeadDatabaseHook();
-        registerItemHookIfEnabled("CraftEngine", "craftengine", CraftEngineHook::new);
-        registerItemHookIfEnabled("ItemsAdder", "itemsadder", ItemsAdderHook::new);
-        registerItemHookIfEnabled("Nexo", "nexo", NexoHook::new);
-        registerItemHookIfEnabled("Oraxen", "oraxen", OraxenHook::new);
-        registerItemHookIfEnabled("MMOItems", "mmoitems", () -> new MMOItemsHook(this));
-        registerItemHookIfEnabled("ExecutableItems", "executableitems", ExecutableItemsHook::new);
-        registerItemHookIfEnabled("ExecutableBlocks", "executableblocks", ExecutableBlocksHook::new);
-        registerItemHookIfEnabled("SimpleItemGenerator", "simpleitemgenerator", () -> new SimpleItemGeneratorHook(this));
-    }
-
-    private void registerItemHook(@NotNull final String hookName, @NotNull final ItemHook itemHook) {
-        this.itemHooks.put(hookName, itemHook);
-    }
-
-    private void registerItemHookIfEnabled(@NotNull final String pluginName, @NotNull final String hookName, @NotNull final Supplier<ItemHook> itemHookSupplier) {
-        if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
-            return;
+        if (Bukkit.getPluginManager().isPluginEnabled("HeadDatabase")) {
+            try {
+                Class.forName("me.arcaniax.hdb.api.HeadDatabaseAPI");
+                this.itemHooks.put(HeadType.HDB.getHookName(), new HeadDatabaseHook(this));
+            } catch (ClassNotFoundException ignored) {
+                // We are looking for this specific class because we've had issues with other plugins being named HeadDatabase
+                // in the past
+            }
         }
 
-        registerItemHook(hookName, itemHookSupplier.get());
-    }
-
-    private void registerHeadDatabaseHook() {
-        if (!Bukkit.getPluginManager().isPluginEnabled("HeadDatabase")) {
-            return;
+        if (Bukkit.getPluginManager().isPluginEnabled("CraftEngine")) {
+            this.itemHooks.put("craftengine", new CraftEngineHook());
         }
 
-        try {
-            Class.forName("me.arcaniax.hdb.api.HeadDatabaseAPI");
-            registerItemHook(HeadType.HDB.getHookName(), new HeadDatabaseHook(this));
-        } catch (ClassNotFoundException ignored) {
-            // We are looking for this specific class because we've had issues with other plugins being named HeadDatabase
-            // in the past
+        if (Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) {
+            this.itemHooks.put("itemsadder", new ItemsAdderHook());
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("Nexo")) {
+            this.itemHooks.put("nexo", new NexoHook());
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("Oraxen")) {
+            this.itemHooks.put("oraxen", new OraxenHook());
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+            this.itemHooks.put("mmoitems", new MMOItemsHook(this));
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("ExecutableItems")) {
+            this.itemHooks.put("executableitems", new ExecutableItemsHook());
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("ExecutableBlocks")) {
+            this.itemHooks.put("executableblocks", new ExecutableBlocksHook());
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("SimpleItemGenerator")) {
+            this.itemHooks.put("simpleitemgenerator", new SimpleItemGeneratorHook(this));
         }
     }
 

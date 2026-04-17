@@ -4,26 +4,15 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
-import com.extendedclip.deluxemenus.utils.AdventureUtils;
-import com.extendedclip.deluxemenus.utils.DebugLevel;
-import com.extendedclip.deluxemenus.utils.ExpUtils;
-import com.extendedclip.deluxemenus.utils.SoundUtils;
-import com.extendedclip.deluxemenus.utils.StringUtils;
-import com.extendedclip.deluxemenus.utils.VersionHelper;
+import com.extendedclip.deluxemenus.utils.*;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 public class ClickActionTask extends BukkitRunnable {
@@ -142,7 +131,7 @@ public class ClickActionTask extends BukkitRunnable {
                 Level logLevel;
                 String message;
 
-                if(logParts.length == 1) {
+                if (logParts.length == 1) {
                     logLevel = Level.INFO;
                     message = logParts[0];
                 } else {
@@ -402,26 +391,31 @@ public class ClickActionTask extends BukkitRunnable {
                 float pitch = 1;
 
                 if (!executable.contains(" ")) {
-                    try {
-                        sound = SoundUtils.getSound(executable.toUpperCase());
-                    } catch (final IllegalArgumentException exception) {
-                        plugin.printStacktrace(
-                                "Sound name given for sound action: " + executable + ", is not a valid sound!",
-                                exception
-                        );
-                        break;
+                    if (!isRaw) {
+                        try {
+                            sound = SoundUtils.getSound(executable.toUpperCase());
+                        } catch (final IllegalArgumentException exception) {
+                            plugin.printStacktrace(
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!",
+                                    exception
+                            );
+                            break;
+                        }
                     }
                 } else {
                     String[] parts = executable.split(" ", 3);
+                    soundName = parts[0];
 
-                    try {
-                        sound = SoundUtils.getSound(parts[0].toUpperCase());
-                    } catch (final IllegalArgumentException exception) {
-                        plugin.printStacktrace(
-                                "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
-                                exception
-                        );
-                        break;
+                    if (!isRaw) {
+                        try {
+                            sound = SoundUtils.getSound(parts[0].toUpperCase());
+                        } catch (final IllegalArgumentException exception) {
+                            plugin.printStacktrace(
+                                    "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
+                                    exception
+                            );
+                            break;
+                        }
                     }
 
                     if (parts.length == 3) {
@@ -474,19 +468,44 @@ public class ClickActionTask extends BukkitRunnable {
                     case PLAY_RAW_SOUND:
                         player.playSound(player.getLocation(), soundName, volume, pitch);
                         break;
+
                     case BROADCAST_SOUND:
+                        if (sound == null) {
+                            plugin.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                            );
+                            break;
+                        }
                         for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
                             broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
                         }
                         break;
 
                     case BROADCAST_WORLD_SOUND:
+                        if (sound == null) {
+                            plugin.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                            );
+                            break;
+                        }
                         for (final Player broadcastTarget : player.getWorld().getPlayers()) {
                             broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
                         }
                         break;
 
                     case PLAY_SOUND:
+                        if (sound == null) {
+                            plugin.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                            );
+                            break;
+                        }
                         player.playSound(player.getLocation(), sound, volume, pitch);
                         break;
                 }

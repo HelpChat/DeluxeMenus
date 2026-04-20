@@ -405,26 +405,31 @@ public class ClickActionTask extends UniversalRunnable {
                     float pitch = 1;
 
                     if (!executable.contains(" ")) {
-                        try {
-                            sound = SoundUtils.getSound(executable.toUpperCase());
-                        } catch (final IllegalArgumentException exception) {
-                            plugin.printStacktrace(
-                                    "Sound name given for sound action: " + executable + ", is not a valid sound!",
-                                    exception
-                            );
-                            break;
+                        if (!isRaw) {
+                            try {
+                                sound = SoundUtils.getSound(executable.toUpperCase());
+                            } catch (final IllegalArgumentException exception) {
+                                plugin.printStacktrace(
+                                        "Sound name given for sound action: " + executable + ", is not a valid sound!",
+                                        exception
+                                );
+                                break;
+                            }
                         }
                     } else {
                         String[] parts = executable.split(" ", 3);
+                        soundName = parts[0];
 
-                        try {
-                            sound = SoundUtils.getSound(parts[0].toUpperCase());
-                        } catch (final IllegalArgumentException exception) {
-                            plugin.printStacktrace(
-                                    "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
-                                    exception
-                            );
-                            break;
+                        if (!isRaw) {
+                            try {
+                                sound = SoundUtils.getSound(parts[0].toUpperCase());
+                            } catch (final IllegalArgumentException exception) {
+                                plugin.printStacktrace(
+                                        "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
+                                        exception
+                                );
+                                break;
+                            }
                         }
 
                         if (parts.length == 3) {
@@ -478,18 +483,42 @@ public class ClickActionTask extends UniversalRunnable {
                             break;
 
                         case BROADCAST_SOUND:
+                            if (sound == null) {
+                                plugin.debug(
+                                        DebugLevel.HIGHEST,
+                                        Level.WARNING,
+                                        "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                                );
+                                break;
+                            }
                             for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
                                 broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
                             }
                             break;
 
                         case BROADCAST_WORLD_SOUND:
+                            if (sound == null) {
+                                plugin.debug(
+                                        DebugLevel.HIGHEST,
+                                        Level.WARNING,
+                                        "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                                );
+                                break;
+                            }
                             for (final Player broadcastTarget : player.getWorld().getPlayers()) {
                                 broadcastTarget.playSound(broadcastTarget.getLocation(), sound, volume, pitch);
                             }
                             break;
 
                         case PLAY_SOUND:
+                            if (sound == null) {
+                                plugin.debug(
+                                        DebugLevel.HIGHEST,
+                                        Level.WARNING,
+                                        "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                                );
+                                break;
+                            }
                             player.playSound(player.getLocation(), sound, volume, pitch);
                             break;
                     }

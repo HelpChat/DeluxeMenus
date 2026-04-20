@@ -76,7 +76,6 @@ public class ClickAction {
     this.delay = delay;
   }
 
-
   /**
    * Get the unparsed chance of this action.
    *

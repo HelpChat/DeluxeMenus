@@ -1,6 +1,6 @@
 plugins {
     java
-    id("com.gradleup.shadow") version("8.3.5")
+    id("com.gradleup.shadow") version("9.4.1")
     id("com.github.ben-manes.versions") version("0.51.0")
 }
 
@@ -21,6 +21,7 @@ repositories {
     maven("https://repo.momirealms.net/releases/")
     maven("https://repo.nexomc.com/releases/")
     maven("https://repo.oraxen.com/releases")
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://jitpack.io")
 }
 

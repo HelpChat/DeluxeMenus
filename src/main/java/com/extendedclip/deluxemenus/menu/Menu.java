@@ -58,7 +58,7 @@ public class Menu {
 
         if (this.options.registerCommands()) {
             this.command = new RegistrableMenuCommand(plugin, this);
-            scheduler.runTask(() -> this.command.register());
+            this.command.register();
         }
 
         menus.put(this.options.name(), this);

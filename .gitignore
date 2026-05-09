@@ -1,4 +1,9 @@
-.gradle
-.idea
-build
+.gradle/
+.idea/
+.vscode/
+
+build/
 test-server/
+
+.claude/
+CLAUDE.md

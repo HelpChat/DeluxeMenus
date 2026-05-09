@@ -2,7 +2,6 @@ package com.extendedclip.deluxemenus.menu.command;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
-import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import me.clip.placeholderapi.util.Msg;
@@ -27,7 +26,6 @@ public class RegistrableMenuCommand extends Command {
     private static CommandMap commandMap = null;
 
     private final DeluxeMenus plugin;
-    private final TaskScheduler scheduler;
 
     private Menu menu;
     private boolean registered = false;
@@ -37,7 +35,6 @@ public class RegistrableMenuCommand extends Command {
                                   final @NotNull Menu menu) {
         super(menu.options().commands().isEmpty() ? menu.options().name() : menu.options().commands().get(0));
         this.plugin = plugin;
-        this.scheduler = plugin.getScheduler();
         this.menu = menu;
 
         if (menu.options().commands().size() > 1) {
@@ -89,36 +86,41 @@ public class RegistrableMenuCommand extends Command {
     }
 
     public void register() {
-        scheduler.runTask(() -> {
-            if (registered) {
-                throw new IllegalStateException("This command was already registered!");
-            }
+        if (registered) {
+            throw new IllegalStateException("This command was already registered!");
+        }
 
-            registered = true;
+        registered = true;
 
-            if (commandMap == null) {
-                try {
-                    final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                    f.setAccessible(true);
-                    commandMap = (CommandMap) f.get(Bukkit.getServer());
-                } catch (final @NotNull Exception exception) {
-                    plugin.printStacktrace(
-                            "Something went wrong while trying to register command: " + this.getName(),
-                            exception
-                    );
-                    return;
-                }
-            }
-
-            boolean registered = commandMap.register(FALLBACK_PREFIX, this);
-            if (registered) {
-                plugin.debug(
-                        DebugLevel.LOW,
-                        Level.INFO,
-                        "Registered command: " + this.getName() + " for menu: " + menu.options().name()
+        if (commandMap == null) {
+            try {
+                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+                f.setAccessible(true);
+                commandMap = (CommandMap) f.get(Bukkit.getServer());
+            } catch (final @NotNull Exception exception) {
+                plugin.printStacktrace(
+                        "Something went wrong while trying to register command: " + this.getName(),
+                        exception
                 );
+                return;
             }
-        });
+        }
+
+        boolean registered = commandMap.register(FALLBACK_PREFIX, this);
+        if (registered) {
+            plugin.debug(
+                    DebugLevel.LOW,
+                    Level.INFO,
+                    "Registered command: " + this.getName() + " for menu: " + menu.options().name()
+            );
+        } else {
+            plugin.debug(
+                    DebugLevel.HIGHEST,
+                    Level.WARNING,
+                    "Failed to register command: " + this.getName() + " for menu: " + menu.options().name()
+                            + ". A command with that name already exists. Use /deluxemenus:" + this.getName() + " instead."
+            );
+        }
     }
 
     public void unregister() {

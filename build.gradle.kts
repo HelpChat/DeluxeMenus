@@ -47,7 +47,6 @@ dependencies {
     implementation(libs.nashorn)
     implementation(libs.adventure.platform)
     implementation(libs.adventure.minimessage)
-    implementation(libs.adventure.legacy)
     implementation(libs.bstats)
 
     compileOnly("org.jetbrains:annotations:23.0.0")

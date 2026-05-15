@@ -91,7 +91,6 @@ public class DeluxeMenusCommand implements TabExecutor {
         final List<SubCommand> commands = List.of(
                 new DumpCommand(plugin),
                 new ExecuteCommand(plugin),
-                new ConvertCommandPanelsCommand(plugin),
                 new HelpCommand(plugin),
                 new ListCommand(plugin),
                 new MetaCommand(plugin),

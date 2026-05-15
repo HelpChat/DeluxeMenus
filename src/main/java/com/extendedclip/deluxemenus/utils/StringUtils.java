@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
@@ -14,6 +16,12 @@ public class StringUtils {
 
     private final static Pattern HEX_PATTERN = Pattern
             .compile("&(#[a-f0-9]{6})", Pattern.CASE_INSENSITIVE);
+    private final static Pattern MINI_MESSAGE_PATTERN = Pattern.compile(
+            "<(/?(#[a-f0-9]{6}|black|dark_blue|dark_green|dark_aqua|dark_red|dark_purple|gold|gray|dark_gray|blue|green|aqua|red|light_purple|yellow|white|bold|b|italic|i|underlined|u|strikethrough|st|obfuscated|obf|reset)|gradient:|rainbow|transition:|color:)",
+            Pattern.CASE_INSENSITIVE
+    );
+    private final static MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private final static LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
 
     /**
      * Translates the ampersand color codes like '&7' to their section symbol counterparts like '§7'.
@@ -25,7 +33,28 @@ public class StringUtils {
      */
     @NotNull
     public static String color(@NotNull String input) {
-        // Hex Support for 1.16.1+
+        if (hasMiniMessageFormat(input)) {
+            return miniMessage(input);
+        }
+
+        return legacyColor(input);
+    }
+
+    @NotNull
+    public static String miniMessage(@NotNull final String input) {
+        try {
+            return legacyColor(LEGACY_SECTION.serialize(MINI_MESSAGE.deserialize(input)));
+        } catch (final Exception ignored) {
+            return legacyColor(input);
+        }
+    }
+
+    private static boolean hasMiniMessageFormat(@NotNull final String input) {
+        return MINI_MESSAGE_PATTERN.matcher(input).find();
+    }
+
+    @NotNull
+    private static String legacyColor(@NotNull String input) {
         Matcher m = HEX_PATTERN.matcher(input);
         if (VersionHelper.IS_HEX_VERSION) {
             while (m.find()) {

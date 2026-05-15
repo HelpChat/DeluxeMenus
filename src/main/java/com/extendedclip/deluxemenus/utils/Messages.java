@@ -78,6 +78,10 @@ public enum Messages {
             .append(newline())
             .append(text(">", NamedTextColor.AQUA))
             .append(space().append(space()))
+            .append(text("/dm convertcommandpanels [folder] [--output folder]", NamedTextColor.WHITE))
+            .append(newline())
+            .append(text(">", NamedTextColor.AQUA))
+            .append(space().append(space()))
             .append(text("/dm reload [menu-name]", NamedTextColor.WHITE))),
 
     NO_PERMISSION(text("You don't have permission to do that!", NamedTextColor.RED)),

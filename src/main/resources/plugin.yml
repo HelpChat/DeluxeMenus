@@ -23,6 +23,9 @@ permissions:
   deluxemenus.open.bypass:
     description: attempt to open a menu for a viewer skipping view requirement checking for the player
     default: op
+  deluxemenus.convertcommandpanels:
+    description: convert CommandPanels panel files into DeluxeMenus menus
+    default: op
   deluxemenus.menu.*:
     description: permission for all menus
     default: op

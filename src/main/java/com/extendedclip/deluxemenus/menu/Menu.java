@@ -12,6 +12,7 @@ import com.extendedclip.deluxemenus.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +26,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 public class Menu {
 
     private static final Map<String, Menu> menus = new ConcurrentHashMap<>();
+    private static final Map<String, Menu> subMenus = new ConcurrentHashMap<>();
     private static final Set<MenuHolder> menuHolders = ConcurrentHashMap.newKeySet();
     private static final Map<UUID, Menu> lastOpenedMenus = new ConcurrentHashMap<>();
 
@@ -56,12 +59,16 @@ public class Menu {
         this.items = items;
         this.path = path;
 
-        if (this.options.registerCommands()) {
+        if (!this.options.subMenu() && this.options.registerCommands()) {
             this.command = new RegistrableMenuCommand(plugin, this);
             this.command.register();
         }
 
-        menus.put(this.options.name(), this);
+        if (this.options.subMenu()) {
+            subMenus.put(this.options.name(), this);
+        } else {
+            menus.put(this.options.name(), this);
+        }
     }
 
     public static void unload(final @NotNull DeluxeMenus plugin, final @NotNull String name) {
@@ -73,6 +80,7 @@ public class Menu {
 
         Optional<Menu> optionalMenu = Menu.getMenuByName(name);
         if (optionalMenu.isEmpty()) {
+            subMenus.remove(name);
             return;
         }
 
@@ -89,7 +97,11 @@ public class Menu {
         for (Menu menu : Menu.getAllMenus()) {
             menu.unregisterCommand();
         }
+        for (Menu menu : Menu.getAllSubMenus()) {
+            menu.unregisterCommand();
+        }
         menus.clear();
+        subMenus.clear();
         menuHolders.clear();
         lastOpenedMenus.clear();
     }
@@ -111,10 +123,15 @@ public class Menu {
             }
         }
         menus.clear();
+        subMenus.clear();
     }
 
     public static int getLoadedMenuSize() {
         return menus.size();
+    }
+
+    public static int getLoadedSubMenuSize() {
+        return subMenus.size();
     }
 
     public static @NotNull Set<String> getAllMenuNames() {
@@ -123,6 +140,10 @@ public class Menu {
 
     public static @NotNull Collection<Menu> getAllMenus() {
         return menus.values();
+    }
+
+    public static @NotNull Collection<Menu> getAllSubMenus() {
+        return subMenus.values();
     }
 
     // Menus need to be stored in a list because config.yml can contain multiple menus.
@@ -146,6 +167,10 @@ public class Menu {
 
     public static @NotNull Optional<Menu> getMenuByName(final @NotNull String name) {
         return menus.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase(name)).findFirst().map(Entry::getValue);
+    }
+
+    public static @NotNull Optional<Menu> getSubMenuByName(final @NotNull String name) {
+        return subMenus.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase(name)).findFirst().map(Entry::getValue);
     }
 
     public static @NotNull Optional<Menu> getMenuByCommand(final @NotNull String command) {
@@ -208,16 +233,22 @@ public class Menu {
 
         if (close) {
             plugin.getScheduler().runTask(player, () -> {
+                holder.restorePlayerInventory();
                 player.closeInventory();
                 cleanInventory(plugin, player);
             });
+        } else {
+            holder.restorePlayerInventory();
         }
         menuHolders.remove(holder);
         lastOpenedMenus.put(player.getUniqueId(), holder.getMenu().orElse(null));
     }
 
     public static void closeMenuForShutdown(final @NotNull DeluxeMenus plugin, final @NotNull Player player) {
-        getMenuHolder(player).ifPresent(MenuHolder::stopPlaceholderUpdate);
+        getMenuHolder(player).ifPresent(holder -> {
+            holder.stopPlaceholderUpdate();
+            holder.restorePlayerInventory();
+        });
 
         player.closeInventory();
         cleanInventory(plugin, player);
@@ -277,6 +308,19 @@ public class Menu {
     }
 
     public void openMenu(final @NotNull Player viewer, final @Nullable Map<String, String> args, final @Nullable Player placeholderPlayer) {
+        openMenu(viewer, args, placeholderPlayer, null);
+    }
+
+    public void openMenu(
+            final @NotNull Player viewer,
+            final @Nullable Map<String, String> args,
+            final @Nullable Player placeholderPlayer,
+            final @Nullable Menu playerInventoryMenu
+    ) {
+        if (this.options.subMenu()) {
+            return;
+        }
+
         if (items == null || items.isEmpty()) {
             return;
         }
@@ -295,6 +339,9 @@ public class Menu {
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
         holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
+        if (playerInventoryMenu != null && this.options.playerInventoryMenu().isEmpty()) {
+            holder.setPlayerInventoryMenu(playerInventoryMenu);
+        }
 
         if (!this.handleArgRequirements(holder)) {
             return;
@@ -306,38 +353,7 @@ public class Menu {
 
         scheduler.runTaskAsynchronously(() -> {
 
-            Set<MenuItem> activeItems = new HashSet<>();
-
-            for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
-
-                for (MenuItem item : entry.getValue().values()) {
-
-                    int slot = item.options().slot();
-
-                    if (slot >= this.options.size()) {
-                        plugin.debug(
-                                DebugLevel.HIGHEST,
-                                Level.WARNING,
-                                "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
-                                "This item will not be added to the menu!"
-                        );
-                        continue;
-                    }
-
-                    if (item.options().viewRequirements().isPresent()) {
-
-                        if (item.options().viewRequirements().get().evaluate(holder)) {
-
-                            activeItems.add(item);
-                            break;
-                        }
-                    } else {
-
-                        activeItems.add(item);
-                        break;
-                    }
-                }
-            }
+            Set<MenuItem> activeItems = getActiveItems(holder);
 
             if (activeItems.isEmpty()) {
                 return;
@@ -361,6 +377,8 @@ public class Menu {
             holder.setInventory(inventory);
 
             boolean update = false;
+            final Map<Integer, ItemStack> playerInventoryItems = new HashMap<>();
+            final boolean renderPlayerInventory = rendersPlayerInventory(holder);
 
             for (MenuItem item : activeItems) {
 
@@ -374,7 +392,7 @@ public class Menu {
 
                 int slot = item.options().slot();
 
-                if (slot >= this.options.size()) {
+                if (slot >= this.options.size() + (renderPlayerInventory ? 36 : 0)) {
                     plugin.debug(
                             DebugLevel.HIGHEST,
                             Level.WARNING,
@@ -388,7 +406,11 @@ public class Menu {
                     update = true;
                 }
 
-                inventory.setItem(item.options().slot(), iStack);
+                if (slot < this.options.size()) {
+                    inventory.setItem(item.options().slot(), iStack);
+                } else {
+                    playerInventoryItems.put(slot, iStack);
+                }
             }
 
             final boolean updatePlaceholders = update;
@@ -402,7 +424,14 @@ public class Menu {
                     closeMenu(plugin, holder.getViewer(), false);
                 }
 
-                viewer.openInventory(inventory);
+                if (renderPlayerInventory) {
+                    holder.hidePlayerInventory();
+                }
+
+                final InventoryView view = viewer.openInventory(inventory);
+                if (view != null && renderPlayerInventory) {
+                    holder.applyPlayerInventoryItems(playerInventoryItems);
+                }
                 menuHolders.add(holder);
 
                 if (updatePlaceholders) {
@@ -419,6 +448,71 @@ public class Menu {
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);
+    }
+
+    public @NotNull Set<MenuItem> getActiveItems(final @NotNull MenuHolder holder) {
+        final Set<MenuItem> activeItems = new HashSet<>(getActiveItems(holder, 0, this.options.size(), 0));
+        final Optional<Menu> openPlayerInventoryMenu = holder.getPlayerInventoryMenu();
+
+        if (!this.options.hidePlayerInventory()
+                && openPlayerInventoryMenu.isEmpty()
+                && this.options.playerInventoryMenu().isEmpty()) {
+            return activeItems;
+        }
+
+        if (openPlayerInventoryMenu.isPresent()) {
+            activeItems.addAll(openPlayerInventoryMenu.get().getActiveItems(holder, 0, 36, this.options.size()));
+            return activeItems;
+        }
+
+        if (this.options.playerInventoryMenu().isPresent()) {
+            final String playerInventoryMenuName = this.options.playerInventoryMenu().get();
+            final Optional<Menu> bottomMenu = Menu.getSubMenuByName(playerInventoryMenuName);
+            if (bottomMenu.isPresent()) {
+                activeItems.addAll(bottomMenu.get().getActiveItems(holder, 0, 36, this.options.size()));
+            } else {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Player inventory menu " + playerInventoryMenuName + " for menu " + this.options.name() + " was not found."
+                );
+            }
+            return activeItems;
+        }
+
+        return activeItems;
+    }
+
+    private boolean rendersPlayerInventory(final @NotNull MenuHolder holder) {
+        return this.options.hidePlayerInventory()
+                || holder.getPlayerInventoryMenu().isPresent()
+                || this.options.playerInventoryMenu().flatMap(Menu::getSubMenuByName).isPresent();
+    }
+
+    private @NotNull Set<MenuItem> getActiveItems(final @NotNull MenuHolder holder, final int minimumSlot, final int maximumSlot, final int slotOffset) {
+        final Set<MenuItem> activeItems = new HashSet<>();
+
+        for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
+            final int configuredSlot = entry.getKey();
+
+            if (configuredSlot < minimumSlot || configuredSlot >= maximumSlot) {
+                continue;
+            }
+
+            for (MenuItem item : entry.getValue().values()) {
+                if (item.options().viewRequirements().isPresent()) {
+                    if (!item.options().viewRequirements().get().evaluate(holder)) {
+                        continue;
+                    }
+                }
+
+                final int renderedSlot = configuredSlot + slotOffset;
+                activeItems.add(new MenuItem(plugin, item.options().asBuilder().slot(renderedSlot).build()));
+                break;
+            }
+        }
+
+        return activeItems;
     }
 
     public @NotNull Map<Integer, TreeMap<Integer, MenuItem>> getMenuItems() {

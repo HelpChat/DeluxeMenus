@@ -96,6 +96,7 @@ public class DeluxeMenusConfig {
 
     private final String separator = File.separator;
     private final File menuDirectory;
+    private final File converterDirectory;
     private final DeluxeMenus plugin;
     private final List<String> exampleMenus = Arrays.asList("basics_menu", "advanced_menu", "requirements_menu"
             // more example menus here
@@ -106,10 +107,12 @@ public class DeluxeMenusConfig {
 
         this.plugin = plugin;
         menuDirectory = new File(this.plugin.getDataFolder() + separator + "gui_menus");
+        converterDirectory = new File(this.plugin.getDataFolder() + separator + "converter");
         try {
             if (menuDirectory.mkdirs()) {
                 plugin.debug(DebugLevel.HIGH, Level.INFO, "Individual menus directory did not exist.", "Created directory: plugins" + separator + "DeluxeMenus" + separator + "gui_menus");
             }
+            converterDirectory.mkdirs();
         } catch (SecurityException e) {
             plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Something went wrong while creating directory: plugins" + separator + "DeluxeMenus" + separator + "gui_menus");
         }
@@ -554,6 +557,9 @@ public class DeluxeMenusConfig {
 
         final boolean refresh = c.getBoolean(pre + "refresh", false);
         builder.refresh(refresh);
+
+        builder.hidePlayerInventory(c.getBoolean(pre + "hide_player_inventory", false));
+        builder.playerInventoryMenu(c.getString(pre + "player_inventory_menu", c.getString(pre + "bottom_menu", null)));
 
         Map<Integer, TreeMap<Integer, MenuItem>> items = loadMenuItems(c, key, mainConfig);
 
@@ -1282,6 +1288,10 @@ public class DeluxeMenusConfig {
 
     public File getMenuDirector() {
         return menuDirectory;
+    }
+
+    public File getConverterDirectory() {
+        return converterDirectory;
     }
 
     public void addEnchantmentsOptionToBuilder(

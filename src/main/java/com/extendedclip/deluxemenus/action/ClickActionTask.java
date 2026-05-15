@@ -33,7 +33,6 @@ public class ClickActionTask extends UniversalRunnable {
     private final UUID uuid;
     private final ActionType actionType;
     private final String exec;
-    // Ugly hack to get around the fact that arguments are not available at task execution time
     private final Map<String, String> arguments;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
@@ -215,7 +214,6 @@ public class ClickActionTask extends UniversalRunnable {
                 }
 
                 if (passedArgumentValues == null || passedArgumentValues.length == 0) {
-                    // Replicate old behavior: If no arguments are given, open the menu with the arguments from the current menu
                     if (holder.isEmpty()) {
                         menuToOpen.openMenu(player);
                         break;
@@ -236,8 +234,6 @@ public class ClickActionTask extends UniversalRunnable {
 
                 final Map<String, String> argumentsMap = new HashMap<>();
                 if (holder.isPresent() && holder.get().getTypedArgs() != null) {
-                    // Pass the arguments from the current menu to the new menu. If the new menu has arguments with the
-                    // same name, they will be overwritten
                     argumentsMap.putAll(holder.get().getTypedArgs());
                 }
 
@@ -245,7 +241,6 @@ public class ClickActionTask extends UniversalRunnable {
                     final String argumentName = menuArgumentNames.get(index);
 
                     if (passedArgumentValues.length <= index) {
-                        // This should never be the case!
                         plugin.debug(
                                 DebugLevel.HIGHEST,
                                 Level.WARNING,
@@ -255,7 +250,6 @@ public class ClickActionTask extends UniversalRunnable {
                     }
 
                     if (menuArgumentNames.size() == index + 1) {
-                        // If this is the last argument, get all remaining values and join them
                         final String lastArgumentValue = String.join(" ", Arrays.asList(passedArgumentValues).subList(index, passedArgumentValues.length));
                         argumentsMap.put(argumentName, lastArgumentValue);
                         break;
@@ -270,6 +264,32 @@ public class ClickActionTask extends UniversalRunnable {
                 }
 
                 menuToOpen.openMenu(player, argumentsMap, holder.get().getPlaceholderPlayer());
+                break;
+
+            case OPEN_GUI_INVENTORY:
+                if (holder.isEmpty()) {
+                    plugin.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Cannot open player inventory menu " + executable + " because no DeluxeMenus menu is open."
+                    );
+                    break;
+                }
+
+                final String inventoryExecutable = executable.replaceAll("\\s+", " ").trim();
+                if (inventoryExecutable.isBlank()) {
+                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open player inventory menu " + executable);
+                    break;
+                }
+
+                final String inventoryMenuName = inventoryExecutable.split(" ", 2)[0];
+                final Optional<Menu> optionalInventoryMenu = Menu.getMenuByName(inventoryMenuName);
+                if (optionalInventoryMenu.isEmpty()) {
+                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Could not find and open player inventory menu " + executable);
+                    break;
+                }
+
+                holder.get().openPlayerInventoryMenu(optionalInventoryMenu.get());
                 break;
 
             case CONNECT:
@@ -508,17 +528,17 @@ public class ClickActionTask extends UniversalRunnable {
                         }
                         break;
 
-                        case PLAY_SOUND: 
-                            if (sound == null) {
-                                plugin.debug(
-                                      DebugLevel.HIGHEST, 
-                                      Level.WARNING,
-                                      "Sound name given for sound action: " + executable + ", is not a valid sound!"
-                                );
-                                break;
-                            }
-                            player.playSound(player.getLocation(), sound, volume, pitch);
+                    case PLAY_SOUND:
+                        if (sound == null) {
+                            plugin.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                            );
                             break;
+                        }
+                        player.playSound(player.getLocation(), sound, volume, pitch);
+                        break;
                 }
                 break;
 

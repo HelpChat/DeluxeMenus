@@ -18,9 +18,11 @@ public class MenuOptions {
     private final int updateInterval;
     private final int refreshInterval;
     private final boolean refresh;
+    private final boolean hidePlayerInventory;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
     private final boolean enableBypassPerm;
+    private final String playerInventoryMenu;
 
     private final List<String> commands;
     private final boolean registerCommands;
@@ -40,9 +42,11 @@ public class MenuOptions {
         this.updateInterval = builder.updateInterval;
         this.refreshInterval = builder.refreshInterval;
         this.refresh = builder.refresh;
+        this.hidePlayerInventory = builder.hidePlayerInventory;
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
         this.enableBypassPerm = builder.enableBypassPerm;
+        this.playerInventoryMenu = builder.playerInventoryMenu;
 
         this.commands = builder.commands;
         this.registerCommands = builder.registerCommands;
@@ -87,6 +91,10 @@ public class MenuOptions {
         return this.refresh;
     }
 
+    public boolean hidePlayerInventory() {
+        return this.hidePlayerInventory;
+    }
+
     public boolean parsePlaceholdersInArguments() {
         return this.parsePlaceholdersInArguments;
     }
@@ -97,6 +105,10 @@ public class MenuOptions {
 
     public boolean enableBypassPerm() {
         return this.enableBypassPerm;
+    }
+
+    public @NotNull Optional<String> playerInventoryMenu() {
+        return Optional.ofNullable(this.playerInventoryMenu);
     }
 
     public @NotNull List<@NotNull String> commands() {
@@ -138,9 +150,11 @@ public class MenuOptions {
                 .updateInterval(this.updateInterval)
                 .refreshInterval(this.refreshInterval)
                 .refresh(this.refresh)
+                .hidePlayerInventory(this.hidePlayerInventory)
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
                 .enableBypassPerm(this.enableBypassPerm)
+                .playerInventoryMenu(this.playerInventoryMenu)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
@@ -160,9 +174,11 @@ public class MenuOptions {
         private int updateInterval = 10;
         private int refreshInterval = 10;
         private boolean refresh;
+        private boolean hidePlayerInventory;
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
         private boolean enableBypassPerm = false;
+        private String playerInventoryMenu;
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
@@ -214,6 +230,11 @@ public class MenuOptions {
             return this;
         }
 
+        public MenuOptionsBuilder hidePlayerInventory(final boolean hidePlayerInventory) {
+            this.hidePlayerInventory = hidePlayerInventory;
+            return this;
+        }
+
         public MenuOptionsBuilder parsePlaceholdersInArguments(final boolean parsePlaceholdersInArguments) {
             this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
             return this;
@@ -226,6 +247,11 @@ public class MenuOptions {
 
         public MenuOptionsBuilder enableBypassPerm(final boolean enableBypassPerm) {
             this.enableBypassPerm = enableBypassPerm;
+            return this;
+        }
+
+        public MenuOptionsBuilder playerInventoryMenu(final @Nullable String playerInventoryMenu) {
+            this.playerInventoryMenu = playerInventoryMenu;
             return this;
         }
 

@@ -1,17 +1,14 @@
 package com.extendedclip.deluxemenus.hooks;
 
 import com.extendedclip.deluxemenus.cache.SimpleCache;
-import net.momirealms.craftengine.bukkit.api.BukkitAdaptors;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
-import net.momirealms.craftengine.core.item.CustomItem;
-import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.bukkit.item.BukkitItemDefinition;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CraftEngineHook implements ItemHook, SimpleCache {
@@ -20,36 +17,35 @@ public class CraftEngineHook implements ItemHook, SimpleCache {
 
     @Override
     public void clearCache() {
-        cache.clear();
+        this.cache.clear();
     }
 
     @Override
     public ItemStack getItem(@NotNull String... arguments) {
         if (arguments.length == 0) return EMPTY.clone();
         String namespaceId = arguments[0];
-        ItemStack cached = cache.get(namespaceId);
+        ItemStack cached = this.cache.get(namespaceId);
         if (cached != null) return cached.clone();
-        CustomItem<ItemStack> customItem = CraftEngineItems.byId(Key.of(namespaceId));
-        if (customItem == null) return EMPTY.clone();
-        ItemStack result = customItem.buildItemStack();
-        cache.put(namespaceId, result);
+        BukkitItemDefinition definition = CraftEngineItems.byId(namespaceId);
+        if (definition == null) return EMPTY.clone();
+        ItemStack result = definition.buildBukkitItem();
+        this.cache.put(namespaceId, result);
         return result.clone();
     }
 
     @Override
     public ItemStack getItem(@NotNull Player holder, @NotNull String... arguments) {
         if (arguments.length == 0) return EMPTY.clone();
-        Key id = Key.of(arguments[0]);
-        return Optional.ofNullable(CraftEngineItems.byId(id))
-                .map(item -> item.buildItemStack(BukkitAdaptors.adapt(holder)))
-                .orElseGet(EMPTY::clone);
+        BukkitItemDefinition definition = CraftEngineItems.byId(arguments[0]);
+        if (definition == null) return EMPTY.clone();
+        return definition.buildBukkitItem(holder);
     }
 
     @Override
     public boolean itemMatchesIdentifiers(@NotNull ItemStack item, @NotNull String... arguments) {
         if (arguments.length == 0) return false;
-        CustomItem<ItemStack> customItem = CraftEngineItems.byItemStack(item);
-        return customItem != null && customItem.id().equals(Key.of(arguments[0]));
+        BukkitItemDefinition definition = CraftEngineItems.byItemStack(item);
+        return definition != null && definition.id().asString().equals(arguments[0]);
     }
 
     @Override

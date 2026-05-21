@@ -132,6 +132,10 @@ public class ClickActionTask extends UniversalRunnable {
                 player.sendMessage(StringUtils.color(executable));
                 break;
 
+            case ACTION_BAR:
+                player.sendActionBar(StringUtils.color(executable));
+                break;
+
             case LOG:
                 final String[] logParts = executable.split(" ", 2);
 

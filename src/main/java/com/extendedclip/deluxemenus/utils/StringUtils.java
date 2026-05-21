@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
@@ -14,6 +16,8 @@ public class StringUtils {
 
     private final static Pattern HEX_PATTERN = Pattern
             .compile("&(#[a-f0-9]{6})", Pattern.CASE_INSENSITIVE);
+    private final static MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private final static LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
 
     /**
      * Translates the ampersand color codes like '&7' to their section symbol counterparts like '§7'.
@@ -34,6 +38,15 @@ public class StringUtils {
         }
 
         return ChatColor.translateAlternateColorCodes('&', input);
+    }
+
+    @NotNull
+    public static String colorMenuTitle(@NotNull final String input) {
+        try {
+            return color(LEGACY_SECTION.serialize(MINI_MESSAGE.deserialize(input)));
+        } catch (final Exception ignored) {
+            return color(input);
+        }
     }
 
     @NotNull

@@ -364,7 +364,7 @@ public class Menu {
 
             this.options.openHandler().ifPresent(h -> h.onClick(holder));
 
-            String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
+            String title = StringUtils.colorMenuTitle(holder.setPlaceholdersAndArguments(this.options.title()));
 
             Inventory inventory;
 

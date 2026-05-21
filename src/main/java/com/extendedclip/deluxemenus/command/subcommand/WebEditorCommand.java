@@ -105,6 +105,13 @@ public class WebEditorCommand extends SubCommand {
 
         for (int index = 1; index < arguments.size(); index++) {
             final String argument = arguments.get(index);
+            final Optional<EditorEndpoint> optionalEndpoint = parseHostPort(argument);
+            if (optionalEndpoint.isPresent()) {
+                port = optionalEndpoint.get().port;
+                host = optionalEndpoint.get().host;
+                continue;
+            }
+
             final Optional<Integer> optionalPort = parsePort(argument);
             if (optionalPort.isPresent()) {
                 port = optionalPort.get();
@@ -119,10 +126,54 @@ public class WebEditorCommand extends SubCommand {
 
     private @NotNull Optional<Integer> parsePort(final @NotNull String input) {
         try {
-            return Optional.of(Integer.parseInt(input));
+            final int port = Integer.parseInt(input);
+            if (port < 1 || port > 65535) {
+                return Optional.empty();
+            }
+
+            return Optional.of(port);
         } catch (final NumberFormatException exception) {
             return Optional.empty();
         }
+    }
+
+    private @NotNull Optional<EditorEndpoint> parseHostPort(final @NotNull String input) {
+        String endpoint = input.trim();
+        final int schemeIndex = endpoint.indexOf("://");
+        if (schemeIndex >= 0) {
+            endpoint = endpoint.substring(schemeIndex + 3);
+        }
+
+        final int pathIndex = endpoint.indexOf('/');
+        if (pathIndex >= 0) {
+            endpoint = endpoint.substring(0, pathIndex);
+        }
+
+        if (endpoint.startsWith("[")) {
+            final int endIndex = endpoint.indexOf(']');
+            if (endIndex <= 0 || endIndex + 2 > endpoint.length() || endpoint.charAt(endIndex + 1) != ':') {
+                return Optional.empty();
+            }
+
+            final Optional<Integer> port = parsePort(endpoint.substring(endIndex + 2));
+            if (port.isEmpty()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new EditorEndpoint(port.get(), Optional.of(endpoint.substring(0, endIndex + 1))));
+        }
+
+        final int colonIndex = endpoint.lastIndexOf(':');
+        if (colonIndex <= 0 || colonIndex != endpoint.indexOf(':')) {
+            return Optional.empty();
+        }
+
+        final Optional<Integer> port = parsePort(endpoint.substring(colonIndex + 1));
+        if (port.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new EditorEndpoint(port.get(), Optional.of(endpoint.substring(0, colonIndex))));
     }
 
     private @NotNull Optional<String> virtualHost(final @NotNull CommandSender sender) {

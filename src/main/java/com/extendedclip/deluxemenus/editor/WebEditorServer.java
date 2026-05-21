@@ -57,7 +57,11 @@ public class WebEditorServer {
 
     private void ensureStarted(final int requestedPort) throws IOException {
         if (server != null) {
-            return;
+            if (server.getAddress().getPort() == requestedPort) {
+                return;
+            }
+
+            stop();
         }
 
         server = HttpServer.create(new InetSocketAddress(requestedPort), 0);

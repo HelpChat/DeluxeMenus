@@ -15,10 +15,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,12 +41,38 @@ public class WebEditorServer {
             final int requestedPort,
             final @Nullable String requestedHost
     ) throws IOException {
+        cleanupSessions();
+        final Optional<Session> activeSession = activeSession(menu.options().name());
+        if (activeSession.isPresent()) {
+            throw new ActiveSessionException(activeSession.get().url);
+        }
+
         ensureStarted(requestedPort);
 
         final String token = UUID.randomUUID().toString().replace("-", "");
-        sessions.put(token, new Session(token, menu.options().name(), Instant.now().plus(Duration.ofMinutes(60))));
+        final String url = "http://" + publicHost(requestedHost) + ":" + server.getAddress().getPort() + "/dm-web/" + token;
+        sessions.put(token, new Session(token, menu.options().name(), url, Instant.now().plus(Duration.ofMinutes(60))));
 
-        return "http://" + publicHost(requestedHost) + ":" + server.getAddress().getPort() + "/dm-web/" + token;
+        return url;
+    }
+
+    public @NotNull Optional<String> resumeSession(final @NotNull String menuName) {
+        cleanupSessions();
+        return activeSession(menuName).map(session -> session.url);
+    }
+
+    public boolean cancelSession(final @NotNull String menuName) {
+        cleanupSessions();
+        final Optional<Session> activeSession = activeSession(menuName);
+        activeSession.ifPresent(session -> sessions.remove(session.token));
+        return activeSession.isPresent();
+    }
+
+    public @NotNull List<SessionView> listSessions() {
+        cleanupSessions();
+        return sessions.values().stream()
+                .map(session -> new SessionView(session.menuName, session.url, session.expiresAt))
+                .collect(Collectors.toList());
     }
 
     public void stop() {
@@ -232,6 +260,17 @@ public class WebEditorServer {
         }
 
         return Optional.of(session);
+    }
+
+    private @NotNull Optional<Session> activeSession(final @NotNull String menuName) {
+        return sessions.values().stream()
+                .filter(session -> session.menuName.equalsIgnoreCase(menuName))
+                .findFirst();
+    }
+
+    private void cleanupSessions() {
+        final Instant now = Instant.now();
+        sessions.entrySet().removeIf(entry -> entry.getValue().expiresAt.isBefore(now));
     }
 
     private @NotNull Optional<Menu> findMenu(final @NotNull String menuName) {
@@ -508,14 +547,57 @@ public class WebEditorServer {
                 + "</script>";
     }
 
+    public static class ActiveSessionException extends IOException {
+        private final String url;
+
+        private ActiveSessionException(final @NotNull String url) {
+            this.url = url;
+        }
+
+        public @NotNull String url() {
+            return url;
+        }
+    }
+
+    public static class SessionView {
+        private final String menuName;
+        private final String url;
+        private final Instant expiresAt;
+
+        private SessionView(final @NotNull String menuName, final @NotNull String url, final @NotNull Instant expiresAt) {
+            this.menuName = menuName;
+            this.url = url;
+            this.expiresAt = expiresAt;
+        }
+
+        public @NotNull String menuName() {
+            return menuName;
+        }
+
+        public @NotNull String url() {
+            return url;
+        }
+
+        public @NotNull Instant expiresAt() {
+            return expiresAt;
+        }
+    }
+
     private static class Session {
         private final String token;
         private final String menuName;
+        private final String url;
         private final Instant expiresAt;
 
-        private Session(final @NotNull String token, final @NotNull String menuName, final @NotNull Instant expiresAt) {
+        private Session(
+                final @NotNull String token,
+                final @NotNull String menuName,
+                final @NotNull String url,
+                final @NotNull Instant expiresAt
+        ) {
             this.token = token;
             this.menuName = menuName;
+            this.url = url;
             this.expiresAt = expiresAt;
         }
     }

@@ -1,11 +1,14 @@
 package com.extendedclip.deluxemenus.command.subcommand;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.editor.WebEditorServer;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.Messages;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -52,13 +55,35 @@ public class WebEditorCommand extends SubCommand {
             return;
         }
 
-        final Optional<Menu> optionalMenu = findMenu(arguments.get(0));
-        if (optionalMenu.isEmpty()) {
-            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+        final String action = arguments.get(0).toLowerCase(Locale.ROOT);
+        if ("list".equals(action)) {
+            listSessions(sender);
             return;
         }
 
-        final EditorEndpoint endpoint = parseEndpoint(sender, arguments);
+        if ("resume".equals(action)) {
+            resumeSession(sender, arguments);
+            return;
+        }
+
+        if ("cancel".equals(action)) {
+            cancelSession(sender, arguments);
+            return;
+        }
+
+        final int menuIndex = "local".equals(action) ? 1 : 0;
+        if (arguments.size() <= menuIndex) {
+            plugin.sms(sender, Messages.WRONG_USAGE);
+            return;
+        }
+
+        final Optional<Menu> optionalMenu = findMenu(arguments.get(menuIndex));
+        if (optionalMenu.isEmpty()) {
+            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(menuIndex)).build()));
+            return;
+        }
+
+        final EditorEndpoint endpoint = parseEndpoint(sender, arguments, menuIndex + 1);
         try {
             final String url = plugin.getWebEditorServer().createSession(optionalMenu.get(), endpoint.port, endpoint.host.orElse(null));
             plugin.sms(sender, text("Web editor link: ", NamedTextColor.GREEN)
@@ -68,6 +93,10 @@ public class WebEditorCommand extends SubCommand {
             } else {
                 plugin.sms(sender, text("The web editor port must be open on your hosting panel. The Minecraft port is separate.", NamedTextColor.GRAY));
             }
+        } catch (final WebEditorServer.ActiveSessionException exception) {
+            plugin.sms(sender, text("This menu already has an active web editor session: ", NamedTextColor.RED)
+                    .append(text(exception.url(), NamedTextColor.YELLOW).clickEvent(ClickEvent.openUrl(exception.url()))));
+            plugin.sms(sender, text("Use /dm webeditor resume " + optionalMenu.get().options().name() + " or /dm webeditor cancel " + optionalMenu.get().options().name() + ".", NamedTextColor.GRAY));
         } catch (final IOException exception) {
             plugin.printStacktrace("Failed to start web editor.", exception);
             plugin.sms(sender, text("Failed to start web editor.", NamedTextColor.RED));
@@ -93,17 +122,71 @@ public class WebEditorCommand extends SubCommand {
         }
 
         if (arguments.size() == 2) {
-            return complete(menuNames(), arguments.get(1));
+            return complete(commandTargets(), arguments.get(1));
+        }
+
+        if (arguments.size() == 3
+                && ("resume".equalsIgnoreCase(arguments.get(1)) || "cancel".equalsIgnoreCase(arguments.get(1)) || "local".equalsIgnoreCase(arguments.get(1)))) {
+            return complete(menuNames(), arguments.get(2));
         }
 
         return null;
     }
 
-    private @NotNull EditorEndpoint parseEndpoint(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
+    private void listSessions(final @NotNull CommandSender sender) {
+        final List<WebEditorServer.SessionView> sessions = plugin.getWebEditorServer().listSessions();
+        if (sessions.isEmpty()) {
+            plugin.sms(sender, text("No active web editor sessions.", NamedTextColor.GRAY));
+            return;
+        }
+
+        plugin.sms(sender, text("Active web editor sessions:", NamedTextColor.GOLD));
+        for (final WebEditorServer.SessionView session : sessions) {
+            final long minutes = Math.max(0, Duration.between(Instant.now(), session.expiresAt()).toMinutes());
+            plugin.sms(sender, text("- " + session.menuName() + " (" + minutes + "m): ", NamedTextColor.GRAY)
+                    .append(text(session.url(), NamedTextColor.YELLOW).clickEvent(ClickEvent.openUrl(session.url()))));
+        }
+    }
+
+    private void resumeSession(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
+        if (arguments.size() < 2) {
+            plugin.sms(sender, Messages.WRONG_USAGE);
+            return;
+        }
+
+        final Optional<String> url = plugin.getWebEditorServer().resumeSession(arguments.get(1));
+        if (url.isEmpty()) {
+            plugin.sms(sender, text("No active web editor session for " + arguments.get(1) + ".", NamedTextColor.RED));
+            return;
+        }
+
+        plugin.sms(sender, text("Web editor link: ", NamedTextColor.GREEN)
+                .append(text(url.get(), NamedTextColor.YELLOW).clickEvent(ClickEvent.openUrl(url.get()))));
+    }
+
+    private void cancelSession(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
+        if (arguments.size() < 2) {
+            plugin.sms(sender, Messages.WRONG_USAGE);
+            return;
+        }
+
+        if (!plugin.getWebEditorServer().cancelSession(arguments.get(1))) {
+            plugin.sms(sender, text("No active web editor session for " + arguments.get(1) + ".", NamedTextColor.RED));
+            return;
+        }
+
+        plugin.sms(sender, text("Cancelled web editor session for " + arguments.get(1) + ".", NamedTextColor.GREEN));
+    }
+
+    private @NotNull EditorEndpoint parseEndpoint(
+            final @NotNull CommandSender sender,
+            final @NotNull List<String> arguments,
+            final int startIndex
+    ) {
         int port = DEFAULT_PORT;
         Optional<String> host = virtualHost(sender);
 
-        for (int index = 1; index < arguments.size(); index++) {
+        for (int index = startIndex; index < arguments.size(); index++) {
             final String argument = arguments.get(index);
             final Optional<EditorEndpoint> optionalEndpoint = parseHostPort(argument);
             if (optionalEndpoint.isPresent()) {
@@ -215,6 +298,11 @@ public class WebEditorCommand extends SubCommand {
                         Menu.getAllMenuNames().stream(),
                         Menu.getAllSubMenus().stream().map(menu -> menu.options().name())
                 )
+                .collect(Collectors.toList());
+    }
+
+    private @NotNull Collection<String> commandTargets() {
+        return java.util.stream.Stream.concat(menuNames().stream(), List.of("list", "resume", "cancel", "local").stream())
                 .collect(Collectors.toList());
     }
 

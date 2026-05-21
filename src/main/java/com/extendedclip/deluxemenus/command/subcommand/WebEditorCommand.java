@@ -59,6 +59,9 @@ public class WebEditorCommand extends SubCommand {
             final String url = plugin.getWebEditorServer().createSession(optionalMenu.get(), port);
             plugin.sms(sender, text("Web editor link: ", NamedTextColor.GREEN)
                     .append(text(url, NamedTextColor.YELLOW).clickEvent(ClickEvent.openUrl(url))));
+            if (url.contains("://localhost:")) {
+                plugin.sms(sender, text("Remote hosting needs the web editor port open and the public server IP or domain in the URL.", NamedTextColor.GRAY));
+            }
         } catch (final IOException exception) {
             plugin.printStacktrace("Failed to start web editor.", exception);
             plugin.sms(sender, text("Failed to start web editor.", NamedTextColor.RED));

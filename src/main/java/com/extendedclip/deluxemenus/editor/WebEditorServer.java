@@ -9,7 +9,6 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -398,14 +397,6 @@ public class WebEditorServer {
         final String configuredHost = plugin.getServer().getIp();
         if (configuredHost != null && !configuredHost.isBlank() && !"0.0.0.0".equals(configuredHost)) {
             return configuredHost;
-        }
-
-        try {
-            final InetAddress localHost = InetAddress.getLocalHost();
-            if (!localHost.isLoopbackAddress()) {
-                return localHost.getHostAddress();
-            }
-        } catch (final Exception ignored) {
         }
 
         return "localhost";

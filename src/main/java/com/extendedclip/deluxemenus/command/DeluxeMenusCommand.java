@@ -99,7 +99,9 @@ public class DeluxeMenusCommand implements TabExecutor {
                 new OpenCommand(plugin),
                 new RefreshCommand(plugin),
                 new ReloadCommand(plugin),
-                new WebEditorCommand(plugin)
+                new WebEditorCommand(plugin),
+                new WebEditorCommand(plugin, "browsereditor"),
+                new WebEditorCommand(plugin, "browseeditor")
         );
 
         for (final SubCommand subCommand : commands) {

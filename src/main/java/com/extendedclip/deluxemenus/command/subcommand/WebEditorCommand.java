@@ -20,14 +20,20 @@ import static net.kyori.adventure.text.Component.text;
 public class WebEditorCommand extends SubCommand {
 
     private static final String WEB_EDITOR_PERMISSION = "deluxemenus.webeditor";
+    private final String name;
 
     public WebEditorCommand(final @NotNull DeluxeMenus plugin) {
+        this(plugin, "webeditor");
+    }
+
+    public WebEditorCommand(final @NotNull DeluxeMenus plugin, final @NotNull String name) {
         super(plugin);
+        this.name = name;
     }
 
     @Override
     public @NotNull String getName() {
-        return "webeditor";
+        return name;
     }
 
     @Override
@@ -42,7 +48,7 @@ public class WebEditorCommand extends SubCommand {
             return;
         }
 
-        final Optional<Menu> optionalMenu = Menu.getMenuByName(arguments.get(0));
+        final Optional<Menu> optionalMenu = findMenu(arguments.get(0));
         if (optionalMenu.isEmpty()) {
             plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
             return;
@@ -78,7 +84,7 @@ public class WebEditorCommand extends SubCommand {
         }
 
         if (arguments.size() == 2) {
-            return complete(Menu.getAllMenuNames(), arguments.get(1));
+            return complete(menuNames(), arguments.get(1));
         }
 
         return null;
@@ -96,6 +102,23 @@ public class WebEditorCommand extends SubCommand {
         final String lowerArgument = argument.toLowerCase(Locale.ROOT);
         return values.stream()
                 .filter(value -> value.toLowerCase(Locale.ROOT).startsWith(lowerArgument))
+                .collect(Collectors.toList());
+    }
+
+    private @NotNull Optional<Menu> findMenu(final @NotNull String menuName) {
+        final Optional<Menu> menu = Menu.getMenuByName(menuName);
+        if (menu.isPresent()) {
+            return menu;
+        }
+
+        return Menu.getSubMenuByName(menuName);
+    }
+
+    private @NotNull Collection<String> menuNames() {
+        return java.util.stream.Stream.concat(
+                        Menu.getAllMenuNames().stream(),
+                        Menu.getAllSubMenus().stream().map(menu -> menu.options().name())
+                )
                 .collect(Collectors.toList());
     }
 }

@@ -48,7 +48,7 @@ public class EditCommand extends SubCommand {
             return;
         }
 
-        final Optional<Menu> optionalMenu = Menu.getMenuByName(arguments.get(0));
+        final Optional<Menu> optionalMenu = findMenu(arguments.get(0));
         if (optionalMenu.isEmpty()) {
             plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
             return;
@@ -64,6 +64,12 @@ public class EditCommand extends SubCommand {
             return;
         }
 
+        if (arguments.size() == 3
+                && "slot".equalsIgnoreCase(arguments.get(1))) {
+            openSlot(sender, optionalMenu.get(), arguments.get(2));
+            return;
+        }
+
         if (arguments.size() >= 5
                 && "set".equalsIgnoreCase(arguments.get(1))) {
             setValue(sender, optionalMenu.get(), arguments);
@@ -73,6 +79,18 @@ public class EditCommand extends SubCommand {
         if (arguments.size() >= 4
                 && "prompt".equalsIgnoreCase(arguments.get(1))) {
             prompt(sender, optionalMenu.get(), arguments);
+            return;
+        }
+
+        if (arguments.size() >= 4
+                && "menu".equalsIgnoreCase(arguments.get(1))) {
+            setMenuValue(sender, optionalMenu.get(), arguments);
+            return;
+        }
+
+        if (arguments.size() == 3
+                && "delete".equalsIgnoreCase(arguments.get(1))) {
+            deleteItem(sender, optionalMenu.get(), arguments.get(2));
             return;
         }
 
@@ -98,18 +116,36 @@ public class EditCommand extends SubCommand {
         }
 
         if (arguments.size() == 2) {
-            return complete(Menu.getAllMenuNames(), arguments.get(1));
+            return complete(menuNames(), arguments.get(1));
         }
 
         if (arguments.size() == 3) {
-            return complete(List.of("set", "prompt"), arguments.get(2));
+            return complete(List.of("set", "prompt", "slot", "menu", "delete"), arguments.get(2));
         }
 
-        if (arguments.size() == 5) {
+        if (arguments.size() == 4 && "menu".equalsIgnoreCase(arguments.get(2))) {
+            return complete(menuOptions(), arguments.get(3));
+        }
+
+        if (arguments.size() == 5 && ("set".equalsIgnoreCase(arguments.get(2)) || "prompt".equalsIgnoreCase(arguments.get(2)))) {
             return complete(editableOptions(), arguments.get(4));
         }
 
         return null;
+    }
+
+    private void openSlot(final @NotNull CommandSender sender, final @NotNull Menu menu, final @NotNull String slotInput) {
+        if (!(sender instanceof Player)) {
+            plugin.sms(sender, Messages.MUST_SPECIFY_PLAYER);
+            return;
+        }
+
+        final int slot = parseSlot(sender, slotInput);
+        if (slot < 0) {
+            return;
+        }
+
+        editorManager.openSlot((Player) sender, menu, slot);
     }
 
     private void setValue(final @NotNull CommandSender sender, final @NotNull Menu menu, final @NotNull List<String> arguments) {
@@ -139,8 +175,7 @@ public class EditCommand extends SubCommand {
             return;
         }
 
-        Menu.unload(plugin, menu.options().name());
-        plugin.getConfiguration().loadGUIMenu(menu.options().name());
+        configEditor.reload(menu);
         plugin.sms(sender, Component.text("Updated " + option + " for slot " + slot + ".", NamedTextColor.GREEN));
     }
 
@@ -169,17 +204,94 @@ public class EditCommand extends SubCommand {
         plugin.sms(player, Component.text("Type the new " + option + " in chat, or type cancel.", NamedTextColor.YELLOW));
     }
 
+    private void setMenuValue(final @NotNull CommandSender sender, final @NotNull Menu menu, final @NotNull List<String> arguments) {
+        final String option = arguments.get(2).toLowerCase(Locale.ROOT);
+        if (!menuOptions().contains(option)) {
+            plugin.sms(sender, Component.text("Unknown editable menu option: " + option, NamedTextColor.RED));
+            return;
+        }
+
+        final String value = String.join(" ", arguments.subList(3, arguments.size()));
+        try {
+            configEditor.setMenuValue(menu, option, value);
+        } catch (final IOException exception) {
+            plugin.printStacktrace("Failed to save menu edit.", exception);
+            plugin.sms(sender, Component.text("Failed to save menu edit.", NamedTextColor.RED));
+            return;
+        }
+
+        configEditor.reload(menu);
+        plugin.sms(sender, Component.text("Updated " + option + " for " + menu.options().name() + ".", NamedTextColor.GREEN));
+    }
+
+    private void deleteItem(final @NotNull CommandSender sender, final @NotNull Menu menu, final @NotNull String slotInput) {
+        final int slot = parseSlot(sender, slotInput);
+        if (slot < 0) {
+            return;
+        }
+
+        try {
+            if (!configEditor.deleteItem(menu, slot)) {
+                plugin.sms(sender, Component.text("No item config was found in slot " + slot + ".", NamedTextColor.RED));
+                return;
+            }
+        } catch (final IOException exception) {
+            plugin.printStacktrace("Failed to delete menu item.", exception);
+            plugin.sms(sender, Component.text("Failed to delete menu item.", NamedTextColor.RED));
+            return;
+        }
+
+        configEditor.reload(menu);
+        plugin.sms(sender, Component.text("Deleted item config for slot " + slot + ".", NamedTextColor.GREEN));
+    }
+
+    private int parseSlot(final @NotNull CommandSender sender, final @NotNull String input) {
+        try {
+            return Integer.parseInt(input);
+        } catch (final NumberFormatException exception) {
+            plugin.sms(sender, Messages.WRONG_USAGE);
+            return -1;
+        }
+    }
+
     private @NotNull List<String> editableOptions() {
         return List.of(
                 "material",
+                "amount",
+                "priority",
                 "display_name",
                 "lore",
+                "model_data",
+                "item_flags",
+                "update",
                 "click_commands",
                 "left_click_commands",
                 "right_click_commands",
                 "shift_left_click_commands",
-                "shift_right_click_commands"
+                "shift_right_click_commands",
+                "middle_click_commands"
         );
+    }
+
+    private @NotNull List<String> menuOptions() {
+        return List.of("menu_title", "size");
+    }
+
+    private @NotNull Optional<Menu> findMenu(final @NotNull String menuName) {
+        final Optional<Menu> menu = Menu.getMenuByName(menuName);
+        if (menu.isPresent()) {
+            return menu;
+        }
+
+        return Menu.getSubMenuByName(menuName);
+    }
+
+    private @NotNull Collection<String> menuNames() {
+        return java.util.stream.Stream.concat(
+                        Menu.getAllMenuNames().stream(),
+                        Menu.getAllSubMenus().stream().map(menu -> menu.options().name())
+                )
+                .collect(Collectors.toList());
     }
 
     private @NotNull List<String> complete(final @NotNull Collection<String> values, final @NotNull String argument) {

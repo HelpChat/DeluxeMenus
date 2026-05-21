@@ -43,7 +43,7 @@ public final class MenuEditPromptRegistry {
             return;
         }
 
-        final Optional<Menu> optionalMenu = Menu.getMenuByName(prompt.menuName);
+        final Optional<Menu> optionalMenu = findMenu(prompt.menuName);
         if (optionalMenu.isEmpty()) {
             plugin.sms(player, text("Menu is no longer loaded.", NamedTextColor.RED));
             return;
@@ -59,9 +59,18 @@ public final class MenuEditPromptRegistry {
             return;
         }
 
-        Menu.unload(plugin, menu.options().name());
-        plugin.getConfiguration().loadGUIMenu(menu.options().name());
+        configEditor.reload(menu);
         plugin.sms(player, text("Updated " + prompt.option + " for slot " + prompt.slot + ".", NamedTextColor.GREEN));
+        findMenu(prompt.menuName).ifPresent(reloaded -> new MenuEditorManager(plugin).openSlot(player, reloaded, prompt.slot));
+    }
+
+    private static @NotNull Optional<Menu> findMenu(final @NotNull String menuName) {
+        final Optional<Menu> menu = Menu.getMenuByName(menuName);
+        if (menu.isPresent()) {
+            return menu;
+        }
+
+        return Menu.getSubMenuByName(menuName);
     }
 
     private static class Prompt {

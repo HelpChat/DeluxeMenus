@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -71,12 +72,53 @@ public class MenuConfigEditor {
 
         if (isListOption(option)) {
             config.set(itemPath + "." + option, parseList(value));
+        } else if (isIntegerOption(option)) {
+            config.set(itemPath + "." + option, parseInteger(value));
+        } else if (isBooleanOption(option)) {
+            config.set(itemPath + "." + option, Boolean.parseBoolean(value));
+        } else if (value.isBlank() && isOptionalOption(option)) {
+            config.set(itemPath + "." + option, null);
         } else {
             config.set(itemPath + "." + option, value);
         }
 
         save(menu, config);
         return true;
+    }
+
+    public boolean deleteItem(final @NotNull Menu menu, final int slot) throws IOException {
+        final YamlConfiguration config = load(menu);
+        final String itemPath = findItemPath(config, menu, slot);
+        if (itemPath == null) {
+            return false;
+        }
+
+        config.set(itemPath, null);
+        save(menu, config);
+        return true;
+    }
+
+    public boolean setMenuValue(final @NotNull Menu menu, final @NotNull String option, final @NotNull String value) throws IOException {
+        final YamlConfiguration config = load(menu);
+        final String root = getRoot(menu);
+
+        if ("size".equals(option)) {
+            config.set(root + option, parseInteger(value));
+        } else if (value.isBlank()) {
+            config.set(root + option, null);
+        } else {
+            config.set(root + option, value);
+        }
+
+        save(menu, config);
+        return true;
+    }
+
+    public @NotNull Optional<String> getMenuString(final @NotNull Menu menu, final @NotNull String option) {
+        final YamlConfiguration config = load(menu);
+        final String root = getRoot(menu);
+        final Object value = config.get(root + option);
+        return Optional.ofNullable(value).map(String::valueOf);
     }
 
     public @NotNull Optional<String> getItemString(final @NotNull Menu menu, final int slot, final @NotNull String option) {
@@ -90,7 +132,26 @@ public class MenuConfigEditor {
             return Optional.of(String.join("\n", config.getStringList(itemPath + "." + option)));
         }
 
-        return Optional.ofNullable(config.getString(itemPath + "." + option));
+        return Optional.ofNullable(config.get(itemPath + "." + option)).map(String::valueOf);
+    }
+
+    public void reload(final @NotNull Menu menu) {
+        final String menuName = menu.options().name();
+        final boolean subMenu = menu.options().subMenu();
+        final boolean mainConfigMenu = "config".equalsIgnoreCase(menu.path());
+
+        Menu.unload(plugin, menuName);
+        if (subMenu) {
+            if (mainConfigMenu) {
+                plugin.getConfiguration().loadSubMenus();
+                return;
+            }
+
+            plugin.getConfiguration().loadSubMenuFromFile(menuName);
+            return;
+        }
+
+        plugin.getConfiguration().loadGUIMenu(menuName);
     }
 
     private @NotNull YamlConfiguration load(final @NotNull Menu menu) {
@@ -142,7 +203,7 @@ public class MenuConfigEditor {
 
         for (final String key : items.getKeys(false)) {
             final String itemPath = root + "items." + key;
-            if (config.getInt(itemPath + ".slot", 0) != slot) {
+            if (!matchesSlot(config, itemPath, slot)) {
                 continue;
             }
 
@@ -153,17 +214,76 @@ public class MenuConfigEditor {
     }
 
     private @NotNull String getRoot(final @NotNull Menu menu) {
-        return resolveFile(menu).isPresent() ? "" : "gui_menus." + menu.options().name() + ".";
+        if (resolveFile(menu).isPresent()) {
+            return "";
+        }
+
+        final String section = menu.options().subMenu() ? "sub_menus" : "gui_menus";
+        return section + "." + menu.options().name() + ".";
     }
 
     private boolean isListOption(final @NotNull String option) {
-        return option.endsWith("_commands") || "lore".equals(option);
+        return option.endsWith("_commands") || "lore".equals(option) || "item_flags".equals(option);
+    }
+
+    private boolean isIntegerOption(final @NotNull String option) {
+        return "amount".equals(option) || "priority".equals(option) || "slot".equals(option);
+    }
+
+    private boolean isBooleanOption(final @NotNull String option) {
+        return "update".equals(option);
+    }
+
+    private boolean isOptionalOption(final @NotNull String option) {
+        return !"material".equals(option);
+    }
+
+    private int parseInteger(final @NotNull String value) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (final NumberFormatException exception) {
+            return 0;
+        }
     }
 
     private @NotNull List<String> parseList(final @NotNull String value) {
         if (value.isBlank()) {
             return List.of();
         }
-        return Arrays.asList(value.split("\\R"));
+        return Arrays.stream(value.split("\\R|\\s\\|\\s|\\|"))
+                .map(String::trim)
+                .filter(line -> !line.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    private boolean matchesSlot(final @NotNull YamlConfiguration config, final @NotNull String itemPath, final int slot) {
+        if (config.getInt(itemPath + ".slot", Integer.MIN_VALUE) == slot) {
+            return true;
+        }
+
+        if (!config.isList(itemPath + ".slots")) {
+            return false;
+        }
+
+        for (final String configuredSlot : config.getStringList(itemPath + ".slots")) {
+            if (configuredSlotMatches(configuredSlot, slot)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean configuredSlotMatches(final @NotNull String configuredSlot, final int slot) {
+        final String[] range = configuredSlot.split("-", 2);
+        try {
+            if (range.length == 2) {
+                return slot >= Integer.parseInt(range[0].trim()) && slot <= Integer.parseInt(range[1].trim());
+            }
+
+            return slot == Integer.parseInt(configuredSlot.trim());
+        } catch (final NumberFormatException exception) {
+            return false;
+        }
     }
 }

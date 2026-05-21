@@ -71,7 +71,8 @@ public class WebEditorCommand extends SubCommand {
             return;
         }
 
-        final int menuIndex = "local".equals(action) ? 1 : 0;
+        final boolean localMode = "local".equals(action);
+        final int menuIndex = localMode ? 1 : 0;
         if (arguments.size() <= menuIndex) {
             plugin.sms(sender, Messages.WRONG_USAGE);
             return;
@@ -84,6 +85,12 @@ public class WebEditorCommand extends SubCommand {
         }
 
         final EditorEndpoint endpoint = parseEndpoint(sender, arguments, menuIndex + 1);
+        if (!localMode && !hasPublicHost(endpoint)) {
+            plugin.sms(sender, text("No public web editor host was detected.", NamedTextColor.RED));
+            plugin.sms(sender, text("Set web_editor_public_url in config.yml, or use /dm webeditor local " + optionalMenu.get().options().name() + " <host:port>.", NamedTextColor.GRAY));
+            return;
+        }
+
         try {
             final String url = plugin.getWebEditorServer().createSession(optionalMenu.get(), endpoint.port, endpoint.host.orElse(null));
             plugin.sms(sender, text("Web editor link: ", NamedTextColor.GREEN)
@@ -185,6 +192,11 @@ public class WebEditorCommand extends SubCommand {
     ) {
         int port = DEFAULT_PORT;
         Optional<String> host = virtualHost(sender);
+        final Optional<EditorEndpoint> configuredEndpoint = configuredEndpoint();
+        if (configuredEndpoint.isPresent()) {
+            port = configuredEndpoint.get().port;
+            host = configuredEndpoint.get().host;
+        }
 
         for (int index = startIndex; index < arguments.size(); index++) {
             final String argument = arguments.get(index);
@@ -257,6 +269,29 @@ public class WebEditorCommand extends SubCommand {
         }
 
         return Optional.of(new EditorEndpoint(port.get(), Optional.of(endpoint.substring(0, colonIndex))));
+    }
+
+    private @NotNull Optional<EditorEndpoint> configuredEndpoint() {
+        final String publicUrl = plugin.getGeneralConfig().webEditorPublicUrl();
+        if (publicUrl == null || publicUrl.isBlank()) {
+            return Optional.empty();
+        }
+
+        final Optional<EditorEndpoint> endpoint = parseHostPort(publicUrl);
+        if (endpoint.isPresent()) {
+            return endpoint;
+        }
+
+        return Optional.of(new EditorEndpoint(DEFAULT_PORT, Optional.of(publicUrl)));
+    }
+
+    private boolean hasPublicHost(final @NotNull EditorEndpoint endpoint) {
+        if (endpoint.host.isPresent()) {
+            return true;
+        }
+
+        final String configuredHost = plugin.getServer().getIp();
+        return configuredHost != null && !configuredHost.isBlank() && !"0.0.0.0".equals(configuredHost);
     }
 
     private @NotNull Optional<String> virtualHost(final @NotNull CommandSender sender) {

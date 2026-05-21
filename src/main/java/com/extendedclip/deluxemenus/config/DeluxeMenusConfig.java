@@ -177,6 +177,7 @@ public class DeluxeMenusConfig {
         c.addDefault("check_updates", true);
         c.addDefault("use_admin_commands_in_menus_list", false);
         c.addDefault("menus_list_page_size", 10);
+        c.addDefault("web_editor_public_url", "");
         c.addDefault("sub_menus", new HashMap<>());
         c.options().copyDefaults(true);
 

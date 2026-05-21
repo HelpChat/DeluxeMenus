@@ -34,13 +34,17 @@ public class WebEditorServer {
         this.configEditor = new MenuConfigEditor(plugin);
     }
 
-    public @NotNull String createSession(final @NotNull Menu menu, final int requestedPort) throws IOException {
+    public @NotNull String createSession(
+            final @NotNull Menu menu,
+            final int requestedPort,
+            final @Nullable String requestedHost
+    ) throws IOException {
         ensureStarted(requestedPort);
 
         final String token = UUID.randomUUID().toString().replace("-", "");
         sessions.put(token, new Session(token, menu.options().name(), Instant.now().plus(Duration.ofMinutes(60))));
 
-        return "http://" + publicHost() + ":" + server.getAddress().getPort() + "/dm-web/" + token;
+        return "http://" + publicHost(requestedHost) + ":" + server.getAddress().getPort() + "/dm-web/" + token;
     }
 
     public void stop() {
@@ -393,13 +397,49 @@ public class WebEditorServer {
         return value.substring(0, Math.max(0, limit - 1)) + "...";
     }
 
-    private @NotNull String publicHost() {
+    private @NotNull String publicHost(final @Nullable String requestedHost) {
+        final Optional<String> normalizedRequestHost = normalizeHost(requestedHost);
+        if (normalizedRequestHost.isPresent()) {
+            return normalizedRequestHost.get();
+        }
+
         final String configuredHost = plugin.getServer().getIp();
         if (configuredHost != null && !configuredHost.isBlank() && !"0.0.0.0".equals(configuredHost)) {
-            return configuredHost;
+            return normalizeHost(configuredHost).orElse(configuredHost);
         }
 
         return "localhost";
+    }
+
+    private @NotNull Optional<String> normalizeHost(final @Nullable String host) {
+        if (host == null || host.isBlank()) {
+            return Optional.empty();
+        }
+
+        String normalized = host.trim();
+        final int schemeIndex = normalized.indexOf("://");
+        if (schemeIndex >= 0) {
+            normalized = normalized.substring(schemeIndex + 3);
+        }
+
+        final int pathIndex = normalized.indexOf('/');
+        if (pathIndex >= 0) {
+            normalized = normalized.substring(0, pathIndex);
+        }
+
+        if (normalized.startsWith("[")) {
+            final int endIndex = normalized.indexOf(']');
+            if (endIndex > 0) {
+                return Optional.of(normalized.substring(0, endIndex + 1));
+            }
+        }
+
+        final int firstColon = normalized.indexOf(':');
+        if (firstColon >= 0 && firstColon == normalized.lastIndexOf(':')) {
+            normalized = normalized.substring(0, firstColon);
+        }
+
+        return normalized.isBlank() ? Optional.empty() : Optional.of(normalized);
     }
 
     private @NotNull String escape(final @NotNull String input) {

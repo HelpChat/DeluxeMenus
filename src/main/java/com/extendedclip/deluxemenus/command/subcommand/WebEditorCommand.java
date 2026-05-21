@@ -4,6 +4,8 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.Messages;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +14,7 @@ import java.util.stream.Collectors;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +23,7 @@ import static net.kyori.adventure.text.Component.text;
 public class WebEditorCommand extends SubCommand {
 
     private static final String WEB_EDITOR_PERMISSION = "deluxemenus.webeditor";
+    private static final int DEFAULT_PORT = 8765;
     private final String name;
 
     public WebEditorCommand(final @NotNull DeluxeMenus plugin) {
@@ -54,13 +58,15 @@ public class WebEditorCommand extends SubCommand {
             return;
         }
 
-        final int port = arguments.size() >= 2 ? parsePort(arguments.get(1)) : 8765;
+        final EditorEndpoint endpoint = parseEndpoint(sender, arguments);
         try {
-            final String url = plugin.getWebEditorServer().createSession(optionalMenu.get(), port);
+            final String url = plugin.getWebEditorServer().createSession(optionalMenu.get(), endpoint.port, endpoint.host.orElse(null));
             plugin.sms(sender, text("Web editor link: ", NamedTextColor.GREEN)
                     .append(text(url, NamedTextColor.YELLOW).clickEvent(ClickEvent.openUrl(url))));
             if (url.contains("://localhost:")) {
-                plugin.sms(sender, text("Remote hosting needs the web editor port open and the public server IP or domain in the URL.", NamedTextColor.GRAY));
+                plugin.sms(sender, text("Remote hosting needs a public host and an open web editor port.", NamedTextColor.GRAY));
+            } else {
+                plugin.sms(sender, text("The web editor port must be open on your hosting panel. The Minecraft port is separate.", NamedTextColor.GRAY));
             }
         } catch (final IOException exception) {
             plugin.printStacktrace("Failed to start web editor.", exception);
@@ -93,11 +99,47 @@ public class WebEditorCommand extends SubCommand {
         return null;
     }
 
-    private int parsePort(final @NotNull String input) {
+    private @NotNull EditorEndpoint parseEndpoint(final @NotNull CommandSender sender, final @NotNull List<String> arguments) {
+        int port = DEFAULT_PORT;
+        Optional<String> host = virtualHost(sender);
+
+        for (int index = 1; index < arguments.size(); index++) {
+            final String argument = arguments.get(index);
+            final Optional<Integer> optionalPort = parsePort(argument);
+            if (optionalPort.isPresent()) {
+                port = optionalPort.get();
+                continue;
+            }
+
+            host = Optional.of(argument);
+        }
+
+        return new EditorEndpoint(port, host);
+    }
+
+    private @NotNull Optional<Integer> parsePort(final @NotNull String input) {
         try {
-            return Integer.parseInt(input);
+            return Optional.of(Integer.parseInt(input));
         } catch (final NumberFormatException exception) {
-            return 8765;
+            return Optional.empty();
+        }
+    }
+
+    private @NotNull Optional<String> virtualHost(final @NotNull CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            return Optional.empty();
+        }
+
+        try {
+            final Method method = sender.getClass().getMethod("getVirtualHost");
+            final Object virtualHost = method.invoke(sender);
+            if (virtualHost instanceof InetSocketAddress) {
+                return Optional.ofNullable(((InetSocketAddress) virtualHost).getHostString());
+            }
+
+            return Optional.ofNullable(virtualHost).map(String::valueOf);
+        } catch (final ReflectiveOperationException exception) {
+            return Optional.empty();
         }
     }
 
@@ -123,5 +165,15 @@ public class WebEditorCommand extends SubCommand {
                         Menu.getAllSubMenus().stream().map(menu -> menu.options().name())
                 )
                 .collect(Collectors.toList());
+    }
+
+    private static class EditorEndpoint {
+        private final int port;
+        private final Optional<String> host;
+
+        private EditorEndpoint(final int port, final @NotNull Optional<String> host) {
+            this.port = port;
+            this.host = host;
+        }
     }
 }

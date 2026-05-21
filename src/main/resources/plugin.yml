@@ -14,6 +14,15 @@ permissions:
   deluxemenus.admin:
     description: admin commands
     default: op
+  deluxemenus.debug:
+    description: debug placeholders, menu items, and hooked items
+    default: op
+  deluxemenus.edit:
+    description: edit menus in game
+    default: op
+  deluxemenus.webeditor:
+    description: create temporary web editor sessions
+    default: op
   deluxemenus.open:
     description: open a menu with /dm open <menu>
     default: op

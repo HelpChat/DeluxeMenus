@@ -16,8 +16,41 @@ public class StringUtils {
 
     private final static Pattern HEX_PATTERN = Pattern
             .compile("&(#[a-f0-9]{6})", Pattern.CASE_INSENSITIVE);
+    private final static Pattern MINI_HEX_PATTERN = Pattern
+            .compile("<(?:color:)?#([a-f0-9]{6})>", Pattern.CASE_INSENSITIVE);
     private final static MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     private final static LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
+    private final static Map<String, String> MINI_TITLE_TAGS = Map.ofEntries(
+            Map.entry("black", ChatColor.BLACK.toString()),
+            Map.entry("dark_blue", ChatColor.DARK_BLUE.toString()),
+            Map.entry("dark_green", ChatColor.DARK_GREEN.toString()),
+            Map.entry("dark_aqua", ChatColor.DARK_AQUA.toString()),
+            Map.entry("dark_red", ChatColor.DARK_RED.toString()),
+            Map.entry("dark_purple", ChatColor.DARK_PURPLE.toString()),
+            Map.entry("gold", ChatColor.GOLD.toString()),
+            Map.entry("gray", ChatColor.GRAY.toString()),
+            Map.entry("grey", ChatColor.GRAY.toString()),
+            Map.entry("dark_gray", ChatColor.DARK_GRAY.toString()),
+            Map.entry("dark_grey", ChatColor.DARK_GRAY.toString()),
+            Map.entry("blue", ChatColor.BLUE.toString()),
+            Map.entry("green", ChatColor.GREEN.toString()),
+            Map.entry("aqua", ChatColor.AQUA.toString()),
+            Map.entry("red", ChatColor.RED.toString()),
+            Map.entry("light_purple", ChatColor.LIGHT_PURPLE.toString()),
+            Map.entry("yellow", ChatColor.YELLOW.toString()),
+            Map.entry("white", ChatColor.WHITE.toString()),
+            Map.entry("bold", ChatColor.BOLD.toString()),
+            Map.entry("b", ChatColor.BOLD.toString()),
+            Map.entry("italic", ChatColor.ITALIC.toString()),
+            Map.entry("i", ChatColor.ITALIC.toString()),
+            Map.entry("underlined", ChatColor.UNDERLINE.toString()),
+            Map.entry("u", ChatColor.UNDERLINE.toString()),
+            Map.entry("strikethrough", ChatColor.STRIKETHROUGH.toString()),
+            Map.entry("st", ChatColor.STRIKETHROUGH.toString()),
+            Map.entry("obfuscated", ChatColor.MAGIC.toString()),
+            Map.entry("obf", ChatColor.MAGIC.toString()),
+            Map.entry("reset", ChatColor.RESET.toString())
+    );
 
     /**
      * Translates the ampersand color codes like '&7' to their section symbol counterparts like '§7'.
@@ -43,10 +76,50 @@ public class StringUtils {
     @NotNull
     public static String colorMenuTitle(@NotNull final String input) {
         try {
-            return color(LEGACY_SECTION.serialize(MINI_MESSAGE.deserialize(input)));
+            final String parsed = color(LEGACY_SECTION.serialize(MINI_MESSAGE.deserialize(input)));
+            if (!hasMiniTitleTag(parsed)) {
+                return parsed;
+            }
         } catch (final Exception ignored) {
-            return color(input);
         }
+        return color(replaceMiniTitleTags(input));
+    }
+
+    private static boolean hasMiniTitleTag(@NotNull final String input) {
+        return input.indexOf('<') != -1 && input.indexOf('>') != -1;
+    }
+
+    @NotNull
+    private static String replaceMiniTitleTags(@NotNull String input) {
+        if (VersionHelper.IS_HEX_VERSION) {
+            final Matcher matcher = MINI_HEX_PATTERN.matcher(input);
+            final StringBuffer buffer = new StringBuffer();
+            while (matcher.find()) {
+                matcher.appendReplacement(buffer, Matcher.quoteReplacement(ChatColor.of("#" + matcher.group(1)).toString()));
+            }
+            matcher.appendTail(buffer);
+            input = buffer.toString();
+        }
+
+        for (final Map.Entry<String, String> entry : MINI_TITLE_TAGS.entrySet()) {
+            input = replaceMiniTitleTag(input, entry.getKey(), entry.getValue());
+        }
+
+        return input;
+    }
+
+    @NotNull
+    private static String replaceMiniTitleTag(
+            @NotNull String input,
+            @NotNull final String tag,
+            @NotNull final String replacement
+    ) {
+        input = Pattern.compile("<" + tag + ">", Pattern.CASE_INSENSITIVE)
+                .matcher(input)
+                .replaceAll(Matcher.quoteReplacement(replacement));
+        return Pattern.compile("</" + tag + ">", Pattern.CASE_INSENSITIVE)
+                .matcher(input)
+                .replaceAll(Matcher.quoteReplacement(ChatColor.RESET.toString()));
     }
 
     @NotNull

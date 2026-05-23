@@ -461,7 +461,8 @@ public class Menu {
         }
 
         if (openPlayerInventoryMenu.isPresent()) {
-            activeItems.addAll(openPlayerInventoryMenu.get().getActiveItems(holder, 0, 36, this.options.size()));
+            final Menu bottomMenu = openPlayerInventoryMenu.get();
+            activeItems.addAll(bottomMenu.getActiveItems(holder, 0, Math.min(36, bottomMenu.options().size()), this.options.size()));
             return activeItems;
         }
 
@@ -469,7 +470,7 @@ public class Menu {
             final String playerInventoryMenuName = this.options.playerInventoryMenu().get();
             final Optional<Menu> bottomMenu = Menu.getSubMenuByName(playerInventoryMenuName);
             if (bottomMenu.isPresent()) {
-                activeItems.addAll(bottomMenu.get().getActiveItems(holder, 0, 36, this.options.size()));
+                activeItems.addAll(bottomMenu.get().getActiveItems(holder, 0, Math.min(36, bottomMenu.get().options().size()), this.options.size()));
             } else {
                 plugin.debug(
                         DebugLevel.HIGHEST,

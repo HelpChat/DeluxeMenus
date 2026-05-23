@@ -60,7 +60,7 @@ public final class MenuEditPromptRegistry {
         }
 
         configEditor.reload(menu);
-        plugin.sms(player, text("Updated " + prompt.option + " for slot " + prompt.slot + ".", NamedTextColor.GREEN));
+        plugin.sms(player, text("Updated " + prompt.option + " for slot " + prompt.slot + " in " + configEditor.describeTarget(menu) + ".", NamedTextColor.GREEN));
         findMenu(prompt.menuName).ifPresent(reloaded -> new MenuEditorManager(plugin).openSlot(player, reloaded, prompt.slot));
     }
 

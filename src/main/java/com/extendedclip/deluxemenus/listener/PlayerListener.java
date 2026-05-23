@@ -68,7 +68,7 @@ public class PlayerListener extends Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onDeath(PlayerDeathEvent event) {
         final Player player = event.getEntity();
         final Optional<MenuHolder> optionalHolder = Menu.getMenuHolder(player);

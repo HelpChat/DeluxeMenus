@@ -557,6 +557,10 @@ public class ClickActionTask extends UniversalRunnable {
             return null;
         }
 
+        if (holder.isEmpty() || !holder.get().getMenuName().equalsIgnoreCase(menuToOpen.options().name())) {
+            return null;
+        }
+
         return holder.flatMap(MenuHolder::getRenderedPlayerInventoryMenu).orElse(null);
     }
 }

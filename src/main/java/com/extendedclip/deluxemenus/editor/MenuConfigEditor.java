@@ -44,6 +44,10 @@ public class MenuConfigEditor {
         return plugin.getConfig().saveToString();
     }
 
+    public @NotNull String describeTarget(final @NotNull Menu menu) {
+        return resolveFile(menu).map(File::getPath).orElse("config.yml");
+    }
+
     public void saveRaw(final @NotNull Menu menu, final @NotNull String raw) throws IOException {
         final Optional<File> optionalFile = resolveFile(menu);
         if (optionalFile.isPresent()) {
@@ -141,6 +145,8 @@ public class MenuConfigEditor {
         final boolean mainConfigMenu = "config".equalsIgnoreCase(menu.path());
 
         Menu.unload(plugin, menuName);
+        plugin.reloadConfig();
+        plugin.reload();
         if (subMenu) {
             if (mainConfigMenu) {
                 plugin.getConfiguration().loadSubMenus();
@@ -170,7 +176,12 @@ public class MenuConfigEditor {
     private void save(final @NotNull Menu menu, final @NotNull YamlConfiguration config) throws IOException {
         final Optional<File> optionalFile = resolveFile(menu);
         if (optionalFile.isPresent()) {
-            config.save(optionalFile.get());
+            final File file = optionalFile.get();
+            final File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            config.save(file);
             return;
         }
 
@@ -261,12 +272,13 @@ public class MenuConfigEditor {
             return true;
         }
 
-        if (!config.isList(itemPath + ".slots")) {
+        final List<?> configuredSlots = config.getList(itemPath + ".slots");
+        if (configuredSlots == null) {
             return false;
         }
 
-        for (final String configuredSlot : config.getStringList(itemPath + ".slots")) {
-            if (configuredSlotMatches(configuredSlot, slot)) {
+        for (final Object configuredSlot : configuredSlots) {
+            if (configuredSlot != null && configuredSlotMatches(String.valueOf(configuredSlot), slot)) {
                 return true;
             }
         }

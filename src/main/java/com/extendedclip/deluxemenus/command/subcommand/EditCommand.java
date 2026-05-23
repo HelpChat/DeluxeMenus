@@ -176,7 +176,7 @@ public class EditCommand extends SubCommand {
         }
 
         configEditor.reload(menu);
-        plugin.sms(sender, Component.text("Updated " + option + " for slot " + slot + ".", NamedTextColor.GREEN));
+        plugin.sms(sender, Component.text("Updated " + option + " for slot " + slot + " in " + configEditor.describeTarget(menu) + ".", NamedTextColor.GREEN));
     }
 
     private void prompt(final @NotNull CommandSender sender, final @NotNull Menu menu, final @NotNull List<String> arguments) {
@@ -221,7 +221,7 @@ public class EditCommand extends SubCommand {
         }
 
         configEditor.reload(menu);
-        plugin.sms(sender, Component.text("Updated " + option + " for " + menu.options().name() + ".", NamedTextColor.GREEN));
+        plugin.sms(sender, Component.text("Updated " + option + " for " + menu.options().name() + " in " + configEditor.describeTarget(menu) + ".", NamedTextColor.GREEN));
     }
 
     private void deleteItem(final @NotNull CommandSender sender, final @NotNull Menu menu, final @NotNull String slotInput) {
@@ -242,7 +242,7 @@ public class EditCommand extends SubCommand {
         }
 
         configEditor.reload(menu);
-        plugin.sms(sender, Component.text("Deleted item config for slot " + slot + ".", NamedTextColor.GREEN));
+        plugin.sms(sender, Component.text("Deleted item config for slot " + slot + " in " + configEditor.describeTarget(menu) + ".", NamedTextColor.GREEN));
     }
 
     private int parseSlot(final @NotNull CommandSender sender, final @NotNull String input) {

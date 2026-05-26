@@ -1,19 +1,13 @@
 package com.extendedclip.deluxemenus.utils;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class StringUtils {
-
-    private final static Pattern HEX_PATTERN = Pattern
-            .compile("&(#[a-f0-9]{6})", Pattern.CASE_INSENSITIVE);
 
     /**
      * Translates the ampersand color codes like '&7' to their section symbol counterparts like '§7'.
@@ -25,15 +19,7 @@ public class StringUtils {
      */
     @NotNull
     public static String color(@NotNull String input) {
-        // Hex Support for 1.16.1+
-        Matcher m = HEX_PATTERN.matcher(input);
-        if (VersionHelper.IS_HEX_VERSION) {
-            while (m.find()) {
-                input = input.replace(m.group(), ChatColor.of(m.group(1)).toString());
-            }
-        }
-
-        return ChatColor.translateAlternateColorCodes('&', input);
+        return AdventureUtils.toLegacyString(input);
     }
 
     @NotNull

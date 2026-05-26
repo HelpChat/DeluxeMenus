@@ -25,6 +25,8 @@
 [DeluxeMenus][spigot] is the all in one inventory GUI menu plugin!
 You can create GUI menus that open with custom commands that will show stats or perform actions specific to the player who opened it. Your menus are fully configurable. You can create menus that show specific items to different players, or perform different actions depending on what javascript requirement they have for the specific slot in a certain GUI.
 
+Config text fields such as menu titles, item display names, lore, argument usage messages, and message-style actions accept both legacy `&` or `§` formatting codes and MiniMessage formatting.
+
 DeluxeMenus depends on [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/).
 
 ## Contribute

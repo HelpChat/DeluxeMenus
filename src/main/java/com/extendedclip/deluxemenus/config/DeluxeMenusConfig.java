@@ -35,6 +35,7 @@ import com.extendedclip.deluxemenus.utils.LocationUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.base.Enums;
 import com.google.common.primitives.Ints;
+import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -1235,6 +1236,11 @@ public class DeluxeMenusConfig {
 
                         if (action.hasDelay()) {
                             actionTask.runTaskLater(plugin, action.getDelay(holder));
+                            continue;
+                        }
+
+                        if (Bukkit.isPrimaryThread()) {
+                            actionTask.run();
                             continue;
                         }
 

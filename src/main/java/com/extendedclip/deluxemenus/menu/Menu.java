@@ -304,6 +304,8 @@ public class Menu {
             return;
         }
 
+        this.options.openHandler().ifPresent(h -> h.onClick(holder));
+
         scheduler.runTaskAsynchronously(() -> {
 
             Set<MenuItem> activeItems = new HashSet<>();
@@ -345,8 +347,6 @@ public class Menu {
 
             holder.setMenuName(this.options.name());
             holder.setActiveItems(activeItems);
-
-            this.options.openHandler().ifPresent(h -> h.onClick(holder));
 
             String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
 

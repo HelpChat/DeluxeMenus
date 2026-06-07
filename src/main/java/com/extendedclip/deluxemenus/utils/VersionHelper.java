@@ -22,27 +22,27 @@ public final class VersionHelper {
     public static final String NMS_VERSION = PACKAGE_NAME.substring(PACKAGE_NAME.lastIndexOf('.') + 1);
 
     // Custom Model Data Component
-    private static final int V1_21_4 = 1_21_4;
+    private static final int V1_21_4 = 12104;
     // Tooltip Style & Item Model
-    private static final int V1_21_2 = 1_21_2;
+    private static final int V1_21_2 = 12102;
     // Data components
-    private static final int V1_20_5 = 1_20_5;
+    private static final int V1_20_5 = 12005;
     // ArmorTrims
-    private static final int V1_19_4 = 1194;
+    private static final int V1_19_4 = 11904;
     // PlayerProfile API
-    private static final int V1_18_1 = 1181;
+    private static final int V1_18_1 = 11801;
     // Mojang obfuscation changes
-    private static final int V1_17 = 1170;
+    private static final int V1_17   = 11700;
     // Material and components on items change
-    private static final int V1_13 = 1130;
+    private static final int V1_13   = 11300;
     // PDC and customModelData
-    private static final int V1_14 = 1140;
+    private static final int V1_14   = 11400;
     // Hex colors
-    private static final int V1_16 = 1160;
+    private static final int V1_16   = 11600;
     // Paper adventure changes
-    private static final int V1_16_5 = 1165;
+    private static final int V1_16_5 = 11605;
     // SkullMeta#setOwningPlayer was added
-    private static final int V1_12 = 1120;
+    private static final int V1_12   = 11200;
 
     public static final int CURRENT_VERSION = getCurrentVersion();
 
@@ -175,14 +175,17 @@ public final class VersionHelper {
      */
     private static int getCurrentVersion() {
         // No need to cache since will only run once
-        final Matcher matcher = Pattern.compile("(?<version>\\d+\\.\\d+)(?<patch>\\.\\d+)?").matcher(Bukkit.getBukkitVersion());
+        // Format: major + 2-digit minor + 2-digit patch
+        // e.g. 1.20.1 -> 1_20_01 -> 12001, 26.1.2 -> 26_01_02 -> 260102
+        final Matcher matcher = Pattern.compile("(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?").matcher(Bukkit.getBukkitVersion());
 
         final StringBuilder stringBuilder = new StringBuilder();
         if (matcher.find()) {
-            stringBuilder.append(matcher.group("version").replace(".", ""));
+            stringBuilder.append(matcher.group("major"));
+            stringBuilder.append(String.format("%02d", Integer.parseInt(matcher.group("minor"))));
             final String patch = matcher.group("patch");
-            if (patch == null) stringBuilder.append("0");
-            else stringBuilder.append(patch.replace(".", ""));
+            if (patch == null) stringBuilder.append("00");
+            else stringBuilder.append(String.format("%02d", Integer.parseInt(patch)));
         }
 
         //noinspection UnstableApiUsage
@@ -217,7 +220,7 @@ public final class VersionHelper {
      * @return The craft class.
      */
     public static Class<?> getCraftClass(@NotNull final String name) throws ClassNotFoundException {
-        if (CURRENT_VERSION >= 2610 || (IS_PAPER && CURRENT_VERSION >= 12050)) {
+        if (CURRENT_VERSION >= 260100 || (IS_PAPER && CURRENT_VERSION >= 12005)) {
             try {
                 return Class.forName("org.bukkit.craftbukkit." + name);
             } catch (ClassNotFoundException ignored) { }

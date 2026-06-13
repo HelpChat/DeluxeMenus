@@ -28,6 +28,8 @@ public enum ActionType {
   BROADCAST("[broadcast]", "Broadcast a message to the server", "- '[broadcast] <message>"),
   CHAT("[chat]", "Send a chat message as the player performing the action", "- '[chat] <message>"),
   OPEN_GUI_MENU("[openguimenu]", "Open a GUI menu", "- '[openguimenu] <menu-name>'"),
+  OPEN_GUI_INVENTORY("[open_gui_inventory]", "Open a GUI menu in the player inventory area",
+      "- '[open_gui_inventory] <menu-name>'"),
   OPEN_MENU("[openmenu]", "Open a GUI menu", "- '[openmenu] <menu-name>'"),
   CONNECT("[connect]", "Connect to the specified bungee server", "- '[connect] <serverName>'"),
   CLOSE("[close]", "Close the viewers open menu", "- '[close]"),

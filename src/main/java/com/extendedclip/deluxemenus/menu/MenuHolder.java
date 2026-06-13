@@ -6,16 +6,24 @@ import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskSchedule
 import com.extendedclip.deluxemenus.scheduler.scheduling.tasks.MyScheduledTask;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class MenuHolder implements InventoryHolder {
 
@@ -33,6 +41,8 @@ public class MenuHolder implements InventoryHolder {
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
     private Map<String, String> typedArgs;
+    private ItemStack[] hiddenPlayerStorageContents;
+    private Menu playerInventoryMenu;
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
         this.plugin = plugin;
@@ -139,36 +149,22 @@ public class MenuHolder implements InventoryHolder {
 
         scheduler.runTaskAsynchronously(() -> {
 
-            final Set<MenuItem> active = new HashSet<>();
+            final Set<MenuItem> active = menu.getActiveItems(this);
             final Set<Integer> slotsToClear = new HashSet<>();
 
             for (int i = 0; i < getInventory().getSize(); i++) {
-                TreeMap<Integer, MenuItem> e = menu.getMenuItems().get(i);
-
-                if (e == null) {
+                final int slot = i;
+                if (active.stream().noneMatch(item -> item.options().slot() == slot)) {
                     slotsToClear.add(i);
-                    continue;
                 }
+            }
 
-                boolean matched = false;
-                for (MenuItem item : e.values()) {
-
-                    if (item.options().viewRequirements().isPresent()) {
-
-                        if (item.options().viewRequirements().get().evaluate(this)) {
-                            matched = true;
-                            active.add(item);
-                            break;
-                        }
-                    } else {
-                        matched = true;
-                        active.add(item);
-                        break;
+            if (isPlayerInventoryHidden()) {
+                for (int i = getInventory().getSize(); i < getInventory().getSize() + 36; i++) {
+                    final int slot = i;
+                    if (active.stream().noneMatch(item -> item.options().slot() == slot)) {
+                        slotsToClear.add(i);
                     }
-                }
-
-                if (!matched) {
-                    slotsToClear.add(i);
                 }
             }
 
@@ -180,7 +176,7 @@ public class MenuHolder implements InventoryHolder {
             scheduler.runTask(viewer, () -> {
 
                 for (int slot : slotsToClear) {
-                    getInventory().setItem(slot, null);
+                    setRenderedItem(slot, null);
                 }
 
                 boolean update = false;
@@ -197,7 +193,7 @@ public class MenuHolder implements InventoryHolder {
 
                     int slot = item.options().slot();
 
-                    if (slot >= menu.options().size()) {
+                    if (!isRenderedSlot(slot)) {
                         continue;
                     }
 
@@ -205,7 +201,7 @@ public class MenuHolder implements InventoryHolder {
                         update = true;
                     }
 
-                    getInventory().setItem(item.options().slot(), iStack);
+                    setRenderedItem(item.options().slot(), iStack);
                 }
 
                 setActiveItems(active);
@@ -289,7 +285,7 @@ public class MenuHolder implements InventoryHolder {
 
                         if (item.options().updatePlaceholders()) {
 
-                            ItemStack i = inventory.getItem(item.options().slot());
+                            ItemStack i = getRenderedItem(item.options().slot());
 
                             if (i == null) {
                                 continue;
@@ -324,6 +320,7 @@ public class MenuHolder implements InventoryHolder {
 
                             i.setItemMeta(meta);
                             i.setAmount(amt);
+                            setRenderedItem(item.options().slot(), i);
                         }
                     }
 
@@ -346,6 +343,149 @@ public class MenuHolder implements InventoryHolder {
 
     public void setInventory(Inventory i) {
         this.inventory = i;
+    }
+
+    public @NotNull Optional<Menu> getPlayerInventoryMenu() {
+        return Optional.ofNullable(this.playerInventoryMenu);
+    }
+
+    public @NotNull Optional<Menu> getRenderedPlayerInventoryMenu() {
+        if (this.playerInventoryMenu != null) {
+            return Optional.of(this.playerInventoryMenu);
+        }
+
+        return getMenu()
+                .flatMap(menu -> menu.options().playerInventoryMenu())
+                .flatMap(Menu::getSubMenuByName);
+    }
+
+    public void setPlayerInventoryMenu(final @Nullable Menu menu) {
+        this.playerInventoryMenu = menu;
+    }
+
+    public void openPlayerInventoryMenu(final @NotNull Menu menu) {
+        if (this.inventory == null) {
+            return;
+        }
+
+        if (!menu.options().subMenu()) {
+            return;
+        }
+
+        this.playerInventoryMenu = menu;
+        if (!isPlayerInventoryHidden()) {
+            hidePlayerInventory();
+        }
+        refreshMenu();
+    }
+
+    public boolean isPlayerInventoryHidden() {
+        return this.hiddenPlayerStorageContents != null;
+    }
+
+    public void hidePlayerInventory() {
+        if (isPlayerInventoryHidden()) {
+            return;
+        }
+
+        final ItemStack[] storageContents = viewer.getInventory().getStorageContents();
+        this.hiddenPlayerStorageContents = cloneContents(storageContents);
+        viewer.getInventory().setStorageContents(new ItemStack[storageContents.length]);
+        viewer.updateInventory();
+    }
+
+    public void restorePlayerInventory() {
+        if (!isPlayerInventoryHidden()) {
+            return;
+        }
+
+        viewer.getInventory().setStorageContents(cloneContents(this.hiddenPlayerStorageContents));
+        this.hiddenPlayerStorageContents = null;
+        viewer.updateInventory();
+    }
+
+    public @NotNull List<ItemStack> getHiddenPlayerInventoryDrops() {
+        if (!isPlayerInventoryHidden()) {
+            return List.of();
+        }
+
+        return Arrays.stream(this.hiddenPlayerStorageContents)
+                .filter(Objects::nonNull)
+                .map(ItemStack::clone)
+                .collect(Collectors.toList());
+    }
+
+    public void applyPlayerInventoryItems(final @NotNull Map<Integer, ItemStack> items) {
+        if (!isPlayerInventoryHidden()) {
+            return;
+        }
+
+        for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
+            setRenderedItem(entry.getKey(), entry.getValue());
+        }
+        viewer.updateInventory();
+    }
+
+    public @Nullable ItemStack getRenderedItem(final int rawSlot) {
+        if (rawSlot < 0) {
+            return null;
+        }
+
+        if (rawSlot < inventory.getSize()) {
+            return inventory.getItem(rawSlot);
+        }
+
+        if (!isPlayerInventoryHidden()) {
+            return null;
+        }
+
+        return viewer.getOpenInventory().getItem(rawSlot);
+    }
+
+    public void setRenderedItem(final int rawSlot, final @Nullable ItemStack itemStack) {
+        if (rawSlot < 0) {
+            return;
+        }
+
+        if (rawSlot < inventory.getSize()) {
+            inventory.setItem(rawSlot, itemStack);
+            return;
+        }
+
+        if (!isPlayerInventoryHidden()) {
+            return;
+        }
+
+        final InventoryView view = viewer.getOpenInventory();
+        if (view == null || view.getType() == InventoryType.CRAFTING) {
+            return;
+        }
+
+        if (rawSlot >= inventory.getSize() + 36) {
+            return;
+        }
+
+        view.setItem(rawSlot, itemStack);
+    }
+
+    public boolean isRenderedSlot(final int rawSlot) {
+        if (rawSlot < 0) {
+            return false;
+        }
+
+        if (rawSlot < inventory.getSize()) {
+            return true;
+        }
+
+        return isPlayerInventoryHidden() && rawSlot < inventory.getSize() + 36;
+    }
+
+    private @NotNull ItemStack[] cloneContents(final @NotNull ItemStack[] contents) {
+        final ItemStack[] clone = new ItemStack[contents.length];
+        for (int i = 0; i < contents.length; i++) {
+            clone[i] = contents[i] == null ? null : contents[i].clone();
+        }
+        return clone;
     }
 
     public Map<String, String> getTypedArgs() {

@@ -96,6 +96,8 @@ public class DeluxeMenusConfig {
 
     private final String separator = File.separator;
     private final File menuDirectory;
+    private final File subMenuDirectory;
+    private final File converterDirectory;
     private final DeluxeMenus plugin;
     private final List<String> exampleMenus = Arrays.asList("basics_menu", "advanced_menu", "requirements_menu"
             // more example menus here
@@ -106,12 +108,18 @@ public class DeluxeMenusConfig {
 
         this.plugin = plugin;
         menuDirectory = new File(this.plugin.getDataFolder() + separator + "gui_menus");
+        subMenuDirectory = new File(this.plugin.getDataFolder() + separator + "sub_menu");
+        converterDirectory = new File(this.plugin.getDataFolder() + separator + "converter");
         try {
             if (menuDirectory.mkdirs()) {
                 plugin.debug(DebugLevel.HIGH, Level.INFO, "Individual menus directory did not exist.", "Created directory: plugins" + separator + "DeluxeMenus" + separator + "gui_menus");
             }
+            if (subMenuDirectory.mkdirs()) {
+                plugin.debug(DebugLevel.HIGH, Level.INFO, "Sub menu directory did not exist.", "Created directory: plugins" + separator + "DeluxeMenus" + separator + "sub_menu");
+            }
+            converterDirectory.mkdirs();
         } catch (SecurityException e) {
-            plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Something went wrong while creating directory: plugins" + separator + "DeluxeMenus" + separator + "gui_menus");
+            plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Something went wrong while creating DeluxeMenus directories.");
         }
     }
 
@@ -169,6 +177,8 @@ public class DeluxeMenusConfig {
         c.addDefault("check_updates", true);
         c.addDefault("use_admin_commands_in_menus_list", false);
         c.addDefault("menus_list_page_size", 10);
+        c.addDefault("web_editor_public_url", "");
+        c.addDefault("sub_menus", new HashMap<>());
         c.options().copyDefaults(true);
 
         if (!c.contains("gui_menus")) {
@@ -331,19 +341,64 @@ public class DeluxeMenusConfig {
                 loadMenu(c, key, true, "config");
             }
         }
+        loadSubMenus();
         return Menu.getLoadedMenuSize();
     }
 
-    public boolean loadMenuFromFile(String menuName) {
+    public int loadSubMenus() {
 
-        String fileName = plugin.getConfig().getString("gui_menus." + menuName + ".file");
+        if (checkConfig(null, "config.yml", false) == null) {
+            return 0;
+        }
+
+        FileConfiguration c = plugin.getConfig();
+
+        if (!c.contains("sub_menus")) {
+            return 0;
+        }
+
+        if (!c.isConfigurationSection("sub_menus")) {
+            return 0;
+        }
+
+        Set<String> keys = c.getConfigurationSection("sub_menus").getKeys(false);
+
+        if (keys.isEmpty()) {
+            return 0;
+        }
+
+        for (String key : keys) {
+
+            if (c.contains("sub_menus." + key + ".file")) {
+                loadSubMenuFromFile(key);
+            } else {
+                loadMenu(c, key, true, "config", true);
+            }
+        }
+
+        return Menu.getLoadedSubMenuSize();
+    }
+
+    public boolean loadMenuFromFile(String menuName) {
+        return loadMenuFromFile(menuName, false);
+    }
+
+    public boolean loadSubMenuFromFile(String menuName) {
+        return loadMenuFromFile(menuName, true);
+    }
+
+    private boolean loadMenuFromFile(String menuName, final boolean subMenu) {
+
+        final String configRoot = subMenu ? "sub_menus" : "gui_menus";
+        final File directory = subMenu ? subMenuDirectory : menuDirectory;
+        String fileName = plugin.getConfig().getString(configRoot + "." + menuName + ".file");
 
         if (!fileName.endsWith(".yml")) {
             plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Filename specified for menu: " + menuName + " is not a .yml file!", "Make sure that the file name to load this menu from is specified as a .yml file!", "Skipping loading of menu: " + menuName);
             return false;
         }
 
-        File f = new File(menuDirectory.getPath(), fileName);
+        File f = new File(directory.getPath(), fileName);
 
         if (!f.exists()) {
             plugin.debug(DebugLevel.HIGHEST, Level.INFO, f.getName() + " does not exist!");
@@ -359,7 +414,7 @@ public class DeluxeMenusConfig {
                 }
                 plugin.debug(DebugLevel.HIGHEST, Level.INFO, f.getName() + " created! Add your menu options to this file and use /dm reload to load it!");
             } catch (IOException e) {
-                plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Could not create menu file: plugins" + separator + "DeluxeMenus" + separator + "gui_menus" + separator + fileName);
+                plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Could not create menu file: plugins" + separator + "DeluxeMenus" + separator + directory.getName() + separator + fileName);
                 return false;
             }
         }
@@ -377,31 +432,35 @@ public class DeluxeMenusConfig {
             return false;
         }
 
-        final Path guiMenusPath = menuDirectory.toPath();
+        final Path guiMenusPath = directory.toPath();
         final Path menuPath = f.toPath();
         final Path relativePath = guiMenusPath.relativize(menuPath);
 
-        loadMenu(cfg, menuName, false, relativePath.toString());
-        return Menu.getMenuByName(menuName).isPresent();
+        loadMenu(cfg, menuName, false, relativePath.toString(), subMenu);
+        return subMenu ? Menu.getSubMenuByName(menuName).isPresent() : Menu.getMenuByName(menuName).isPresent();
     }
 
     public void loadMenu(FileConfiguration c, String key, boolean mainConfig, final @NotNull String path) {
+        loadMenu(c, key, mainConfig, path, false);
+    }
+
+    private void loadMenu(FileConfiguration c, String key, boolean mainConfig, final @NotNull String path, final boolean subMenu) {
         if (mainConfig) {
             plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Menu: " + key + " does not have a file specified in config.yml! Creating menus in the " + "config.yml file is deprecated and will be removed in a future version! Please migrate your " + "menus to individual files in the gui_menus directory! For more information see: " + "https://wiki.helpch.at/clips-plugins/deluxemenus/external-menus");
         }
 
-        String pre = "gui_menus." + key + ".";
+        String pre = (subMenu ? "sub_menus." : "gui_menus.") + key + ".";
 
         if (!mainConfig) {
             pre = "";
         }
 
-        if (!c.contains(pre + "menu_title")) {
+        if (!subMenu && !c.contains(pre + "menu_title")) {
             plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Menu title for menu: " + key + " is not present!", "Skipping menu: " + key);
             return;
         }
 
-        String title = null;
+        String title = subMenu ? key : null;
 
         if (c.isString(pre + "menu_title")) {
             title = c.getString(pre + "menu_title");
@@ -418,7 +477,7 @@ public class DeluxeMenusConfig {
 
         InventoryType type = InventoryType.CHEST;
 
-        if (c.contains(pre + "inventory_type")) {
+        if (!subMenu && c.contains(pre + "inventory_type")) {
             try {
                 final InventoryType inventoryType = InventoryType.valueOf(c.getString(pre + "inventory_type").toUpperCase());
                 type = !VALID_INVENTORY_TYPES.contains(inventoryType) ? InventoryType.CHEST : inventoryType;
@@ -428,10 +487,11 @@ public class DeluxeMenusConfig {
         }
 
         builder.type(type);
+        builder.subMenu(subMenu);
 
         final List<String> openCommands = new ArrayList<>();
 
-        if (c.contains(pre + "open_command")) {
+        if (!subMenu && c.contains(pre + "open_command")) {
             if (c.isString(pre + "open_command") && !c.getString(pre + "open_command").isEmpty()) {
 
                 String cmd = c.getString(pre + "open_command");
@@ -498,10 +558,10 @@ public class DeluxeMenusConfig {
         builder.argumentRequirements(argumentRequirements);
         builder.argumentsUsageMessage(c.getString(pre + "args_usage_message", null));
 
-        int size = 54;
+        int size = subMenu ? 36 : 54;
         if (type == InventoryType.CHEST) {
             if (!c.contains(pre + "size")) {
-                plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Menu size for menu: " + key + " is not present!", "Using default size of 54");
+                plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Menu size for menu: " + key + " is not present!", "Using default size of " + size);
             } else {
                 size = c.getInt(pre + "size");
 
@@ -514,14 +574,16 @@ public class DeluxeMenusConfig {
                     size = 9;
                 }
 
-                if (size > 54) {
-                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Menu size for menu: " + key + " is higher than 54", "Defaulting to 54.");
-                    size = 54;
+                final int maxSize = subMenu ? 36 : 54;
+                if (size > maxSize) {
+                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Menu size for menu: " + key + " is higher than " + maxSize, "Defaulting to " + maxSize + ".");
+                    size = maxSize;
                 }
 
                 if (size % 9 != 0) {
-                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Menu size for menu: " + key + " is not a multiple of 9", "Defaulting to 54.");
-                    size = 54;
+                    final int defaultSize = subMenu ? 36 : 54;
+                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Menu size for menu: " + key + " is not a multiple of 9", "Defaulting to " + defaultSize + ".");
+                    size = defaultSize;
                 }
             }
         } else {
@@ -555,7 +617,12 @@ public class DeluxeMenusConfig {
         final boolean refresh = c.getBoolean(pre + "refresh", false);
         builder.refresh(refresh);
 
-        Map<Integer, TreeMap<Integer, MenuItem>> items = loadMenuItems(c, key, mainConfig);
+        builder.hidePlayerInventory(!subMenu && c.getBoolean(pre + "hide_player_inventory", false));
+        if (!subMenu) {
+            builder.playerInventoryMenu(c.getString(pre + "player_inventory_menu", c.getString(pre + "bottom_menu", null)));
+        }
+
+        Map<Integer, TreeMap<Integer, MenuItem>> items = loadMenuItems(c, key, mainConfig, subMenu);
 
         if (items == null || items.isEmpty()) {
             plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Failed to load menu items for menu: " + key, "Skipping menu: " + key);
@@ -571,7 +638,11 @@ public class DeluxeMenusConfig {
     }
 
     private Map<Integer, TreeMap<Integer, MenuItem>> loadMenuItems(FileConfiguration c, String name, boolean mainConfig) {
-        String itemsPath = "gui_menus." + name + ".items";
+        return loadMenuItems(c, name, mainConfig, false);
+    }
+
+    private Map<Integer, TreeMap<Integer, MenuItem>> loadMenuItems(FileConfiguration c, String name, boolean mainConfig, final boolean subMenu) {
+        String itemsPath = (subMenu ? "sub_menus." : "gui_menus.") + name + ".items";
 
         if (!mainConfig) {
             itemsPath = "items";
@@ -829,6 +900,11 @@ public class DeluxeMenusConfig {
             final MenuItem menuItem = new MenuItem(plugin, builder.build());
 
             for (int slot : slots) {
+                if (subMenu && (slot < 0 || slot >= 36)) {
+                    plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Slot " + slot + " for item: " + key + " in sub menu: " + name + " is outside 0-35.", "Skipping slot: " + slot);
+                    continue;
+                }
+
                 TreeMap<Integer, MenuItem> slotPriorityMap;
                 if ((!menuItems.containsKey(slot)) || menuItems.get(slot) == null) {
                     slotPriorityMap = new TreeMap<>();
@@ -1282,6 +1358,14 @@ public class DeluxeMenusConfig {
 
     public File getMenuDirector() {
         return menuDirectory;
+    }
+
+    public File getSubMenuDirectory() {
+        return subMenuDirectory;
+    }
+
+    public File getConverterDirectory() {
+        return converterDirectory;
     }
 
     public void addEnchantmentsOptionToBuilder(

@@ -18,8 +18,10 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 
+import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +31,6 @@ public class PlayerListener extends Listener {
     private final TaskScheduler scheduler;
     private final Cache<UUID, Long> cache = CacheBuilder.newBuilder().expireAfterWrite(75, TimeUnit.MILLISECONDS).build();
 
-    // This is so dumb. Mojang fix your shit.
     private final Cache<UUID, Long> shiftCache = CacheBuilder.newBuilder().expireAfterWrite(200, TimeUnit.MILLISECONDS).build();
 
     public PlayerListener(@NotNull final DeluxeMenus plugin) {
@@ -67,6 +68,29 @@ public class PlayerListener extends Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onDeath(PlayerDeathEvent event) {
+        final Player player = event.getEntity();
+        final Optional<MenuHolder> optionalHolder = Menu.getMenuHolder(player);
+
+        if (optionalHolder.isEmpty()) {
+            return;
+        }
+
+        final MenuHolder holder = optionalHolder.get();
+        if (!holder.isPlayerInventoryHidden()) {
+            return;
+        }
+
+        event.getDrops().removeIf(itemStack -> itemStack != null && plugin.getMenuItemMarker().isMarked(itemStack));
+        if (!event.getKeepInventory()) {
+            for (final ItemStack itemStack : holder.getHiddenPlayerInventoryDrops()) {
+                event.getDrops().add(itemStack);
+            }
+        }
+        holder.restorePlayerInventory();
+    }
+
     @EventHandler
     public void onOpen(InventoryOpenEvent event) {
         if (!(event.getPlayer() instanceof Player)) {
@@ -80,7 +104,7 @@ public class PlayerListener extends Listener {
         }
 
         if (Menu.isInMenu(player)) {
-            Menu.closeMenu(plugin, player, true);
+            Menu.closeMenu(plugin, player, false);
         }
     }
 

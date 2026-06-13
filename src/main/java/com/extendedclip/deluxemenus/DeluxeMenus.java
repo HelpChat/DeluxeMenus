@@ -6,6 +6,8 @@ import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.config.GeneralConfig;
 import com.extendedclip.deluxemenus.dupe.DupeFixer;
 import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
+import com.extendedclip.deluxemenus.editor.MenuEditorListener;
+import com.extendedclip.deluxemenus.editor.WebEditorServer;
 import com.extendedclip.deluxemenus.hooks.*;
 import com.extendedclip.deluxemenus.listener.PlayerListener;
 import com.extendedclip.deluxemenus.menu.Menu;
@@ -66,6 +68,7 @@ public class DeluxeMenus extends JavaPlugin {
 
     private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
+    private WebEditorServer webEditorServer;
 
     @NotNull
     private final TaskScheduler scheduler = UniversalScheduler.getScheduler(this);
@@ -109,7 +112,9 @@ public class DeluxeMenus extends JavaPlugin {
             debug(DebugLevel.HIGHEST, Level.WARNING, "Failed to load from config.yml. Use /dm reload after fixing your errors.");
         }
 
+        this.webEditorServer = new WebEditorServer(this);
         new PlayerListener(this).register();
+        new MenuEditorListener(this).register();
         if (!new DeluxeMenusCommand(this).register()) {
             debug(DebugLevel.HIGHEST, Level.SEVERE, "Could not register the DeluxeMenus command!");
         }
@@ -132,6 +137,10 @@ public class DeluxeMenus extends JavaPlugin {
         }
 
         Menu.unloadForShutdown(this);
+        if (this.webEditorServer != null) {
+            this.webEditorServer.stop();
+            this.webEditorServer = null;
+        }
 
         itemHooks.clear();
 
@@ -199,6 +208,10 @@ public class DeluxeMenus extends JavaPlugin {
 
     public DeluxeMenusConfig getConfiguration() {
         return menuConfig;
+    }
+
+    public WebEditorServer getWebEditorServer() {
+        return webEditorServer;
     }
 
     public VaultHook getVault() {

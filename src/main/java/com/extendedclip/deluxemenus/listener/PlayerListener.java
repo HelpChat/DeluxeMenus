@@ -104,7 +104,7 @@ public class PlayerListener extends Listener {
         }
 
         if (Menu.isInMenu(player)) {
-            Menu.closeMenu(plugin, player, true);
+            Menu.closeMenu(plugin, player, false);
         }
     }
 

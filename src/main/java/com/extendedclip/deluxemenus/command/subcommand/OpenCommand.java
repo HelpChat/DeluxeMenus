@@ -49,39 +49,65 @@ public class OpenCommand extends SubCommand {
             return;
         }
 
-        String placeholderPlayer = null;
-        List<String> actualArgs = new ArrayList<>();
-        for (String arg : arguments) {
-            if (arg.startsWith("-p:")) {
+        boolean isPlayer = (sender instanceof Player);
+
+        // Strict positional parsing:
+        // arguments[0] = <menu>
+        // arguments[1] = optional <viewer> OR -p:<target>
+        // arguments[2] = optional -p:<target> (if arguments[1] was <viewer>) OR start of [args]
+        // remaining    = [args]
+
+        int cursor = 0;
+
+        // [0] <menu> — always required
+        String menuName = arguments.get(cursor++);
+
+        // [1] optional: <viewer> or -p:<target>
+        String viewerName = null;
+        String placeholderPlayerName = null;
+
+        if (cursor < arguments.size()) {
+            String next = arguments.get(cursor);
+            if (next.startsWith("-p:")) {
+                // -p:<target> with no explicit viewer
                 if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
                     plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
                     return;
                 }
-                placeholderPlayer = arg.substring(3);
+                placeholderPlayerName = next.substring(3);
+                cursor++;
             } else {
-                actualArgs.add(arg);
+                // treat as <viewer>
+                viewerName = next;
+                cursor++;
+
+                // [2] optional: -p:<target>
+                if (cursor < arguments.size() && arguments.get(cursor).startsWith("-p:")) {
+                    if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
+                        plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
+                        return;
+                    }
+                    placeholderPlayerName = arguments.get(cursor).substring(3);
+                    cursor++;
+                }
             }
         }
 
-        String menuName = actualArgs.get(0);
-        Optional<Menu> menu = Menu.getMenuByName(menuName);
+        // remaining arguments[cursor..] are menu [args]
+        List<String> menuArgs = cursor < arguments.size()
+                ? arguments.subList(cursor, arguments.size())
+                : Collections.emptyList();
 
-        if (menu.isEmpty()) {
-            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(menuName).build()));
-            return;
-        }
-
-        String targetPlayerName = actualArgs.size() > 1 ? actualArgs.get(1) : null;
+        // Resolve viewer
         Player viewer;
-        boolean isPlayer = (sender instanceof Player);
-        if (targetPlayerName != null) {
+        if (viewerName != null) {
             if (isPlayer && !sender.hasPermission("deluxemenus.open.others")) {
                 plugin.sms(sender, Messages.NO_PERMISSION);
                 return;
             }
-            viewer = Bukkit.getPlayerExact(targetPlayerName);
+            viewer = Bukkit.getPlayerExact(viewerName);
             if (viewer == null) {
-                plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(targetPlayerName).build()));
+                plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(viewerName).build()));
                 return;
             }
         } else {
@@ -92,36 +118,45 @@ public class OpenCommand extends SubCommand {
             viewer = (Player) sender;
         }
 
+        // Resolve placeholder player
         Player placeholder = null;
-        if (placeholderPlayer != null) {
-            placeholder = Bukkit.getPlayerExact(placeholderPlayer);
+        if (placeholderPlayerName != null) {
+            placeholder = Bukkit.getPlayerExact(placeholderPlayerName);
             if (placeholder == null) {
-                plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayer).build()));
+                plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayerName).build()));
                 return;
             }
             if (placeholder.hasPermission("deluxemenus.placeholdersfor.exempt")) {
-                plugin.sms(sender, Messages.PLAYER_IS_EXEMPT.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayer).build()));
+                plugin.sms(sender, Messages.PLAYER_IS_EXEMPT.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayerName).build()));
                 return;
             }
         }
 
+        // Resolve menu
+        Optional<Menu> menu = Menu.getMenuByName(menuName);
+        if (menu.isEmpty()) {
+            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(menuName).build()));
+            return;
+        }
+
+        // Build menu arguments map
         List<String> menuArgumentNames = menu.get().options().arguments();
         if (menuArgumentNames.isEmpty()) {
             menu.get().openMenu(viewer, null, placeholder);
             return;
         }
 
-        List<String> menuArgs = actualArgs.size() > 2 ? actualArgs.subList(2, actualArgs.size()) : Collections.emptyList();
         Map<String, String> argumentsMap = new HashMap<>();
-        for (int index = 0; index < menuArgumentNames.size() && index < menuArgs.size(); index++) {
-            String argumentName = menuArgumentNames.get(index);
-            if (index == menuArgumentNames.size() - 1) {
-                String lastArgumentValue = String.join(" ", menuArgs.subList(index, menuArgs.size()));
-                argumentsMap.put(argumentName, lastArgumentValue);
+        for (int i = 0; i < menuArgumentNames.size() && i < menuArgs.size(); i++) {
+            String argName = menuArgumentNames.get(i);
+            if (i == menuArgumentNames.size() - 1) {
+                // Last named arg consumes all remaining values
+                argumentsMap.put(argName, String.join(" ", menuArgs.subList(i, menuArgs.size())));
                 break;
             }
-            argumentsMap.put(argumentName, menuArgs.get(index));
+            argumentsMap.put(argName, menuArgs.get(i));
         }
+
         menu.get().openMenu(viewer, argumentsMap, placeholder);
     }
 
@@ -135,43 +170,30 @@ public class OpenCommand extends SubCommand {
             return List.of(getName());
         }
 
-        if (arguments.size() > 4) {
-            return null;
-        }
-
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
-                return List.of(getName());
-            }
-
             final String firstArgument = arguments.get(0).toLowerCase();
-
-            if (getName().startsWith(firstArgument)) {
+            if (firstArgument.isEmpty() || getName().startsWith(firstArgument)) {
                 return List.of(getName());
             }
-
             return null;
         }
 
         final String firstArgument = arguments.get(0).toLowerCase();
-
         if (!getName().equals(firstArgument)) {
             return null;
         }
 
         final Collection<String> menuNames = Menu.getAllMenuNames();
-
         if (menuNames.isEmpty()) {
             return null;
         }
 
+        // [2] <menu>
         if (arguments.size() == 2) {
             final String secondArgument = arguments.get(1).toLowerCase();
-
             if (secondArgument.isEmpty()) {
                 return List.copyOf(menuNames);
             }
-
             return menuNames.stream()
                     .filter(menuName -> menuName.toLowerCase().startsWith(secondArgument))
                     .collect(Collectors.toList());
@@ -182,40 +204,46 @@ public class OpenCommand extends SubCommand {
                 .map(Player::getName)
                 .collect(Collectors.toList());
 
+        // [3] <viewer> or -p:<target>
         if (arguments.size() == 3) {
             final String thirdArgument = arguments.get(2).toLowerCase();
-
             if (thirdArgument.isEmpty()) {
-                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:")).collect(Collectors.toList());
-            }
-
-            if (!thirdArgument.startsWith("-")) {
-                return onlinePlayerNames.stream()
-                        .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
+                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:"))
                         .collect(Collectors.toList());
             }
-
+            if (thirdArgument.startsWith("-p:")) {
+                return onlinePlayerNames.stream()
+                        .map(playerName -> "-p:" + playerName)
+                        .filter(suggestion -> suggestion.toLowerCase().startsWith(thirdArgument))
+                        .collect(Collectors.toList());
+            }
             return onlinePlayerNames.stream()
-                    .map(playerName -> "-p:" + playerName)
                     .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
                     .collect(Collectors.toList());
         }
 
+        // [4] -p:<target> (only valid if [3] was a <viewer>, not already a -p:)
         if (arguments.size() == 4) {
             final String thirdArgument = arguments.get(2).toLowerCase();
             final String fourthArgument = arguments.get(3).toLowerCase();
 
-            if (!thirdArgument.startsWith("-p:")) {
+            // If slot 3 was already a -p: flag, slot 4 is a menu arg — no suggestions
+            if (thirdArgument.startsWith("-p:")) {
                 return null;
             }
 
             if (fourthArgument.isEmpty()) {
-                return onlinePlayerNames;
+                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:"))
+                        .collect(Collectors.toList());
             }
-
-            return onlinePlayerNames.stream()
-                    .filter(playerName -> playerName.toLowerCase().startsWith(fourthArgument))
-                    .collect(Collectors.toList());
+            if (fourthArgument.startsWith("-p:")) {
+                return onlinePlayerNames.stream()
+                        .map(playerName -> "-p:" + playerName)
+                        .filter(suggestion -> suggestion.toLowerCase().startsWith(fourthArgument))
+                        .collect(Collectors.toList());
+            }
+            // Otherwise it's a menu [arg] — no tab suggestions
+            return null;
         }
 
         return null;

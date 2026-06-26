@@ -4,6 +4,7 @@ import com.extendedclip.deluxemenus.cache.SimpleCache;
 import dev.lone.itemsadder.api.CustomStack;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;

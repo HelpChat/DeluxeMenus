@@ -1,26 +1,20 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
+import com.extendedclip.deluxemenus.action.ClickHandler;
+import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
 import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
-import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -31,12 +25,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class Menu {
 
-    private static final Map<String, Menu> menus = new ConcurrentHashMap<>();
-    private static final Set<MenuHolder> menuHolders = ConcurrentHashMap.newKeySet();
-    private static final Map<UUID, Menu> lastOpenedMenus = new ConcurrentHashMap<>();
+    private static final Map<String, Menu> menus = new HashMap<>();
+    private static final Set<MenuHolder> menuHolders = new HashSet<>();
+    private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
 
     private final DeluxeMenus plugin;
-    private final TaskScheduler scheduler;
     private final MenuOptions options;
     private final Map<Integer, TreeMap<Integer, MenuItem>> items;
     // menu path starting from the plugin directory
@@ -51,7 +44,6 @@ public class Menu {
             final @NotNull String path
     ) {
         this.plugin = plugin;
-        this.scheduler = plugin.getScheduler();
         this.options = options;
         this.items = items;
         this.path = path;
@@ -207,7 +199,7 @@ public class Menu {
         }
 
         if (close) {
-            plugin.getScheduler().runTask(player, () -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
                 player.closeInventory();
                 cleanInventory(plugin, player);
             });
@@ -282,13 +274,11 @@ public class Menu {
         }
 
         DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
-        Bukkit.getPluginManager().callEvent(preOpenEvent);
+    Bukkit.getPluginManager().callEvent(preOpenEvent);
 
-        if (preOpenEvent.isCancelled()) {
-            return;
-        }
+    if (preOpenEvent.isCancelled()) return;
 
-        final MenuHolder holder = new MenuHolder(plugin, viewer);
+    final MenuHolder holder = new MenuHolder(plugin, viewer);
         if (placeholderPlayer != null) {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
@@ -304,7 +294,7 @@ public class Menu {
             return;
         }
 
-        scheduler.runTaskAsynchronously(() -> {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 
             Set<MenuItem> activeItems = new HashSet<>();
 
@@ -393,8 +383,8 @@ public class Menu {
 
             final boolean updatePlaceholders = update;
 
-            scheduler.runTask(viewer, () -> {
-                if (options.refresh()) {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if(options.refresh()) {
                     holder.startRefreshTask();
                 }
 
@@ -405,17 +395,17 @@ public class Menu {
                 viewer.openInventory(inventory);
                 menuHolders.add(holder);
 
-                if (updatePlaceholders) {
-                    holder.startUpdatePlaceholdersTask();
-                }
-            });
+        if (updatePlaceholders) {
+          holder.startUpdatePlaceholdersTask();
+        }
+      });
 
-            scheduler.runTask(viewer, () -> {
-                DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
-                Bukkit.getPluginManager().callEvent(openEvent);
-            });
-        });
-    }
+      Bukkit.getScheduler().runTask(plugin, () -> {
+        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+        Bukkit.getPluginManager().callEvent(openEvent);
+      });
+    });
+  }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

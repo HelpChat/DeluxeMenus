@@ -2,14 +2,15 @@ package com.extendedclip.deluxemenus.hooks;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
-import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
+
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -18,11 +19,9 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
 
     private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
     private final DeluxeMenus plugin;
-    private final TaskScheduler scheduler;
 
     public MMOItemsHook(final @NotNull DeluxeMenus plugin) {
         this.plugin = plugin;
-        this.scheduler = plugin.getScheduler();
     }
 
     @Override
@@ -48,7 +47,7 @@ public class MMOItemsHook implements ItemHook, SimpleCache {
 
         ItemStack mmoItem = null;
         try {
-            mmoItem = scheduler.callSyncMethod(() -> {
+            mmoItem = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
                 ItemStack item = MMOItems.plugin.getItem(itemType, splitArgs[1]);
 
                 if (item == null) {

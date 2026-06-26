@@ -284,6 +284,15 @@ public class DeluxeMenus extends JavaPlugin {
             }
         }
 
+        if (Bukkit.getPluginManager().isPluginEnabled("HeadDB")) {
+            try {
+                Class.forName("io.github.silentdevelopment.headdb.HeadDBService");
+                this.itemHooks.put(HeadType.HEADDB.getHookName(), new HeadDBHook(this));
+            } catch (ClassNotFoundException ignored) {
+                // We are looking for this specific class to avoid hooking into unrelated plugins named HeadDB.
+            }
+        }
+
         if (Bukkit.getPluginManager().isPluginEnabled("CraftEngine")) {
             this.itemHooks.put("craftengine", new CraftEngineHook());
         }

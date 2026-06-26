@@ -26,11 +26,13 @@ public final class Constants {
     public static final String TEXTURE_HEAD_PREFIX = "texture-";
     public static final String BASE64_HEAD_PREFIX = "basehead-";
     public static final String HDB_HEAD_PREFIX = "hdb-";
+    public static final String HEADDB_HEAD_PREFIX = "headdb-";
 
     public static final String NAMED_HEAD_TYPE = "namedhead";
     public static final String TEXTURE_HEAD_TYPE = "texture";
     public static final String BASE64_HEAD_TYPE = "basehead";
     public static final String HDB_HEAD_TYPE = "hdb";
+    public static final String HEADDB_HEAD_TYPE = "headdb";
 
     public static final String STACK_PREFIX = "stack-";
     public static final String PLACEHOLDER_PREFIX = "placeholder-";

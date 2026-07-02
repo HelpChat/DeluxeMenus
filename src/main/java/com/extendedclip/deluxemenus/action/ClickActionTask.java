@@ -4,32 +4,20 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
-import com.extendedclip.deluxemenus.scheduler.UniversalRunnable;
-import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
-import com.extendedclip.deluxemenus.utils.AdventureUtils;
-import com.extendedclip.deluxemenus.utils.DebugLevel;
-import com.extendedclip.deluxemenus.utils.ExpUtils;
-import com.extendedclip.deluxemenus.utils.SoundUtils;
-import com.extendedclip.deluxemenus.utils.StringUtils;
-import com.extendedclip.deluxemenus.utils.VersionHelper;
+import com.extendedclip.deluxemenus.utils.*;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
-public class ClickActionTask extends UniversalRunnable {
+public class ClickActionTask extends BukkitRunnable {
 
     private final DeluxeMenus plugin;
-    private final TaskScheduler scheduler;
     private final UUID uuid;
     private final ActionType actionType;
     private final String exec;
@@ -48,7 +36,6 @@ public class ClickActionTask extends UniversalRunnable {
             final boolean parsePlaceholdersAfterArguments
     ) {
         this.plugin = plugin;
-        this.scheduler = plugin.getScheduler();
         this.uuid = uuid;
         this.actionType = actionType;
         this.exec = exec;
@@ -68,6 +55,7 @@ public class ClickActionTask extends UniversalRunnable {
         final Player target = holder.isPresent() && holder.get().getPlaceholderPlayer() != null
                 ? holder.get().getPlaceholderPlayer()
                 : player;
+
 
         final String executable = StringUtils.replacePlaceholdersAndArguments(
                 this.exec,
@@ -117,7 +105,7 @@ public class ClickActionTask extends UniversalRunnable {
                 break;
 
             case CONSOLE:
-                scheduler.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), executable));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), executable);
                 break;
 
             case MINI_MESSAGE:
@@ -447,6 +435,7 @@ public class ClickActionTask extends UniversalRunnable {
                         }
                     }
 
+
                     try {
                         volume = Float.parseFloat(parts[1]);
                     } catch (final NumberFormatException exception) {
@@ -508,17 +497,17 @@ public class ClickActionTask extends UniversalRunnable {
                         }
                         break;
 
-                        case PLAY_SOUND: 
-                            if (sound == null) {
-                                plugin.debug(
-                                      DebugLevel.HIGHEST, 
-                                      Level.WARNING,
-                                      "Sound name given for sound action: " + executable + ", is not a valid sound!"
-                                );
-                                break;
-                            }
-                            player.playSound(player.getLocation(), sound, volume, pitch);
+                    case PLAY_SOUND:
+                        if (sound == null) {
+                            plugin.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Sound name given for sound action: " + executable + ", is not a valid sound!"
+                            );
                             break;
+                        }
+                        player.playSound(player.getLocation(), sound, volume, pitch);
+                        break;
                 }
                 break;
 
@@ -530,4 +519,5 @@ public class ClickActionTask extends UniversalRunnable {
     private boolean isRaw(ActionType actionType) {
         return actionType == ActionType.PLAY_RAW_SOUND || actionType == ActionType.BROADCAST_RAW_SOUND || actionType == ActionType.BROADCAST_WORLD_RAW_SOUND;
     }
+
 }

@@ -15,8 +15,6 @@ import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.placeholder.Expansion;
-import com.extendedclip.deluxemenus.scheduler.UniversalScheduler;
-import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.updatechecker.UpdateChecker;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
@@ -37,13 +35,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -66,9 +58,6 @@ public class DeluxeMenus extends JavaPlugin {
 
     private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
-
-    @NotNull
-    private final TaskScheduler scheduler = UniversalScheduler.getScheduler(this);
 
     @Override
     public void onLoad() {
@@ -124,7 +113,7 @@ public class DeluxeMenus extends JavaPlugin {
     public void onDisable() {
         Bukkit.getMessenger().unregisterOutgoingPluginChannel(this, "BungeeCord");
 
-        scheduler.cancelTasks(this);
+        Bukkit.getScheduler().cancelTasks(this);
 
         if (this.audiences != null) {
             this.audiences.close();
@@ -226,10 +215,6 @@ public class DeluxeMenus extends JavaPlugin {
 
     public GeneralConfig getGeneralConfig() {
         return generalConfig;
-    }
-
-    public @NotNull TaskScheduler getScheduler() {
-        return scheduler;
     }
 
     private boolean hookIntoPlaceholderAPI() {

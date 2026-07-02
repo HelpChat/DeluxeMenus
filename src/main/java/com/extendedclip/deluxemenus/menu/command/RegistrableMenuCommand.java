@@ -89,9 +89,26 @@ public class RegistrableMenuCommand extends Command {
         if (registered) {
             throw new IllegalStateException("This command was already registered!");
         }
+        if (registered) {
+            throw new IllegalStateException("This command was already registered!");
+        }
 
         registered = true;
+        registered = true;
 
+        if (commandMap == null) {
+            try {
+                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+                f.setAccessible(true);
+                commandMap = (CommandMap) f.get(Bukkit.getServer());
+            } catch (final @NotNull Exception exception) {
+                plugin.printStacktrace(
+                        "Something went wrong while trying to register command: " + this.getName(),
+                        exception
+                );
+                return;
+            }
+        }
         if (commandMap == null) {
             try {
                 final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");

@@ -1,5 +1,6 @@
 package com.extendedclip.deluxemenus.events;
 
+import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;

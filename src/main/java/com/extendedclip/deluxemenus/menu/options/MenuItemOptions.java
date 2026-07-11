@@ -54,6 +54,7 @@ public class MenuItemOptions {
     private final boolean loreHasPlaceholders;
     private final boolean hasLore;
     private final LoreAppendMode loreAppendMode;
+    private final boolean useMiniMessage;
 
     private final String nbtString;
     private final String nbtByte;

@@ -1,9 +1,43 @@
-.gradle/
-.idea/
-.vscode/
-
+```
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.out
 build/
-test-server/
+target/
 
-.claude/
-CLAUDE.md
+# Dependencies
+.gradle/
+lib/
+libs/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Editors
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Package manager
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
+Thumbs.db
+```

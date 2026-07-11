@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -338,7 +340,15 @@ public class Menu {
 
             this.options.openHandler().ifPresent(h -> h.onClick(holder));
 
-            String title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
+            String rawTitle = holder.setPlaceholdersAndArguments(this.options.title());
+            String title;
+            if (this.options.useMiniMessage()) {
+                // Convert MiniMessage to legacy format for compatibility
+                Component component = MiniMessage.miniMessage().deserialize(rawTitle);
+                title = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(component);
+            } else {
+                title = StringUtils.color(rawTitle);
+            }
 
             Inventory inventory;
 

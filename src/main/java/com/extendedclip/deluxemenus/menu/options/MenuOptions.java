@@ -21,6 +21,7 @@ public class MenuOptions {
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
     private final boolean enableBypassPerm;
+    private final boolean useMiniMessage;
 
     private final List<String> commands;
     private final boolean registerCommands;
@@ -43,6 +44,7 @@ public class MenuOptions {
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
         this.enableBypassPerm = builder.enableBypassPerm;
+        this.useMiniMessage = builder.useMiniMessage;
 
         this.commands = builder.commands;
         this.registerCommands = builder.registerCommands;
@@ -99,6 +101,10 @@ public class MenuOptions {
         return this.enableBypassPerm;
     }
 
+    public boolean useMiniMessage() {
+        return this.useMiniMessage;
+    }
+
     public @NotNull List<@NotNull String> commands() {
         return this.commands;
     }
@@ -141,6 +147,7 @@ public class MenuOptions {
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
                 .enableBypassPerm(this.enableBypassPerm)
+                .useMiniMessage(this.useMiniMessage)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
@@ -163,6 +170,7 @@ public class MenuOptions {
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
         private boolean enableBypassPerm = false;
+        private boolean useMiniMessage = false;
 
         private List<String> commands = List.of();
         private boolean registerCommands = false;
@@ -226,6 +234,11 @@ public class MenuOptions {
 
         public MenuOptionsBuilder enableBypassPerm(final boolean enableBypassPerm) {
             this.enableBypassPerm = enableBypassPerm;
+            return this;
+        }
+
+        public MenuOptionsBuilder useMiniMessage(final boolean useMiniMessage) {
+            this.useMiniMessage = useMiniMessage;
             return this;
         }
 

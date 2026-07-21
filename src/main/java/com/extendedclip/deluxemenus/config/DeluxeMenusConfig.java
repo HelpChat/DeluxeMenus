@@ -901,6 +901,7 @@ public class DeluxeMenusConfig {
                     wrapper.setAmount(c.getInt(rPath + ".amount", 1));
                     wrapper.hasData(c.contains(rPath + ".data") && c.isInt(rPath + ".data"));
                     wrapper.setData((short) c.getInt(rPath + ".data", 0));
+                    wrapper.setDurability(c.getInt(rPath + ".durability", -1));
 
                     if (c.isString(rPath + ".name")) {
                         wrapper.setName(c.getString(rPath + ".name"));

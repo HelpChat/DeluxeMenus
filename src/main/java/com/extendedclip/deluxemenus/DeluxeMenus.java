@@ -254,10 +254,11 @@ public class DeluxeMenus extends JavaPlugin {
         this.itemHooks = new HashMap<>();
 
         final NamedHeadHook namedHeadHook = new NamedHeadHook(this);
+        final TextureHeadHook textureHeadHook = new TextureHeadHook(this);
         namedHeadHook.register();
         this.itemHooks.put(HeadType.NAMED.getHookName(), namedHeadHook);
         this.itemHooks.put(HeadType.BASE64.getHookName(), new BaseHeadHook(this));
-        this.itemHooks.put(HeadType.TEXTURE.getHookName(), new TextureHeadHook(this));
+        this.itemHooks.put(HeadType.TEXTURE.getHookName(), textureHeadHook);
 
         if (Bukkit.getPluginManager().isPluginEnabled("HeadDatabase")) {
             try {
@@ -272,7 +273,7 @@ public class DeluxeMenus extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("HeadDB")) {
             try {
                 Class.forName("io.github.silentdevelopment.headdb.HeadDBService");
-                this.itemHooks.put(HeadType.HEADDB.getHookName(), new HeadDBHook(this));
+                this.itemHooks.put(HeadType.HEADDB.getHookName(), new HeadDBHook(this, textureHeadHook));
             } catch (ClassNotFoundException ignored) {
                 // We are looking for this specific class to avoid hooking into unrelated plugins named HeadDB.
             }

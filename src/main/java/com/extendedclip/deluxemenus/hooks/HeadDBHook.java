@@ -11,11 +11,15 @@ import org.jetbrains.annotations.NotNull;
 public final class HeadDBHook implements ItemHook {
 
     private final DeluxeMenus plugin;
+    private final HeadDBService service;
     private final TextureHeadHook textureHook;
 
-    public HeadDBHook(@NotNull final DeluxeMenus plugin) {
+    public HeadDBHook(@NotNull final DeluxeMenus plugin, @NotNull final TextureHeadHook textureHook) {
         this.plugin = plugin;
-        this.textureHook = new TextureHeadHook(plugin);
+        this.textureHook = textureHook;
+
+        final RegisteredServiceProvider<HeadDBService> registration = Bukkit.getServicesManager().getRegistration(HeadDBService.class);
+        this.service = registration == null ? null : registration.getProvider();
     }
 
     @Override
@@ -23,8 +27,6 @@ public final class HeadDBHook implements ItemHook {
         if (arguments.length == 0) {
             return plugin.getHead().clone();
         }
-
-        final HeadDBService service = service();
 
         if (service == null) {
             return plugin.getHead().clone();
@@ -47,16 +49,5 @@ public final class HeadDBHook implements ItemHook {
     @Override
     public String getPrefix() {
         return "headdb-";
-    }
-
-    private HeadDBService service() {
-        final RegisteredServiceProvider<HeadDBService> registration =
-                Bukkit.getServicesManager().getRegistration(HeadDBService.class);
-
-        if (registration == null) {
-            return null;
-        }
-
-        return registration.getProvider();
     }
 }

@@ -24,27 +24,32 @@ public class IsObjectRequirement extends Requirement {
         String toCheck = holder.setPlaceholdersAndArguments(input);
 
         switch (object) {
-            case "int":
+            case "int" -> {
                 return Ints.tryParse(toCheck) != null;
-            case "double":
+            }
+            case "double" -> {
                 return Doubles.tryParse(toCheck) != null;
-            case "player":
+            }
+            case "player" -> {
                 try {
                     UUID id = UUID.fromString(toCheck);
                     return Bukkit.getPlayer(id) != null;
                 } catch (IllegalArgumentException e) {
                     return Bukkit.getPlayerExact(toCheck) != null;
                 }
-            case "uuid":
+            }
+            case "uuid" -> {
                 try {
                     UUID.fromString(toCheck);
                     return true;
                 } catch (IllegalArgumentException e) {
                     return false;
                 }
-            default:
+            }
+            default -> {
                 holder.getPlugin().debug(DebugLevel.HIGHEST, Level.INFO, "Invalid object: " + object + " in \"is object\" check.");
                 return false;
+            }
         }
     }
 }

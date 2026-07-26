@@ -16,6 +16,8 @@ import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.placeholder.Expansion;
+import com.extendedclip.deluxemenus.scheduler.UniversalScheduler;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.updatechecker.UpdateChecker;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
@@ -29,14 +31,23 @@ import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -60,6 +71,9 @@ public class DeluxeMenus extends JavaPlugin {
 
     private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
+
+    @NotNull
+    private final TaskScheduler scheduler = UniversalScheduler.getScheduler(this);
 
     @Override
     public void onLoad() {
@@ -118,7 +132,7 @@ public class DeluxeMenus extends JavaPlugin {
     public void onDisable() {
         Bukkit.getMessenger().unregisterOutgoingPluginChannel(this, "BungeeCord");
 
-        Bukkit.getScheduler().cancelTasks(this);
+        scheduler.cancelTasks(this);
 
         if (this.audiences != null) {
             this.audiences.close();
@@ -228,6 +242,10 @@ public class DeluxeMenus extends JavaPlugin {
 
     public GeneralConfig getGeneralConfig() {
         return generalConfig;
+    }
+
+    public @NotNull TaskScheduler getScheduler() {
+        return scheduler;
     }
 
     private boolean hookIntoPlaceholderAPI() {
@@ -361,7 +379,7 @@ public class DeluxeMenus extends JavaPlugin {
                     .map(Menu::getMenuItems)
                     .flatMap(c -> c.values().stream().map(TreeMap::values).flatMap(Collection::stream))
                     .map(MenuItem::options)
-                    .collect(Collectors.toList());
+                    .toList();
             results.put("Byte", options.stream().filter(option -> option.nbtByte().isPresent()).mapToInt(b -> 1).sum());
             results.put("Bytes", options.stream().filter(option -> !option.nbtBytes().isEmpty()).mapToInt(b -> 1).sum());
             results.put("Short", options.stream().filter(option -> option.nbtShort().isPresent()).mapToInt(s -> 1).sum());
@@ -373,5 +391,24 @@ public class DeluxeMenus extends JavaPlugin {
             results.put("Model Data", options.stream().filter(option -> option.customModelData().isPresent()).mapToInt(c -> 1).sum());
             return results;
         }));
+    }
+
+    public boolean isDupeProtectionFlagged(@NotNull ItemStack item) {
+        if (!item.hasItemMeta()) return false;
+
+        return item.getItemMeta().getPersistentDataContainer()
+                .has(new NamespacedKey(this, "deluxemenus.item.dupeprotection"), PersistentDataType.BYTE);
+    }
+
+    public void markDupeProtection(@NotNull ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(this, "deluxemenus.item.dupeprotection"),
+                PersistentDataType.BYTE,
+                (byte) 1
+        );
+        item.setItemMeta(meta);
     }
 }

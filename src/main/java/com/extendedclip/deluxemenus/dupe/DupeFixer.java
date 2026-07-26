@@ -2,6 +2,8 @@ package com.extendedclip.deluxemenus.dupe;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.listener.Listener;
+import com.extendedclip.deluxemenus.nbt.NbtProvider;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -18,16 +20,19 @@ import java.util.logging.Level;
  */
 public class DupeFixer extends Listener {
 
+    private final TaskScheduler scheduler;
     private final MenuItemMarker marker;
 
     public DupeFixer(@NotNull final DeluxeMenus plugin, @NotNull final MenuItemMarker marker) {
         super(plugin);
+        this.scheduler = plugin.getScheduler();
         this.marker = marker;
     }
 
     @EventHandler
     private void onPickup(@NotNull final EntityPickupItemEvent event) {
-        if (!marker.isMarked(event.getItem().getItemStack())) {
+        ItemStack stack = event.getItem().getItemStack();
+        if (!marker.isMarked(stack) && isDupeProtectionFlagged(stack)) {
             return;
         }
 
@@ -41,7 +46,8 @@ public class DupeFixer extends Listener {
 
     @EventHandler
     private void onDrop(@NotNull final PlayerDropItemEvent event) {
-        if (!marker.isMarked(event.getItemDrop().getItemStack())) {
+        ItemStack stack = event.getItemDrop().getItemStack();
+        if (!marker.isMarked(stack) && isDupeProtectionFlagged(stack)) {
             return;
         }
 
@@ -55,21 +61,28 @@ public class DupeFixer extends Listener {
 
     @EventHandler
     private void onLogin(@NotNull final PlayerJoinEvent event) {
-        plugin.getServer().getScheduler().runTaskLater(
-                plugin,
-                () -> {
-                    for (final ItemStack itemStack : event.getPlayer().getInventory().getContents()) {
-                        if (itemStack == null) continue;
-                        if (!marker.isMarked(itemStack)) continue;
+        scheduler.runTaskLater(() -> {
+                for (final ItemStack itemStack : event.getPlayer().getInventory().getContents()) {
+                    if (itemStack == null) continue;
+                    if (!marker.isMarked(itemStack) && isDupeProtectionFlagged(itemStack)) continue;
 
-                        plugin.debug(
-                                DebugLevel.LOWEST,
-                                Level.INFO,
-                                "Player logged in with a DeluxeMenus item in their inventory. Removing it."
-                        );
-                        event.getPlayer().getInventory().remove(itemStack);
-                    }},
-                10L
+                    plugin.debug(
+                            DebugLevel.LOWEST,
+                            Level.INFO,
+                            "Player logged in with a DeluxeMenus item in their inventory. Removing it."
+                    );
+                    event.getPlayer().getInventory().remove(itemStack);
+                }
+            }, 10L
         );
+    }
+
+    private boolean isDupeProtectionFlagged(ItemStack itemStack) {
+        if (NbtProvider.isAvailable()) {
+            String value = NbtProvider.getString(itemStack, "deluxemenus.item.dupeprotection");
+            return !"true".equals(value);
+        }
+
+        return true;
     }
 }

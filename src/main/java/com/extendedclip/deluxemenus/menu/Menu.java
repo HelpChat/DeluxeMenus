@@ -1,19 +1,32 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
+import com.extendedclip.deluxemenus.action.ActionType;
+import com.extendedclip.deluxemenus.action.ClickAction;
+import com.extendedclip.deluxemenus.action.ClickActionTask;
+import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
 import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -25,11 +38,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class Menu {
 
-    private static final Map<String, Menu> menus = new HashMap<>();
-    private static final Set<MenuHolder> menuHolders = new HashSet<>();
-    private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
+    private static final Map<String, Menu> menus = new ConcurrentHashMap<>();
+    private static final Set<MenuHolder> menuHolders = ConcurrentHashMap.newKeySet();
+    private static final Map<UUID, Menu> lastOpenedMenus = new ConcurrentHashMap<>();
 
     private final DeluxeMenus plugin;
+    private final TaskScheduler scheduler;
     private final MenuOptions options;
     private final Map<Integer, TreeMap<Integer, MenuItem>> items;
     // menu path starting from the plugin directory
@@ -44,6 +58,7 @@ public class Menu {
             final @NotNull String path
     ) {
         this.plugin = plugin;
+        this.scheduler = plugin.getScheduler();
         this.options = options;
         this.items = items;
         this.path = path;
@@ -183,7 +198,7 @@ public class Menu {
         player.updateInventory();
     }
 
-    public static void closeMenu(final @NotNull DeluxeMenus plugin, final @NotNull Player player, final boolean close, final boolean executeCloseActions) {
+    public static void closeMenu(final @NotNull DeluxeMenus plugin, final @NotNull Player player, final boolean close, final boolean executeCloseActions, final boolean runCloseCommmands) {
         Optional<MenuHolder> optionalHolder = getMenuHolder(player);
         if (optionalHolder.isEmpty()) {
             return;
@@ -198,14 +213,26 @@ public class Menu {
             holder.getMenu().map(Menu::options).map(MenuOptions::closeHandler).flatMap(h -> h).ifPresent(h -> h.onClick(holder));
         }
 
-        if (close) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                player.closeInventory();
-                cleanInventory(plugin, player);
-            });
-        }
         menuHolders.remove(holder);
         lastOpenedMenus.put(player.getUniqueId(), holder.getMenu().orElse(null));
+
+        if (close) {
+            final TaskScheduler scheduler = plugin.getScheduler();
+            final Runnable closeInventory = () -> {
+                player.closeInventory();
+                cleanInventory(plugin, player);
+            };
+
+            if (scheduler.isEntityThread(player)) {
+                closeInventory.run();
+            } else {
+                scheduler.runTask(player, closeInventory);
+            }
+        }
+
+        if (runCloseCommmands) {
+            holder.getMenu().map(Menu::options).map(MenuOptions::guiCloseCommands).ifPresent(commands -> executeCommands(plugin, player, commands, holder));
+        }
     }
 
     public static void closeMenuForShutdown(final @NotNull DeluxeMenus plugin, final @NotNull Player player) {
@@ -216,7 +243,7 @@ public class Menu {
     }
 
     public static void closeMenu(final @NotNull DeluxeMenus plugin, final @NotNull Player player, final boolean close) {
-        closeMenu(plugin, player, close, false);
+        closeMenu(plugin, player, close, true, true);
     }
 
     private boolean hasOpenBypassPerm(final @NotNull Player viewer) {
@@ -274,11 +301,13 @@ public class Menu {
         }
 
         DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
-    Bukkit.getPluginManager().callEvent(preOpenEvent);
+        Bukkit.getPluginManager().callEvent(preOpenEvent);
 
-    if (preOpenEvent.isCancelled()) return;
+        if (preOpenEvent.isCancelled()) {
+            return;
+        }
 
-    final MenuHolder holder = new MenuHolder(plugin, viewer);
+        final MenuHolder holder = new MenuHolder(plugin, viewer);
         if (placeholderPlayer != null) {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
@@ -294,7 +323,7 @@ public class Menu {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        scheduler.runTaskAsynchronously(() -> {
 
             Set<MenuItem> activeItems = new HashSet<>();
 
@@ -361,6 +390,7 @@ public class Menu {
                 }
 
                 iStack = plugin.getMenuItemMarker().mark(iStack);
+                plugin.markDupeProtection(iStack);
 
                 int slot = item.options().slot();
 
@@ -378,13 +408,15 @@ public class Menu {
                     update = true;
                 }
 
-                inventory.setItem(item.options().slot(), iStack);
+                inventory.setItem(slot, iStack);
             }
 
             final boolean updatePlaceholders = update;
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if(options.refresh()) {
+            holder.getMenu().map(Menu::options).map(MenuOptions::guiOpenCommands).ifPresent(commands -> executeCommands(plugin, viewer, commands, holder));
+
+            scheduler.runTask(viewer, () -> {
+                if (options.refresh()) {
                     holder.startRefreshTask();
                 }
 
@@ -395,17 +427,60 @@ public class Menu {
                 viewer.openInventory(inventory);
                 menuHolders.add(holder);
 
-        if (updatePlaceholders) {
-          holder.startUpdatePlaceholdersTask();
-        }
-      });
+                if (updatePlaceholders) {
+                    holder.startUpdatePlaceholdersTask();
+                }
+            });
 
-      Bukkit.getScheduler().runTask(plugin, () -> {
-        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
-        Bukkit.getPluginManager().callEvent(openEvent);
-      });
-    });
-  }
+            scheduler.runTask(viewer, () -> {
+                DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+                Bukkit.getPluginManager().callEvent(openEvent);
+            });
+        });
+    }
+
+    private static void executeCommands(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer, final @NotNull List<String> commands, final @NotNull MenuHolder holder) {
+        for (String command : commands) {
+            ActionType type = ActionType.getByStart(command);
+            if (type == null) continue;
+
+            command = command.replaceFirst(Pattern.quote(type.getIdentifier()), "").trim();
+
+            ClickAction action = new ClickAction(type, command);
+
+            Matcher d = DeluxeMenusConfig.DELAY_MATCHER.matcher(command);
+
+            if (d.find()) {
+                action.setDelay(d.group(1));
+                command = command.replaceFirst(Pattern.quote(d.group()), "");
+            }
+
+            Matcher ch = DeluxeMenusConfig.CHANCE_MATCHER.matcher(command);
+
+            if (ch.find()) {
+                action.setChance(ch.group(1));
+                command = command.replaceFirst(Pattern.quote(ch.group()), "");
+            }
+
+            action.setExecutable(command);
+
+            final ClickActionTask actionTask = new ClickActionTask(
+                    plugin,
+                    viewer.getUniqueId(),
+                    action.getType(),
+                    command,
+                    holder.getTypedArgs(),
+                    true,
+                    true
+            );
+
+            if (action.hasDelay()) {
+                plugin.getScheduler().runTaskLater(viewer, actionTask, action.getDelay(holder));
+            } else {
+                plugin.getScheduler().runTask(viewer, actionTask);
+            }
+        }
+    }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

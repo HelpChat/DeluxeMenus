@@ -42,7 +42,7 @@ public class DumpCommand extends SubCommand {
 
         String dump = "";
         try {
-            dump = DumpUtils.createDump(plugin, arguments.get(0));
+            dump = DumpUtils.createDump(plugin, arguments.getFirst());
         } catch (final RuntimeException ignored) {
         }
 
@@ -79,11 +79,11 @@ public class DumpCommand extends SubCommand {
         }
 
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
+            if (arguments.getFirst().isEmpty()) {
                 return List.of(getName());
             }
 
-            final String firstArgument = arguments.get(0).toLowerCase();
+            final String firstArgument = arguments.getFirst().toLowerCase();
 
             if (getName().startsWith(firstArgument)) {
                 return List.of(getName());
@@ -92,7 +92,7 @@ public class DumpCommand extends SubCommand {
             return null;
         }
 
-        final String firstArgument = arguments.get(0).toLowerCase();
+        final String firstArgument = arguments.getFirst().toLowerCase();
 
         if (!getName().equals(firstArgument)) {
             return null;

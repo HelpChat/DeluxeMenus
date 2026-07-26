@@ -7,7 +7,6 @@ import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.Menu;
-import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
@@ -71,11 +70,10 @@ import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.extendedclip.deluxemenus.utils.Constants.PLACEHOLDER_PREFIX;
-import static com.extendedclip.deluxemenus.utils.Constants.STACK_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.PLAYER_ITEMS;
+import static com.extendedclip.deluxemenus.utils.Constants.STACK_PREFIX;
 import static com.extendedclip.deluxemenus.utils.Constants.WATER_BOTTLE;
 
 public class DeluxeMenusConfig {
@@ -103,7 +101,7 @@ public class DeluxeMenusConfig {
     );
 
     public DeluxeMenusConfig(@NotNull final DeluxeMenus plugin) {
-        VALID_MATERIAL_PREFIXES.addAll(plugin.getItemHooks().values().stream().map(ItemHook::getPrefix).collect(Collectors.toList()));
+        VALID_MATERIAL_PREFIXES.addAll(plugin.getItemHooks().values().stream().map(ItemHook::getPrefix).toList());
 
         this.plugin = plugin;
         menuDirectory = new File(this.plugin.getDataFolder() + separator + "gui_menus");
@@ -409,7 +407,7 @@ public class DeluxeMenusConfig {
         if (c.isString(pre + "menu_title")) {
             title = c.getString(pre + "menu_title");
         } else if (c.isList(pre + "menu_title")) {
-            title = c.getStringList(pre + "menu_title").get(0);
+            title = c.getStringList(pre + "menu_title").getFirst();
         }
 
         if (title == null || title.isEmpty()) {
@@ -500,6 +498,26 @@ public class DeluxeMenusConfig {
         builder.arguments(argumentNames);
         builder.argumentRequirements(argumentRequirements);
         builder.argumentsUsageMessage(c.getString(pre + "args_usage_message", null));
+
+        if (c.contains(pre + "gui_close_command")) {
+            final List<String> guiCloseCommands = new ArrayList<>();
+            if (c.isList(pre + "gui_close_command")) {
+                guiCloseCommands.addAll(c.getStringList(pre + "gui_close_command"));
+            } else {
+                guiCloseCommands.add(c.getString(pre + "gui_close_command"));
+            }
+            builder.guiCloseCommands(guiCloseCommands);
+        }
+
+        if (c.contains(pre + "gui_open_command")) {
+            final List<String> guiOpenCommands = new ArrayList<>();
+            if (c.isList(pre + "gui_open_command")) {
+                guiOpenCommands.addAll(c.getStringList(pre + "gui_open_command"));
+            } else {
+                guiOpenCommands.add(c.getString(pre + "gui_open_command"));
+            }
+            builder.guiOpenCommands(guiOpenCommands);
+        }
 
         int size = 54;
         if (type == InventoryType.CHEST) {
@@ -880,17 +898,16 @@ public class DeluxeMenusConfig {
 
             boolean invert;
             switch (type) {
-                case HAS_ITEM:
-                case DOES_NOT_HAVE_ITEM:
+                case HAS_ITEM, DOES_NOT_HAVE_ITEM -> {
                     ItemWrapper wrapper = new ItemWrapper();
                     if (c.contains(rPath + ".material")) {
                         String materialName = c.getString(rPath + ".material");
                         try {
                             if (!containsPlaceholders(materialName) && plugin.getItemHooks().values()
-                                    .stream()
-                                    .filter(x -> materialName.toLowerCase().startsWith(x.getPrefix()))
-                                    .findFirst()
-                                    .orElse(null) == null)
+                                  .stream()
+                                  .filter(x -> materialName.toLowerCase().startsWith(x.getPrefix()))
+                                  .findFirst()
+                                  .orElse(null) == null)
                                 Material.valueOf(materialName.toUpperCase());
                         } catch (Exception ex) {
                             plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "has item requirement at path: " + rPath + " does not specify a valid Material name!");
@@ -931,11 +948,11 @@ public class DeluxeMenusConfig {
                         final ConfigurationSection modelDataComponent = c.getConfigurationSection(rPath + ".model_data_component");
                         if (modelDataComponent != null) {
                             wrapper.setCustomModelDataComponent(
-                                    CustomModelDataComponent.builder()
-                                            .colors(modelDataComponent.getStringList("colors"))
-                                            .flags(modelDataComponent.getStringList("flags"))
-                                            .floats(modelDataComponent.getStringList("floats"))
-                                            .strings(modelDataComponent.getStringList("strings")));
+                                  CustomModelDataComponent.builder()
+                                        .colors(modelDataComponent.getStringList("colors"))
+                                        .flags(modelDataComponent.getStringList("flags"))
+                                        .floats(modelDataComponent.getStringList("floats"))
+                                        .strings(modelDataComponent.getStringList("strings")));
                         }
                     }
 
@@ -965,18 +982,16 @@ public class DeluxeMenusConfig {
 
                     invert = type == RequirementType.DOES_NOT_HAVE_ITEM;
                     req = new HasItemRequirement(plugin, wrapper, invert);
-                    break;
-                case HAS_PERMISSION:
-                case DOES_NOT_HAVE_PERMISSION:
+                }
+                case HAS_PERMISSION, DOES_NOT_HAVE_PERMISSION -> {
                     if (c.contains(rPath + ".permission")) {
                         invert = type == RequirementType.DOES_NOT_HAVE_PERMISSION;
                         req = new HasPermissionRequirement(c.getString(rPath + ".permission"), invert);
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Permission requirement at path: " + rPath + " does not contain a permission: entry");
                     }
-                    break;
-                case HAS_EPHEMERAL_COOLDOWN:
-                case DOES_NOT_HAVE_EPHEMERAL_COOLDOWN:
+                }
+                case HAS_EPHEMERAL_COOLDOWN, DOES_NOT_HAVE_EPHEMERAL_COOLDOWN -> {
                     final String cooldownId = c.getString(rPath + ".id");
                     if (cooldownId == null || cooldownId.trim().isEmpty()) {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Ephemeral cooldown requirement at path: " + rPath + " does not contain an id: entry");
@@ -984,83 +999,70 @@ public class DeluxeMenusConfig {
                     }
                     invert = type == RequirementType.DOES_NOT_HAVE_EPHEMERAL_COOLDOWN;
                     req = new HasEphemeralCooldownRequirement(plugin, cooldownId, invert);
-                    break;
-                case HAS_PERMISSIONS:
-                case DOES_NOT_HAVE_PERMISSIONS:
+                }
+                case HAS_PERMISSIONS, DOES_NOT_HAVE_PERMISSIONS -> {
                     if (c.contains(rPath + ".permissions")) {
                         invert = type == RequirementType.DOES_NOT_HAVE_PERMISSIONS;
                         int minimum = -1;
                         if (c.contains(rPath + ".minimum") && (minimum = c.getInt(rPath + ".minimum")) < 1) {
                             plugin.debug(
-                                    DebugLevel.HIGHEST,
-                                    Level.WARNING,
-                                    "Has Permissions requirement at path: " + rPath + " has a minimum lower than 1. All permissions will be checked"
+                                  DebugLevel.HIGHEST,
+                                  Level.WARNING,
+                                  "Has Permissions requirement at path: " + rPath + " has a minimum lower than 1. All permissions will be checked"
                             );
                             minimum = -1;
                         }
                         List<String> permissions = c.getStringList(rPath + ".permissions");
                         if (permissions.isEmpty()) {
                             plugin.debug(
-                                    DebugLevel.HIGHEST,
-                                    Level.WARNING,
-                                    "Has Permissions requirement at path: " + rPath + " has no permissions to check. Ignoring..."
+                                  DebugLevel.HIGHEST,
+                                  Level.WARNING,
+                                  "Has Permissions requirement at path: " + rPath + " has no permissions to check. Ignoring..."
                             );
                             break;
                         } else if (minimum > permissions.size()) {
                             plugin.debug(
-                                    DebugLevel.HIGHEST,
-                                    Level.WARNING,
-                                    "Has Permissions requirement at path: " + rPath + " has a minimum higher than the amount of permissions. Using " + permissions.size() + " instead"
+                                  DebugLevel.HIGHEST,
+                                  Level.WARNING,
+                                  "Has Permissions requirement at path: " + rPath + " has a minimum higher than the amount of permissions. Using " + permissions.size() + " instead"
                             );
                             minimum = permissions.size();
                         }
                         req = new HasPermissionsRequirement(permissions, minimum, invert);
                     } else {
                         plugin.debug(
-                                DebugLevel.HIGHEST,
-                                Level.WARNING,
-                                "Has Permissions requirement at path: " + rPath + " does not contain permissions: entry"
+                              DebugLevel.HIGHEST,
+                              Level.WARNING,
+                              "Has Permissions requirement at path: " + rPath + " does not contain permissions: entry"
                         );
                     }
-                    break;
-                case JAVASCRIPT:
+                }
+                case JAVASCRIPT -> {
                     if (c.contains(rPath + ".expression")) {
                         req = new JavascriptRequirement(plugin, c.getString(rPath + ".expression"));
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Javascript requirement at path: " + rPath + " does not contain an expression: entry");
                     }
-                    break;
-                case EQUAL_TO:
-                case NOT_EQUAL_TO:
-                case GREATER_THAN:
-                case GREATER_THAN_EQUAL_TO:
-                case LESS_THAN:
-                case LESS_THAN_EQUAL_TO:
-                case STRING_CONTAINS:
-                case STRING_EQUALS:
-                case STRING_EQUALS_IGNORECASE:
-                case STRING_DOES_NOT_CONTAIN:
-                case STRING_DOES_NOT_EQUAL:
-                case STRING_DOES_NOT_EQUAL_IGNORECASE:
-                case STRING_CONTAINS_IGNORECASE:
-                case STRING_DOES_NOT_CONTAIN_IGNORECASE:
+                }
+                case EQUAL_TO, NOT_EQUAL_TO, GREATER_THAN, GREATER_THAN_EQUAL_TO, LESS_THAN, LESS_THAN_EQUAL_TO,
+                     STRING_CONTAINS, STRING_EQUALS, STRING_EQUALS_IGNORECASE, STRING_DOES_NOT_CONTAIN,
+                     STRING_DOES_NOT_EQUAL, STRING_DOES_NOT_EQUAL_IGNORECASE, STRING_CONTAINS_IGNORECASE,
+                     STRING_DOES_NOT_CONTAIN_IGNORECASE -> {
                     if (c.contains(rPath + ".input") && c.contains(rPath + ".output")) {
                         req = new InputResultRequirement(type, c.getString(rPath + ".input"), c.getString(rPath + ".output"));
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Requirement at path: " + rPath + " does not contain the input: and/or the output: entries");
                     }
-                    break;
-                case HAS_MONEY:
-                case DOES_NOT_HAVE_MONEY:
+                }
+                case HAS_MONEY, DOES_NOT_HAVE_MONEY -> {
                     if (c.contains(rPath + ".amount") || c.contains(rPath + ".placeholder")) {
                         invert = type == RequirementType.DOES_NOT_HAVE_MONEY;
                         req = new HasMoneyRequirement(plugin, c.getDouble(rPath + ".amount"), invert, c.getString(rPath + ".placeholder", null));
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Money requirement at path: " + rPath + " does not contain an amount: entry");
                     }
-                    break;
-                case HAS_EXP:
-                case DOES_NOT_HAVE_EXP:
+                }
+                case HAS_EXP, DOES_NOT_HAVE_EXP -> {
                     if (c.contains(rPath + ".amount")) {
                         if (!containsPlaceholders(c.getString(rPath + ".amount")) && !c.isInt(rPath + ".amount")) {
                             plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Value at path: " + rPath + ".amount is not a placeholder or a number");
@@ -1071,9 +1073,8 @@ public class DeluxeMenusConfig {
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Exp requirement at path: " + rPath + " does not contain an amount: entry");
                     }
-                    break;
-                case REGEX_MATCHES:
-                case REGEX_DOES_NOT_MATCH:
+                }
+                case REGEX_MATCHES, REGEX_DOES_NOT_MATCH -> {
                     if (c.contains(rPath + ".input") && c.contains(rPath + ".regex")) {
                         Pattern p = Pattern.compile(c.getString(rPath + ".regex"));
                         invert = type == RequirementType.REGEX_DOES_NOT_MATCH;
@@ -1081,9 +1082,8 @@ public class DeluxeMenusConfig {
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Regex requirement at path: " + rPath + " does not contain a input: or regex: entry");
                     }
-                    break;
-                case IS_NEAR:
-                case IS_NOT_NEAR:
+                }
+                case IS_NEAR, IS_NOT_NEAR -> {
                     if (c.contains(rPath + ".location") && c.contains(rPath + ".distance")) {
                         invert = type == RequirementType.IS_NOT_NEAR;
                         Location loc = LocationUtils.deserializeLocation(c.getString(rPath + ".location"));
@@ -1094,9 +1094,8 @@ public class DeluxeMenusConfig {
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Is Near requirement at path: " + rPath + " does not contain a location: or distance: entry");
                     }
-                    break;
-                case HAS_META:
-                case DOES_NOT_HAVE_META:
+                }
+                case HAS_META, DOES_NOT_HAVE_META -> {
                     if (!VersionHelper.IS_PDC_VERSION) {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Meta requirement is not available for your server version!");
                         break;
@@ -1108,8 +1107,8 @@ public class DeluxeMenusConfig {
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Meta requirement at path: " + rPath + " does not contain the key:, meta_type: and/or value: entries!");
                     }
-                    break;
-                case STRING_LENGTH:
+                }
+                case STRING_LENGTH -> {
                     if (c.contains(rPath + ".input") && (c.contains(rPath + ".min") || c.contains(rPath + ".max"))) {
                         int min = c.getInt(rPath + ".min", 0);
                         Integer max = null;
@@ -1120,16 +1119,16 @@ public class DeluxeMenusConfig {
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "String length requirement at path: " + rPath + " does not contain an input: or one of (min: or max:)");
                     }
-                    break;
-                case IS_OBJECT:
+                }
+                case IS_OBJECT -> {
                     if (c.contains(rPath + ".input") && c.contains(rPath + ".object")) {
                         req = new IsObjectRequirement(c.getString(rPath + ".input"), c.getString(rPath + ".object"));
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "String length requirement at path: " + rPath + " does not contain an input: or object:");
                     }
-                    break;
-                default:
-                    break;
+                }
+                default -> {
+                }
             }
 
             if (req != null) {
@@ -1233,26 +1232,22 @@ public class DeluxeMenusConfig {
 
         if (!actions.isEmpty()) {
 
-            handler = new ClickHandler() {
+            handler = holder -> {
 
-                @Override
-                public void onClick(@NotNull final MenuHolder holder) {
+                for (ClickAction action : actions) {
 
-                    for (ClickAction action : actions) {
-
-                        if (!action.checkChance(holder)) {
-                            continue;
-                        }
-
-                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
-
-                        if (action.hasDelay()) {
-                            actionTask.runTaskLater(plugin, action.getDelay(holder));
-                            continue;
-                        }
-
-                        actionTask.runTask(plugin);
+                    if (!action.checkChance(holder)) {
+                        continue;
                     }
+
+                    final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
+
+                    if (action.hasDelay()) {
+                        plugin.getScheduler().runTaskLater(holder.getViewer(), actionTask, action.getDelay(holder));
+                        continue;
+                    }
+
+                    plugin.getScheduler().runTask(holder.getViewer(), actionTask);
                 }
             };
         }

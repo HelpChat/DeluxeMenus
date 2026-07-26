@@ -12,6 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -33,7 +34,7 @@ public class RegistrableMenuCommand extends Command {
 
     public RegistrableMenuCommand(final @NotNull DeluxeMenus plugin,
                                   final @NotNull Menu menu) {
-        super(menu.options().commands().isEmpty() ? menu.options().name() : menu.options().commands().get(0));
+        super(menu.options().commands().isEmpty() ? menu.options().name() : menu.options().commands().getFirst());
         this.plugin = plugin;
         this.menu = menu;
 
@@ -43,12 +44,12 @@ public class RegistrableMenuCommand extends Command {
     }
 
     @Override
-    public boolean execute(final @NotNull CommandSender sender, final @NotNull String commandLabel, final @NotNull String[] typedArgs) {
+    public boolean execute(final @NotNull CommandSender sender, final @NotNull String commandLabel, final @NotNull String @NonNull [] typedArgs) {
         if (this.unregistered) {
             throw new IllegalStateException("This command was unregistered!");
         }
 
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             Msg.msg(sender, "Menus can only be opened by players!");
             return true;
         }
@@ -60,7 +61,7 @@ public class RegistrableMenuCommand extends Command {
             if (typedArgs.length < menu.options().arguments().size()) {
                 if (menu.options().argumentsUsageMessage().isPresent()) {
                     String usageMessage = menu.options().argumentsUsageMessage().get();
-                    Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage, (Player) sender));
+                    Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage, player));
                 }
                 return true;
             }
@@ -79,7 +80,6 @@ public class RegistrableMenuCommand extends Command {
             }
         }
 
-        Player player = (Player) sender;
         plugin.debug(DebugLevel.LOWEST, Level.INFO, "opening menu: " + menu.options().name());
         menu.openMenu(player, argMap, null);
         return true;
@@ -89,26 +89,9 @@ public class RegistrableMenuCommand extends Command {
         if (registered) {
             throw new IllegalStateException("This command was already registered!");
         }
-        if (registered) {
-            throw new IllegalStateException("This command was already registered!");
-        }
 
         registered = true;
-        registered = true;
 
-        if (commandMap == null) {
-            try {
-                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                f.setAccessible(true);
-                commandMap = (CommandMap) f.get(Bukkit.getServer());
-            } catch (final @NotNull Exception exception) {
-                plugin.printStacktrace(
-                        "Something went wrong while trying to register command: " + this.getName(),
-                        exception
-                );
-                return;
-            }
-        }
         if (commandMap == null) {
             try {
                 final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -164,6 +147,7 @@ public class RegistrableMenuCommand extends Command {
             knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
             knownCommands.setAccessible(true);
 
+            //noinspection unchecked
             final Map<String, Command> knownCommandsMap = (Map<String, Command>) knownCommands.get(cMap.get(Bukkit.getServer()));
 
             // We need to remove every single alias because CommandMap#register() adds them all to the map.

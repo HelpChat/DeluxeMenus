@@ -48,7 +48,7 @@ public class ListCommand extends SubCommand {
             return;
         }
 
-        if (!arguments.isEmpty() && arguments.get(0).equalsIgnoreCase("all")) {
+        if (!arguments.isEmpty() && arguments.getFirst().equalsIgnoreCase("all")) {
             final Collection<Menu> menus = Menu.getAllMenus();
             if (menus.isEmpty()) {
                 plugin.sms(sender, Messages.MENUS_LOADED.message().replaceText(AMOUNT_REPLACER_BUILDER.replacement("There are no").build()));
@@ -85,11 +85,11 @@ public class ListCommand extends SubCommand {
         }
 
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
+            if (arguments.getFirst().isEmpty()) {
                 return List.of(getName());
             }
 
-            final String firstArgument = arguments.get(0).toLowerCase();
+            final String firstArgument = arguments.getFirst().toLowerCase();
 
             if (getName().startsWith(firstArgument)) {
                 return List.of(getName());
@@ -98,7 +98,7 @@ public class ListCommand extends SubCommand {
             return null;
         }
 
-        final String firstArgument = arguments.get(0).toLowerCase();
+        final String firstArgument = arguments.getFirst().toLowerCase();
 
         if (!getName().equals(firstArgument)) {
             return null;
@@ -167,7 +167,7 @@ public class ListCommand extends SubCommand {
                 menusPerPage,
                 totalMenusCount,
                 pagesCount,
-                args.isEmpty() ? null : args.get(0)
+                args.isEmpty() ? null : args.getFirst()
         );
 
         final Map<String, List<Menu>> paginatedMenus = getPaginatedMenus(
@@ -373,6 +373,6 @@ public class ListCommand extends SubCommand {
             return null;
         }
 
-        return "/" + menu.options().commands().get(0);
+        return "/" + menu.options().commands().getFirst();
     }
 }

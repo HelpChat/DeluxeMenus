@@ -127,10 +127,10 @@ public class OpenCommand extends SubCommand {
             }
         }
 
-        Optional<Menu> menu = Menu.getMenuByName(arguments.get(0));
+        Optional<Menu> menu = Menu.getMenuByName(arguments.getFirst());
 
         if (menu.isEmpty()) {
-            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.getFirst()).build()));
             return;
         }
 
@@ -152,11 +152,11 @@ public class OpenCommand extends SubCommand {
         }
 
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
+            if (arguments.getFirst().isEmpty()) {
                 return List.of(getName());
             }
 
-            final String firstArgument = arguments.get(0).toLowerCase();
+            final String firstArgument = arguments.getFirst().toLowerCase();
 
             if (getName().startsWith(firstArgument)) {
                 return List.of(getName());
@@ -165,7 +165,7 @@ public class OpenCommand extends SubCommand {
             return null;
         }
 
-        final String firstArgument = arguments.get(0).toLowerCase();
+        final String firstArgument = arguments.getFirst().toLowerCase();
 
         if (!getName().equals(firstArgument)) {
             return null;

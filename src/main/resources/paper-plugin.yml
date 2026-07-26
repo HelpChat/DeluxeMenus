@@ -1,0 +1,55 @@
+name: DeluxeMenus
+main: com.extendedclip.deluxemenus.DeluxeMenus
+version: '${version}'
+api-version: '1.21'
+folia-supported: true
+dependencies:
+  server:
+    PlaceholderAPI:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    Vault:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    HeadDatabase:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    CraftEngine:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    ItemsAdder:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    Nexo:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    Oraxen:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    MMOItems:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    ExecutableItems:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    ExecutableBlocks:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    Score:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    SimpleItemGenerator:
+      load: BEFORE
+      required: false
+      join-classpath: true

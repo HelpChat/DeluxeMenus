@@ -24,6 +24,7 @@ public enum ActionType {
       "- '[minibroadcast] <message>'"),
   MESSAGE("[message]", "Send a message to the menu viewer",
       "- [message] <message>"),
+  ACTION_BAR("[actionbar]", "Send a action bar message to the menu viewer", "- [actionbar] <message>"),
   LOG("[log]", "Log a message to the console", "- [log] <level> <message>"),
   BROADCAST("[broadcast]", "Broadcast a message to the server", "- '[broadcast] <message>"),
   CHAT("[chat]", "Send a chat message as the player performing the action", "- '[chat] <message>"),

@@ -6,6 +6,8 @@ import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.utils.*;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -118,6 +120,10 @@ public class ClickActionTask extends BukkitRunnable {
 
             case MESSAGE:
                 player.sendMessage(StringUtils.color(executable));
+                break;
+
+            case ACTION_BAR:
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(StringUtils.color(executable)));
                 break;
 
             case LOG:

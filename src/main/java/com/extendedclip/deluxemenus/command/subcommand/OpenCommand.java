@@ -10,7 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,7 +55,7 @@ public class OpenCommand extends SubCommand {
 
         String viewerName = null;
         String placeholderPlayerName = null;
-        List<String> menuArgs = null;
+        Map<String, String> menuArgs = null;
 
         int index = 1;
 
@@ -78,12 +80,24 @@ public class OpenCommand extends SubCommand {
             index++;
         }
 
-        // Once -args: is seen, everything after it is taken as args
+        // Once -args: is seen, everything after it is taken as key=value pairs and
         if (index < arguments.size() && arguments.get(index).equals(ARGS_MARKER)) {
             index++;
-            menuArgs = index < arguments.size()
-                    ? arguments.subList(index, arguments.size())
-                    : List.of();
+            menuArgs = new HashMap<>();
+
+            for (int i = index; i < arguments.size(); i++) {
+                final String token = arguments.get(i);
+                final int equalsPos = token.indexOf('=');
+
+                if (equalsPos <= 0) {
+                    // Malformed token (no "=" or starts with "="): skip rather than fail the command.
+                    continue;
+                }
+
+                final String key = token.substring(0, equalsPos);
+                final String value = token.substring(equalsPos + 1);
+                menuArgs.put(key, value);
+            }
         }
 
         Player viewer;

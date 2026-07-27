@@ -9,11 +9,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,6 +18,8 @@ import java.util.stream.Stream;
 public class OpenCommand extends SubCommand {
 
     private static final String OPEN_COMMAND = "deluxemenus.open";
+    private static final String ARGS_MARKER = "-args:";
+    private static final String PLACEHOLDER_FLAG = "-p:";
 
     public OpenCommand(final @NotNull DeluxeMenus plugin) {
         super(plugin);
@@ -39,6 +37,8 @@ public class OpenCommand extends SubCommand {
             return;
         }
 
+        boolean player = (sender instanceof Player);
+
         if (arguments.isEmpty()) {
             plugin.sms(sender, Messages.WRONG_USAGE_OPEN_COMMAND);
             return;
@@ -49,115 +49,90 @@ public class OpenCommand extends SubCommand {
             return;
         }
 
-        boolean isPlayer = (sender instanceof Player);
+        final String menuName = arguments.get(0);
 
-        // Strict positional parsing:
-        // arguments[0] = <menu>
-        // arguments[1] = optional <viewer> OR -p:<target>
-        // arguments[2] = optional -p:<target> (if arguments[1] was <viewer>) OR start of [args]
-        // remaining    = [args]
-
-        int cursor = 0;
-
-        // [0] <menu> — always required
-        String menuName = arguments.get(cursor++);
-
-        // [1] optional: <viewer> or -p:<target>
         String viewerName = null;
         String placeholderPlayerName = null;
+        List<String> menuArgs = null;
 
-        if (cursor < arguments.size()) {
-            String next = arguments.get(cursor);
-            if (next.startsWith("-p:")) {
-                // -p:<target> with no explicit viewer
-                if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
-                    plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
-                    return;
-                }
-                placeholderPlayerName = next.substring(3);
-                cursor++;
-            } else {
-                // treat as <viewer>
-                viewerName = next;
-                cursor++;
+        int index = 1;
 
-                // [2] optional: -p:<target>
-                if (cursor < arguments.size() && arguments.get(cursor).startsWith("-p:")) {
-                    if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
-                        plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
-                        return;
-                    }
-                    placeholderPlayerName = arguments.get(cursor).substring(3);
-                    cursor++;
-                }
-            }
+        // Optional <viewer> — only consumed if it isn't the -p: flag or the -args: marker.
+        // This is what actually fixes "/dm open <menu> myArg": myArg no longer gets
+        // swallowed as a viewer name unless it genuinely occupies the viewer slot
+        if (index < arguments.size()
+                && !arguments.get(index).startsWith(PLACEHOLDER_FLAG)
+                && !arguments.get(index).equals(ARGS_MARKER)) {
+            viewerName = arguments.get(index);
+            index++;
         }
 
-        // remaining arguments[cursor..] are menu [args]
-        List<String> menuArgs = cursor < arguments.size()
-                ? arguments.subList(cursor, arguments.size())
-                : Collections.emptyList();
+        // Optional -p:<target> flag
+        if (index < arguments.size() && arguments.get(index).startsWith(PLACEHOLDER_FLAG)) {
+            if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
+                plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
+                return;
+            }
 
-        // Resolve viewer
+            placeholderPlayerName = arguments.get(index).substring(PLACEHOLDER_FLAG.length());
+            index++;
+        }
+
+        // Once -args: is seen, everything after it is taken as args
+        if (index < arguments.size() && arguments.get(index).equals(ARGS_MARKER)) {
+            index++;
+            menuArgs = index < arguments.size()
+                    ? arguments.subList(index, arguments.size())
+                    : List.of();
+        }
+
         Player viewer;
+
         if (viewerName != null) {
-            if (isPlayer && !sender.hasPermission("deluxemenus.open.others")) {
+            if (player && !sender.hasPermission("deluxemenus.open.others")) {
                 plugin.sms(sender, Messages.NO_PERMISSION);
                 return;
             }
+
             viewer = Bukkit.getPlayerExact(viewerName);
+
             if (viewer == null) {
                 plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(viewerName).build()));
                 return;
             }
+
         } else {
-            if (!isPlayer) {
+            if (!player) {
                 plugin.sms(sender, Messages.MUST_SPECIFY_PLAYER);
                 return;
             }
+
             viewer = (Player) sender;
         }
 
-        // Resolve placeholder player
         Player placeholder = null;
+
         if (placeholderPlayerName != null) {
             placeholder = Bukkit.getPlayerExact(placeholderPlayerName);
+
             if (placeholder == null) {
                 plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayerName).build()));
                 return;
-            }
-            if (placeholder.hasPermission("deluxemenus.placeholdersfor.exempt")) {
+
+            } else if (placeholder.hasPermission("deluxemenus.placeholdersfor.exempt")) {
                 plugin.sms(sender, Messages.PLAYER_IS_EXEMPT.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayerName).build()));
                 return;
             }
         }
 
-        // Resolve menu
         Optional<Menu> menu = Menu.getMenuByName(menuName);
+
         if (menu.isEmpty()) {
             plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(menuName).build()));
             return;
         }
 
-        // Build menu arguments map
-        List<String> menuArgumentNames = menu.get().options().arguments();
-        if (menuArgumentNames.isEmpty()) {
-            menu.get().openMenu(viewer, null, placeholder);
-            return;
-        }
-
-        Map<String, String> argumentsMap = new HashMap<>();
-        for (int i = 0; i < menuArgumentNames.size() && i < menuArgs.size(); i++) {
-            String argName = menuArgumentNames.get(i);
-            if (i == menuArgumentNames.size() - 1) {
-                // Last named arg consumes all remaining values
-                argumentsMap.put(argName, String.join(" ", menuArgs.subList(i, menuArgs.size())));
-                break;
-            }
-            argumentsMap.put(argName, menuArgs.get(i));
-        }
-
-        menu.get().openMenu(viewer, argumentsMap, placeholder);
+        menu.get().openMenu(viewer, menuArgs, placeholder);
     }
 
     @Override
@@ -172,28 +147,33 @@ public class OpenCommand extends SubCommand {
 
         if (arguments.size() == 1) {
             final String firstArgument = arguments.get(0).toLowerCase();
+
             if (firstArgument.isEmpty() || getName().startsWith(firstArgument)) {
                 return List.of(getName());
             }
+
             return null;
         }
 
         final String firstArgument = arguments.get(0).toLowerCase();
+
         if (!getName().equals(firstArgument)) {
             return null;
         }
 
         final Collection<String> menuNames = Menu.getAllMenuNames();
+
         if (menuNames.isEmpty()) {
             return null;
         }
 
-        // [2] <menu>
         if (arguments.size() == 2) {
             final String secondArgument = arguments.get(1).toLowerCase();
+
             if (secondArgument.isEmpty()) {
                 return List.copyOf(menuNames);
             }
+
             return menuNames.stream()
                     .filter(menuName -> menuName.toLowerCase().startsWith(secondArgument))
                     .collect(Collectors.toList());
@@ -204,46 +184,73 @@ public class OpenCommand extends SubCommand {
                 .map(Player::getName)
                 .collect(Collectors.toList());
 
-        // [3] <viewer> or -p:<target>
-        if (arguments.size() == 3) {
-            final String thirdArgument = arguments.get(2).toLowerCase();
-            if (thirdArgument.isEmpty()) {
-                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:"))
+        boolean viewerConsumed = false;
+        boolean placeholderConsumed = false;
+        boolean argsMarkerConsumed = false;
+
+        for (int i = 2; i < arguments.size() - 1; i++) {
+            final String current = arguments.get(i);
+
+            if (argsMarkerConsumed) {
+                continue;
+            }
+
+            if (!viewerConsumed && !placeholderConsumed
+                    && !current.startsWith(PLACEHOLDER_FLAG)
+                    && !current.equals(ARGS_MARKER)) {
+                viewerConsumed = true;
+            } else if (!placeholderConsumed && current.startsWith(PLACEHOLDER_FLAG)) {
+                placeholderConsumed = true;
+            } else if (current.equals(ARGS_MARKER)) {
+                argsMarkerConsumed = true;
+            }
+        }
+
+        if (argsMarkerConsumed) {
+            return null;
+        }
+
+        final String lastArgument = arguments.get(arguments.size() - 1);
+        final String lastArgumentLower = lastArgument.toLowerCase();
+
+        if (!viewerConsumed && !placeholderConsumed) {
+            // Still in the viewer slot: suggest online players, -p:, or -args:
+            if (lastArgumentLower.isEmpty()) {
+                return Stream.concat(onlinePlayerNames.stream(), Stream.of(PLACEHOLDER_FLAG, ARGS_MARKER))
                         .collect(Collectors.toList());
             }
-            if (thirdArgument.startsWith("-p:")) {
-                return onlinePlayerNames.stream()
-                        .map(playerName -> "-p:" + playerName)
-                        .filter(suggestion -> suggestion.toLowerCase().startsWith(thirdArgument))
+
+            if (lastArgumentLower.startsWith("-")) {
+                return Stream.of(PLACEHOLDER_FLAG, ARGS_MARKER)
+                        .filter(option -> option.startsWith(lastArgumentLower))
                         .collect(Collectors.toList());
             }
+
             return onlinePlayerNames.stream()
-                    .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
+                    .filter(playerName -> playerName.toLowerCase().startsWith(lastArgumentLower))
                     .collect(Collectors.toList());
         }
 
-        // [4] -p:<target> (only valid if [3] was a <viewer>, not already a -p:)
-        if (arguments.size() == 4) {
-            final String thirdArgument = arguments.get(2).toLowerCase();
-            final String fourthArgument = arguments.get(3).toLowerCase();
-
-            // If slot 3 was already a -p: flag, slot 4 is a menu arg — no suggestions
-            if (thirdArgument.startsWith("-p:")) {
-                return null;
+        if (viewerConsumed && !placeholderConsumed) {
+            // Viewer already given: suggest -p:<target> or -args:
+            if (lastArgumentLower.isEmpty()) {
+                return List.of(PLACEHOLDER_FLAG, ARGS_MARKER);
             }
 
-            if (fourthArgument.isEmpty()) {
-                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:"))
-                        .collect(Collectors.toList());
-            }
-            if (fourthArgument.startsWith("-p:")) {
+            if (lastArgumentLower.startsWith(PLACEHOLDER_FLAG)) {
                 return onlinePlayerNames.stream()
-                        .map(playerName -> "-p:" + playerName)
-                        .filter(suggestion -> suggestion.toLowerCase().startsWith(fourthArgument))
+                        .map(playerName -> PLACEHOLDER_FLAG + playerName)
+                        .filter(option -> option.toLowerCase().startsWith(lastArgumentLower))
                         .collect(Collectors.toList());
             }
-            // Otherwise it's a menu [arg] — no tab suggestions
-            return null;
+
+            return Stream.of(PLACEHOLDER_FLAG, ARGS_MARKER)
+                    .filter(option -> option.startsWith(lastArgumentLower))
+                    .collect(Collectors.toList());
+        }
+
+        if (lastArgumentLower.isEmpty() || ARGS_MARKER.startsWith(lastArgumentLower)) {
+            return List.of(ARGS_MARKER);
         }
 
         return null;

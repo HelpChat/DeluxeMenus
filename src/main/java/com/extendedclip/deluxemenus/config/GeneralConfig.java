@@ -12,6 +12,7 @@ public class GeneralConfig {
     private boolean useAdminCommandsInMenusList = false;
     private int menusListPageSize = 10;
     private int metasListPageSize = 15;
+    private int maxEphemeralCooldownSeconds = -1;
 
     public GeneralConfig(final @NotNull DeluxeMenus plugin) {
         this.plugin = plugin;
@@ -23,12 +24,14 @@ public class GeneralConfig {
         plugin.getConfig().addDefault("use_admin_commands_in_menus_list", false);
         plugin.getConfig().addDefault("menus_list_page_size", menusListPageSize);
         plugin.getConfig().addDefault("metas_list_page_size", metasListPageSize);
+        plugin.getConfig().addDefault("max_ephemeral_cooldown_seconds", maxEphemeralCooldownSeconds);
 
         checkForUpdates = plugin.getConfig().getBoolean("check_updates", false);
         debugLevel = loadDebugLevel();
         useAdminCommandsInMenusList = plugin.getConfig().getBoolean("use_admin_commands_in_menus_list", false);
         menusListPageSize = plugin.getConfig().getInt("menus_list_page_size", 10);
         metasListPageSize = plugin.getConfig().getInt("metas_list_page_size", 15);
+        maxEphemeralCooldownSeconds = plugin.getConfig().getInt("max_ephemeral_cooldown_seconds", maxEphemeralCooldownSeconds);
     }
 
     public void reload() {
@@ -54,6 +57,14 @@ public class GeneralConfig {
 
     public int metasListPageSize() {
         return metasListPageSize;
+    }
+
+    /**
+     * The longest duration the {@code [ephemeralcooldown]} action is allowed to set, in seconds.
+     * A value of zero or less means there is no maximum.
+     */
+    public int maxEphemeralCooldownSeconds() {
+        return maxEphemeralCooldownSeconds;
     }
 
     private @NotNull DebugLevel loadDebugLevel() {

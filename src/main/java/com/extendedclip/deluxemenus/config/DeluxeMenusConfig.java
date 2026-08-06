@@ -13,6 +13,7 @@ import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.requirement.HasEphemeralCooldownRequirement;
 import com.extendedclip.deluxemenus.requirement.HasExpRequirement;
 import com.extendedclip.deluxemenus.requirement.HasItemRequirement;
 import com.extendedclip.deluxemenus.requirement.HasMetaRequirement;
@@ -169,6 +170,8 @@ public class DeluxeMenusConfig {
         c.addDefault("check_updates", true);
         c.addDefault("use_admin_commands_in_menus_list", false);
         c.addDefault("menus_list_page_size", 10);
+        // Longest duration the [ephemeralcooldown] action may set, in seconds. 0 or less = no limit.
+        c.addDefault("max_ephemeral_cooldown_seconds", -1);
         c.options().copyDefaults(true);
 
         if (!c.contains("gui_menus")) {
@@ -971,6 +974,16 @@ public class DeluxeMenusConfig {
                     } else {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Permission requirement at path: " + rPath + " does not contain a permission: entry");
                     }
+                    break;
+                case HAS_EPHEMERAL_COOLDOWN:
+                case DOES_NOT_HAVE_EPHEMERAL_COOLDOWN:
+                    final String cooldownId = c.getString(rPath + ".id");
+                    if (cooldownId == null || cooldownId.trim().isEmpty()) {
+                        plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Ephemeral cooldown requirement at path: " + rPath + " does not contain an id: entry");
+                        break;
+                    }
+                    invert = type == RequirementType.DOES_NOT_HAVE_EPHEMERAL_COOLDOWN;
+                    req = new HasEphemeralCooldownRequirement(plugin, cooldownId, invert);
                     break;
                 case HAS_PERMISSIONS:
                 case DOES_NOT_HAVE_PERMISSIONS:

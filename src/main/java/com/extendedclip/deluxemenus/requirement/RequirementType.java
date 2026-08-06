@@ -91,7 +91,15 @@ public enum RequirementType {
           Arrays.asList("input", "min", "max")),
   IS_OBJECT(Arrays.asList("is object"),
           "Checks if the given string can be parsed as a given Java object.",
-          Arrays.asList("input", "object"));
+          Arrays.asList("input", "object")),
+  HAS_EPHEMERAL_COOLDOWN(Arrays.asList("has ephemeral cooldown", "hasephemeralcooldown",
+          "ephemeral cooldown", "ephemeralcooldown"),
+          "Checks if the player is currently on the given ephemeral cooldown.",
+          Arrays.asList("id")),
+  DOES_NOT_HAVE_EPHEMERAL_COOLDOWN(Arrays.asList("!has ephemeral cooldown", "!hasephemeralcooldown",
+          "!ephemeral cooldown", "!ephemeralcooldown", "does not have ephemeral cooldown"),
+          "Checks if the player is not currently on the given ephemeral cooldown.",
+          Arrays.asList("id"));
 
   private final List<String> identifier;
   private final String description;

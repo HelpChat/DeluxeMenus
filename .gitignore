@@ -1,9 +1,23 @@
-.gradle/
+# IDEs
 .idea/
 .vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
 
+# Build tools
+.gradle/
 build/
-test-server/
+out/
+bin/
+local.properties
 
-.claude/
-CLAUDE.md
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

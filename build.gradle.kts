@@ -31,6 +31,7 @@ dependencies {
     compileOnly(libs.authlib)
 
     compileOnly(libs.headdb)
+    compileOnly(libs.headdb.api)
     compileOnly(libs.craftengine.core)
     compileOnly(libs.craftengine.bukkit)
     compileOnly(libs.itemsadder)

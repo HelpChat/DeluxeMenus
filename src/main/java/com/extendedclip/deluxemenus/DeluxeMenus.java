@@ -4,6 +4,7 @@ import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.extendedclip.deluxemenus.command.DeluxeMenusCommand;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.config.GeneralConfig;
+import com.extendedclip.deluxemenus.cooldown.EphemeralCooldownManager;
 import com.extendedclip.deluxemenus.dupe.DupeFixer;
 import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.hooks.*;
@@ -48,6 +49,7 @@ public class DeluxeMenus extends JavaPlugin {
 
     private PersistentMetaHandler persistentMetaHandler;
     private MenuItemMarker menuItemMarker;
+    private EphemeralCooldownManager ephemeralCooldownManager;
 
     private BukkitAudiences audiences;
 
@@ -86,6 +88,9 @@ public class DeluxeMenus extends JavaPlugin {
         this.menuItemMarker = new MenuItemMarker(this);
         new DupeFixer(this, this.menuItemMarker).register();
 
+        this.ephemeralCooldownManager = new EphemeralCooldownManager(this);
+        this.ephemeralCooldownManager.startSweepTask();
+
         this.audiences = BukkitAudiences.create(this);
 
         hookIntoVault();
@@ -121,6 +126,10 @@ public class DeluxeMenus extends JavaPlugin {
         }
 
         Menu.unloadForShutdown(this);
+
+        if (this.ephemeralCooldownManager != null) {
+            this.ephemeralCooldownManager.clearAll();
+        }
 
         itemHooks.clear();
 
@@ -196,6 +205,10 @@ public class DeluxeMenus extends JavaPlugin {
 
     public PersistentMetaHandler getPersistentMetaHandler() {
         return persistentMetaHandler;
+    }
+
+    public EphemeralCooldownManager getEphemeralCooldownManager() {
+        return ephemeralCooldownManager;
     }
 
     public BukkitAudiences audiences() {

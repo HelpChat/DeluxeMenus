@@ -13,6 +13,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -383,6 +384,45 @@ public class ClickActionTask extends BukkitRunnable {
                 plugin.getVault().takePermission(player, executable);
                 break;
 
+            case SET_EPHEMERAL_COOLDOWN:
+                final String[] cooldownParts = executable.trim().split("\\s+");
+
+                if (cooldownParts.length != 2) {
+                    plugin.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Invalid ephemeral cooldown action: " + executable + "!",
+                            "Correct usage: [ephemeralcooldown] <id> <duration>");
+                    break;
+                }
+
+                final Double parsedCooldown = parseCooldownSeconds(cooldownParts[1]);
+
+                if (parsedCooldown == null) {
+                    plugin.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Invalid ephemeral cooldown duration: " + cooldownParts[1] + "!",
+                            "The duration is a number of seconds, optionally suffixed with s, m or h.");
+                    break;
+                }
+
+                double cooldownSeconds = Math.max(0, parsedCooldown);
+                final int maxCooldownSeconds = plugin.getGeneralConfig().maxEphemeralCooldownSeconds();
+
+                // A max of 0 or less means the server owner opted out of the limit entirely.
+                if (maxCooldownSeconds > 0 && cooldownSeconds > maxCooldownSeconds) {
+                    plugin.debug(
+                            DebugLevel.HIGHEST,
+                            Level.WARNING,
+                            "Ephemeral cooldown '" + cooldownParts[0] + "' of " + cooldownSeconds + "s is longer than max_ephemeral_cooldown_seconds (" + maxCooldownSeconds + ")!",
+                            "Clamping it. Ephemeral cooldowns are lost on restart, so use a dedicated cooldown plugin for longer ones.");
+                    cooldownSeconds = maxCooldownSeconds;
+                }
+
+                plugin.getEphemeralCooldownManager().set(this.uuid, cooldownParts[0], (long) (cooldownSeconds * 1000L));
+                break;
+
             case BROADCAST_SOUND:
             case BROADCAST_RAW_SOUND:
             case BROADCAST_WORLD_SOUND:
@@ -524,6 +564,45 @@ public class ClickActionTask extends BukkitRunnable {
 
     private boolean isRaw(ActionType actionType) {
         return actionType == ActionType.PLAY_RAW_SOUND || actionType == ActionType.BROADCAST_RAW_SOUND || actionType == ActionType.BROADCAST_WORLD_RAW_SOUND;
+    }
+
+    /**
+     * Parses an ephemeral cooldown duration into seconds.
+     * <p>
+     * Accepts a plain number of seconds ({@code 30}, {@code 0.25}) or a number suffixed with
+     * {@code s}, {@code m} or {@code h} ({@code 30s}, {@code 5m}, {@code 1h}).
+     *
+     * @return the duration in seconds, or null if it could not be parsed
+     */
+    private @Nullable Double parseCooldownSeconds(@NotNull final String input) {
+        if (input.isEmpty()) {
+            return null;
+        }
+
+        String amount = input;
+        double multiplier = 1;
+
+        switch (Character.toLowerCase(input.charAt(input.length() - 1))) {
+            case 'h':
+                multiplier = 3600;
+                amount = input.substring(0, input.length() - 1);
+                break;
+            case 'm':
+                multiplier = 60;
+                amount = input.substring(0, input.length() - 1);
+                break;
+            case 's':
+                amount = input.substring(0, input.length() - 1);
+                break;
+            default:
+                break;
+        }
+
+        try {
+            return Double.parseDouble(amount) * multiplier;
+        } catch (final NumberFormatException exception) {
+            return null;
+        }
     }
 
 }

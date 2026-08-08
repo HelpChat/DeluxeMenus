@@ -52,7 +52,10 @@ public enum ActionType {
   BROADCAST_JSON("[broadcastjson]", "Broadcast a json message to all online players",
       "- '[broadcastjson] {\"text\":\"message\"}'"),
   PLACEHOLDER("[placeholder]", "Parse placeholders for a player without any chat or console output",
-      "- '[placeholder] %placeholder%'");
+      "- '[placeholder] %placeholder%'"),
+  SET_EPHEMERAL_COOLDOWN("[ephemeralcooldown]",
+      "Start an ephemeral cooldown for the menu viewer. Cooldowns are kept in memory only and are lost on server restart. A duration of 0 clears the cooldown",
+      "- '[ephemeralcooldown] <id> <duration>' where duration is seconds, optionally suffixed with s, m or h");
 
   private static final Map<String, ActionType> BY_NAME = Arrays.stream(values())
       .collect(Collectors.toMap(e -> e.name().toUpperCase(Locale.ROOT), Function.identity()));

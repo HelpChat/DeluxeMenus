@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.requirement;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.hooks.ItemHook;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
@@ -31,8 +32,8 @@ public class HasItemRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
-        String materialName = holder.setPlaceholdersAndArguments(wrapper.getMaterial());
+    public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
+        String materialName = holder.setPlaceholdersAndArguments(wrapper.getMaterial(), context);
         Material material = DeluxeMenus.MATERIALS.get(materialName.toUpperCase());
         ItemHook pluginHook = null;
         if (material == null) {
@@ -52,20 +53,20 @@ public class HasItemRequirement extends Requirement {
 
         int total = 0;
         for (ItemStack itemToCheck : inventory) {
-            if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
+            if (!isRequiredItem(itemToCheck, holder, context, material, pluginHook)) continue;
             total += itemToCheck.getAmount();
         }
 
         if (offHand != null) {
             for (ItemStack itemToCheck : offHand) {
-                if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
+                if (!isRequiredItem(itemToCheck, holder, context, material, pluginHook)) continue;
                 total += itemToCheck.getAmount();
             }
         }
 
         if (armor != null) {
             for (ItemStack itemToCheck : armor) {
-                if (!isRequiredItem(itemToCheck, holder, material, pluginHook)) continue;
+                if (!isRequiredItem(itemToCheck, holder, context, material, pluginHook)) continue;
                 total += itemToCheck.getAmount();
             }
         }
@@ -73,11 +74,11 @@ public class HasItemRequirement extends Requirement {
         return invert == (total < wrapper.getAmount());
     }
 
-    private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, Material material, ItemHook pluginHook) {
+    private boolean isRequiredItem(ItemStack itemToCheck, MenuHolder holder, PlaceholderContext context, Material material, ItemHook pluginHook) {
         if (itemToCheck == null || itemToCheck.getType() == Material.AIR) return false;
 
         if (pluginHook != null) {
-            if (!pluginHook.itemMatchesIdentifiers(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length()))))
+            if (!pluginHook.itemMatchesIdentifiers(itemToCheck, holder.setPlaceholdersAndArguments(wrapper.getMaterial().substring(pluginHook.getPrefix().length()), context)))
                 return false;
         } else if (wrapper.getMaterial() != null && itemToCheck.getType() != material) return false;
         if (wrapper.hasData() && itemToCheck.getDurability() != wrapper.getData()) return false;
@@ -114,15 +115,15 @@ public class HasItemRequirement extends Requirement {
                 }
             }
 
-            if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT && !isEmptyModelData(wrapper.getCustomModelDataComponent()) && !itemModelComponentContains(holder, metaToCheck.getCustomModelDataComponent(), wrapper.getCustomModelDataComponent())) {
+            if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT && !isEmptyModelData(wrapper.getCustomModelDataComponent()) && !itemModelComponentContains(holder, context, metaToCheck.getCustomModelDataComponent(), wrapper.getCustomModelDataComponent())) {
                 return false;
             }
 
             if (wrapper.getName() != null) {
                 if (!metaToCheck.hasDisplayName()) return false;
 
-                String name = StringUtils.color(holder.setPlaceholdersAndArguments(wrapper.getName()));
-                String nameToCheck = StringUtils.color(holder.setPlaceholdersAndArguments(metaToCheck.getDisplayName()));
+                String name = StringUtils.color(holder.setPlaceholdersAndArguments(wrapper.getName(), context));
+                String nameToCheck = StringUtils.color(holder.setPlaceholdersAndArguments(metaToCheck.getDisplayName(), context));
 
                 if (wrapper.checkNameContains() && wrapper.checkNameIgnoreCase()) {
                     if (!org.apache.commons.lang3.StringUtils.containsIgnoreCase(nameToCheck, name)) return false;
@@ -139,8 +140,8 @@ public class HasItemRequirement extends Requirement {
                 List<String> loreX = metaToCheck.getLore();
                 if (loreX == null) return false;
 
-                String lore = wrapper.getLoreList().stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::color).collect(Collectors.joining("&&"));
-                String loreToCheck = loreX.stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::color).collect(Collectors.joining("&&"));
+                String lore = wrapper.getLoreList().stream().map(line -> holder.setPlaceholdersAndArguments(line, context)).map(StringUtils::color).collect(Collectors.joining("&&"));
+                String loreToCheck = loreX.stream().map(line -> holder.setPlaceholdersAndArguments(line, context)).map(StringUtils::color).collect(Collectors.joining("&&"));
 
                 if (wrapper.checkLoreContains() && wrapper.checkLoreIgnoreCase()) {
                     if (!org.apache.commons.lang3.StringUtils.containsIgnoreCase(loreToCheck, lore)) return false;
@@ -157,8 +158,8 @@ public class HasItemRequirement extends Requirement {
                 List<String> loreX = metaToCheck.getLore();
                 if (loreX == null) return false;
 
-                String lore = StringUtils.color(holder.setPlaceholdersAndArguments(wrapper.getLore()));
-                String loreToCheck = loreX.stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::color).collect(Collectors.joining("&&"));
+                String lore = StringUtils.color(holder.setPlaceholdersAndArguments(wrapper.getLore(), context));
+                String loreToCheck = loreX.stream().map(line -> holder.setPlaceholdersAndArguments(line, context)).map(StringUtils::color).collect(Collectors.joining("&&"));
 
                 if (wrapper.checkLoreContains() && wrapper.checkLoreIgnoreCase()) {
                     return org.apache.commons.lang3.StringUtils.containsIgnoreCase(loreToCheck, lore);
@@ -180,11 +181,11 @@ public class HasItemRequirement extends Requirement {
         return modelData.colors().isEmpty() && modelData.flags().isEmpty() && modelData.floats().isEmpty() && modelData.strings().isEmpty();
     }
 
-    private boolean itemModelComponentContains(MenuHolder holder, @NotNull final CustomModelDataComponent modelData, @NotNull final com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent wrapper) {
+    private boolean itemModelComponentContains(MenuHolder holder, PlaceholderContext context, @NotNull final CustomModelDataComponent modelData, @NotNull final com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent wrapper) {
         if (!wrapper.colors().isEmpty()) {
             final List<Color> colors = wrapper.colors()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .map(StringUtils::parseRGBColor)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
@@ -199,7 +200,7 @@ public class HasItemRequirement extends Requirement {
         if (!wrapper.flags().isEmpty()) {
             final List<Boolean> flags = wrapper.flags()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .map(Boolean::parseBoolean)
                     .collect(Collectors.toList());
 
@@ -213,7 +214,7 @@ public class HasItemRequirement extends Requirement {
         if (!wrapper.floats().isEmpty()) {
             final List<Float> floats = wrapper.floats()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .map(Float::parseFloat)
                     .collect(Collectors.toList());
 
@@ -227,7 +228,7 @@ public class HasItemRequirement extends Requirement {
         if (!wrapper.strings().isEmpty()) {
             final List<String> strings = wrapper.strings()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .collect(Collectors.toList());
 
             for (String string : strings) {

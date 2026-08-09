@@ -7,6 +7,7 @@ import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.nbt.NbtProvider;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
@@ -92,6 +93,11 @@ public class MenuItem {
     public ItemStack getItemStack(@NotNull final MenuHolder holder) {
         final Player viewer = holder.getViewer();
 
+        // Built once and threaded through every parse call below instead of being rebuilt per
+        // string. It is reassigned once the stack exists, so that %item.material% and friends
+        // resolve in the display name and lore.
+        PlaceholderContext context = PlaceholderContext.of(holder).withItem(this);
+
         ItemStack itemStack = null;
         int amount = 1;
 
@@ -99,11 +105,11 @@ public class MenuItem {
         String lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ROOT);
 
         if (ItemUtils.isPlaceholderOption(lowercaseStringMaterial)) {
-            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()));
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(PLACEHOLDER_PREFIX.length()), context);
             lowercaseStringMaterial = stringMaterial.toLowerCase(Locale.ENGLISH);
         }
         if (ItemUtils.isItemStackOption(lowercaseStringMaterial)) {
-            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(STACK_PREFIX.length()));
+            stringMaterial = holder.setPlaceholdersAndArguments(stringMaterial.substring(STACK_PREFIX.length()), context);
             ItemStack base64Item = base64ToItemStack(stringMaterial);
             if (base64Item != null) {
                 itemStack = base64Item;
@@ -136,7 +142,7 @@ public class MenuItem {
         if (pluginHook != null) {
             itemStack = pluginHook.getItem(
                     viewer,
-                    holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length()))
+                    holder.setPlaceholdersAndArguments(stringMaterial.substring(pluginHook.getPrefix().length()), context)
             );
         }
 
@@ -194,7 +200,7 @@ public class MenuItem {
 
             if (meta != null) {
                 if (this.options.rgb().isPresent()) {
-                    final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+                    final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get(), context));
                     if (color != null) {
                         meta.setColor(color);
                     }
@@ -215,7 +221,7 @@ public class MenuItem {
         }
 
         if (this.options.damage().isPresent()) {
-            final String parsedDamage = holder.setPlaceholdersAndArguments(this.options.damage().get());
+            final String parsedDamage = holder.setPlaceholdersAndArguments(this.options.damage().get(), context);
             try {
                 int damage = Integer.parseInt(parsedDamage);
                 if (damage > 0) {
@@ -239,7 +245,7 @@ public class MenuItem {
 
         if (this.options.dynamicAmount().isPresent()) {
             try {
-                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholdersAndArguments(this.options.dynamicAmount().get()));
+                final int dynamicAmount = (int) Double.parseDouble(holder.setPlaceholdersAndArguments(this.options.dynamicAmount().get(), context));
                 amount = Math.max(dynamicAmount, 1);
             } catch (final NumberFormatException ignored) {
             }
@@ -259,19 +265,26 @@ public class MenuItem {
 
         if (VersionHelper.IS_CUSTOM_MODEL_DATA && this.options.customModelData().isPresent()) {
             try {
-                final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get()));
+                final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get(), context));
                 itemMeta.setCustomModelData(modelData);
             } catch (final Exception ignored) {
             }
         }
 
         if (VersionHelper.IS_CUSTOM_MODEL_DATA_COMPONENT && this.options.customModelDataComponent().isPresent()) {
-            itemMeta.setCustomModelDataComponent(parseCustomModelDataComponent(this.options.customModelDataComponent().get(), itemMeta.getCustomModelDataComponent(), holder));
+            itemMeta.setCustomModelDataComponent(parseCustomModelDataComponent(this.options.customModelDataComponent().get(), itemMeta.getCustomModelDataComponent(), holder, context));
         }
 
+        // From here on the stack, its amount and its model data are known, so item placeholders can
+        // be resolved in everything that follows - most importantly the display name and the lore.
+        context = context.withItemStack(itemStack, itemMeta);
+
         if (this.options.displayName().isPresent()) {
-            final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
+            final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get(), context);
             itemMeta.setDisplayName(StringUtils.color(displayName));
+            // Re-snapshot so the lore below can use %item.display_name%. Inside display_name itself
+            // it is still unset, which is why it resolves to "" there.
+            context = context.withItemStack(itemStack, itemMeta);
         }
 
         List<String> lore = new ArrayList<>();
@@ -286,15 +299,15 @@ public class MenuItem {
                 lore.addAll(itemLore);
                 break;
             case TOP: // DM lore is added at the top
-                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(getMenuItemLore(holder, context, this.options.lore()));
                 lore.addAll(itemLore);
                 break;
             case BOTTOM: // DM lore is bottom at the bottom
                 lore.addAll(itemLore);
-                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(getMenuItemLore(holder, context, this.options.lore()));
                 break;
             case OVERRIDE: // Lore from DM overrides the lore from the item
-                lore.addAll(getMenuItemLore(holder, this.options.lore()));
+                lore.addAll(getMenuItemLore(holder, context, this.options.lore()));
                 break;
         }
 
@@ -306,15 +319,15 @@ public class MenuItem {
 
         if (VersionHelper.HAS_DATA_COMPONENTS) {
             if (this.options.hideTooltip().isPresent()) {
-                String hideTooltip = holder.setPlaceholdersAndArguments(this.options.hideTooltip().get());
+                String hideTooltip = holder.setPlaceholdersAndArguments(this.options.hideTooltip().get(), context);
                 itemMeta.setHideTooltip(Boolean.parseBoolean(hideTooltip));
             }
             if (this.options.enchantmentGlintOverride().isPresent()) {
-                String enchantmentGlintOverride = holder.setPlaceholdersAndArguments(this.options.enchantmentGlintOverride().get());
+                String enchantmentGlintOverride = holder.setPlaceholdersAndArguments(this.options.enchantmentGlintOverride().get(), context);
                 itemMeta.setEnchantmentGlintOverride(Boolean.parseBoolean(enchantmentGlintOverride));
             }
             if (this.options.rarity().isPresent()) {
-                String rarity = holder.setPlaceholdersAndArguments(this.options.rarity().get());
+                String rarity = holder.setPlaceholdersAndArguments(this.options.rarity().get(), context);
                 try {
                     itemMeta.setRarity(ItemRarity.valueOf(rarity.toUpperCase()));
                 } catch (IllegalArgumentException e) {
@@ -328,11 +341,11 @@ public class MenuItem {
         }
         if (VersionHelper.HAS_TOOLTIP_STYLE) {
             if (this.options.tooltipStyle().isPresent()) {
-                NamespacedKey tooltipStyle = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.tooltipStyle().get()));
+                NamespacedKey tooltipStyle = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.tooltipStyle().get(), context));
                 if (tooltipStyle != null) itemMeta.setTooltipStyle(tooltipStyle);
             }
             if (this.options.itemModel().isPresent()) {
-                NamespacedKey itemModel = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.itemModel().get()));
+                NamespacedKey itemModel = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.itemModel().get(), context));
                 if (itemModel != null) itemMeta.setItemModel(itemModel);
             }
         }
@@ -342,8 +355,8 @@ public class MenuItem {
             final Optional<String> trimPatternName = this.options.trimPattern();
 
             if (trimMaterialName.isPresent() && trimPatternName.isPresent()) {
-                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.match(holder.setPlaceholdersAndArguments(trimMaterialName.get()));
-                final TrimPattern trimPattern = Registry.TRIM_PATTERN.match(holder.setPlaceholdersAndArguments(trimPatternName.get()));
+                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.match(holder.setPlaceholdersAndArguments(trimMaterialName.get(), context));
+                final TrimPattern trimPattern = Registry.TRIM_PATTERN.match(holder.setPlaceholdersAndArguments(trimPatternName.get(), context));
 
                 if (trimMaterial != null && trimPattern != null) {
                     final ArmorTrim armorTrim = new ArmorTrim(trimMaterial, trimPattern);
@@ -385,7 +398,7 @@ public class MenuItem {
         if (itemMeta instanceof LeatherArmorMeta && this.options.rgb().isPresent()) {
             final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 
-            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get(), context));
             if (color != null) {
                 leatherArmorMeta.setColor(color);
             } else {
@@ -399,7 +412,7 @@ public class MenuItem {
             itemStack.setItemMeta(leatherArmorMeta);
         } else if (itemMeta instanceof FireworkEffectMeta && this.options.rgb().isPresent()) {
             final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
-            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get()));
+            final Color color = parseRGBColor(holder.setPlaceholdersAndArguments(this.options.rgb().get(), context));
             if (color != null) {
                 fireworkEffectMeta.setEffect(FireworkEffect.builder().withColor(color).build());
             } else {
@@ -436,7 +449,7 @@ public class MenuItem {
             final BlockData blockData = blockDataMeta.getBlockData(itemStack.getType());
             if (blockData instanceof Light) {
                 final Light light = (Light) blockData;
-                final String parsedLightLevel = holder.setPlaceholdersAndArguments(this.options.lightLevel().get());
+                final String parsedLightLevel = holder.setPlaceholdersAndArguments(this.options.lightLevel().get(), context);
                 try {
                     final int lightLevel = Math.min(Integer.parseInt(parsedLightLevel), light.getMaximumLevel());
                     light.setLevel(Math.max(lightLevel, 0));
@@ -479,7 +492,7 @@ public class MenuItem {
 
         if (NbtProvider.isAvailable()) {
             if (this.options.nbtString().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtString().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtString().get(), context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
@@ -487,7 +500,7 @@ public class MenuItem {
             }
 
             if (this.options.nbtByte().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtByte().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtByte().get(), context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
@@ -495,7 +508,7 @@ public class MenuItem {
             }
 
             if (this.options.nbtShort().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtShort().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtShort().get(), context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
@@ -503,7 +516,7 @@ public class MenuItem {
             }
 
             if (this.options.nbtInt().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
+                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get(), context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -511,7 +524,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtStrings()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag, context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":", 2);
                     itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
@@ -519,7 +532,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtBytes()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag, context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
@@ -527,7 +540,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtShorts()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag, context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
@@ -535,7 +548,7 @@ public class MenuItem {
             }
 
             for (String nbtTag : this.options.nbtInts()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
+                final String tag = holder.setPlaceholdersAndArguments(nbtTag, context);
                 if (tag.contains(":")) {
                     final String[] parts = tag.split(":");
                     itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
@@ -570,8 +583,14 @@ public class MenuItem {
     }
 
     protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        return getMenuItemLore(holder, PlaceholderContext.of(holder).withItem(this), lore);
+    }
+
+    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder,
+                                           @NotNull final PlaceholderContext context,
+                                           @NotNull final List<String> lore) {
         return lore.stream()
-                .map(holder::setPlaceholdersAndArguments)
+                .map(line -> holder.setPlaceholdersAndArguments(line, context))
                 .map(StringUtils::color)
                 .map(line -> line.split("\n"))
                 .flatMap(Arrays::stream)
@@ -583,12 +602,13 @@ public class MenuItem {
     private @NotNull org.bukkit.inventory.meta.components.CustomModelDataComponent parseCustomModelDataComponent(
             @NotNull final CustomModelDataComponent unparsedComponent,
             @NotNull final org.bukkit.inventory.meta.components.CustomModelDataComponent component,
-            @NotNull final MenuHolder holder
+            @NotNull final MenuHolder holder,
+            @NotNull final PlaceholderContext context
     ) {
         if (!unparsedComponent.colors().isEmpty()) {
             final List<Color> colors = unparsedComponent.colors()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .map(this::parseRGBColor)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
@@ -598,7 +618,7 @@ public class MenuItem {
         if (!unparsedComponent.flags().isEmpty()) {
             final List<Boolean> flags = unparsedComponent.flags()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .map(Boolean::parseBoolean)
                     .collect(Collectors.toList());
             component.setFlags(flags);
@@ -607,7 +627,7 @@ public class MenuItem {
         if (!unparsedComponent.floats().isEmpty()) {
             final List<Float> floats = unparsedComponent.floats()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .map(Float::parseFloat)
                     .collect(Collectors.toList());
             component.setFloats(floats);
@@ -616,7 +636,7 @@ public class MenuItem {
         if (!unparsedComponent.strings().isEmpty()) {
             final List<String> strings = unparsedComponent.strings()
                     .stream()
-                    .map(holder::setPlaceholdersAndArguments)
+                    .map(value -> holder.setPlaceholdersAndArguments(value, context))
                     .collect(Collectors.toList());
             component.setStrings(strings);
         }

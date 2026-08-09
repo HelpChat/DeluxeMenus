@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import org.jetbrains.annotations.NotNull;
 
 public class HasMoneyRequirement extends Requirement {
@@ -19,18 +20,18 @@ public class HasMoneyRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
     if (plugin.getVault() == null) {
       return false;
     }
 
     if (placeholder != null) {
       try {
-        String expected = holder.setPlaceholdersAndArguments(placeholder);
+        String expected = holder.setPlaceholdersAndArguments(placeholder, context);
         amount = Double.parseDouble(expected);
       } catch (final NumberFormatException exception) {
         plugin.printStacktrace(
-            "Invalid amount found for has money requirement: " + holder.setPlaceholdersAndArguments(placeholder),
+            "Invalid amount found for has money requirement: " + holder.setPlaceholdersAndArguments(placeholder, context),
             exception
         );
       }

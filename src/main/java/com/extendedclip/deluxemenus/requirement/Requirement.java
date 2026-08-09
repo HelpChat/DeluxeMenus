@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 
 public abstract class Requirement {
 
@@ -17,7 +18,7 @@ public abstract class Requirement {
     this.setOptional(optional);
   }
 
-  public abstract boolean evaluate(MenuHolder holder);
+  public abstract boolean evaluate(MenuHolder holder, PlaceholderContext context);
 
   public ClickHandler getDenyHandler() {
     return denyHandler;

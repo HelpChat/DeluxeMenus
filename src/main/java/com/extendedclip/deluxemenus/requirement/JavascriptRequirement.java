@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import java.util.logging.Level;
 import javax.script.ScriptEngineFactory;
@@ -39,9 +40,9 @@ public class JavascriptRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
 
-    String exp = holder.setPlaceholdersAndArguments(expression);
+    String exp = holder.setPlaceholdersAndArguments(expression, context);
     try {
 
       engine.put("BukkitPlayer", holder.getViewer());

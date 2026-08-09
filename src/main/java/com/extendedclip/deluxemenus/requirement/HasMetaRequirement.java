@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.requirement;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.DataType;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -24,13 +25,13 @@ public class HasMetaRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
+    public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
         final Player player = holder.getViewer();
         if (player == null) {
             return false;
         }
 
-        final String parsedKey = holder.setPlaceholdersAndArguments(key);
+        final String parsedKey = holder.setPlaceholdersAndArguments(key, context);
         final NamespacedKey namespacedKey = plugin.getPersistentMetaHandler().getKey(parsedKey);
         if (namespacedKey == null) {
             return invert;
@@ -46,10 +47,10 @@ public class HasMetaRequirement extends Requirement {
             return invert;
         }
 
-        final String expectedValue = holder.setPlaceholdersAndArguments(value);
+        final String expectedValue = holder.setPlaceholdersAndArguments(value, context);
         // TODO: Is there any reason to parse placeholders in the stored value when reading them?
         //  Placeholders are parsed before value are stored. This means there will (or should) be no placeholders when reading.
-        final String actualValue = holder.setPlaceholdersAndArguments(String.valueOf(metaValue));
+        final String actualValue = holder.setPlaceholdersAndArguments(String.valueOf(metaValue), context);
 
         if (type.equals(DataType.STRING) || type.equals(DataType.BOOLEAN)) {
             return invert != actualValue.equalsIgnoreCase(expectedValue);

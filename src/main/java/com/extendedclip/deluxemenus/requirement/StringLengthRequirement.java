@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 
 public class StringLengthRequirement extends Requirement {
 
@@ -15,8 +16,8 @@ public class StringLengthRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
-        String toCheck = holder.setPlaceholdersAndArguments(input);
+    public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
+        String toCheck = holder.setPlaceholdersAndArguments(input, context);
         if (max == null) {
             return toCheck.length() >= min;
         } else {

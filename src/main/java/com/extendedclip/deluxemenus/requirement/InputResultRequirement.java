@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 
 public class InputResultRequirement extends Requirement {
 
@@ -15,10 +16,10 @@ public class InputResultRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
 
-    String parsedInput = holder.setPlaceholdersAndArguments(this.input);
-    String parsedResult = holder.setPlaceholdersAndArguments(this.result);
+    String parsedInput = holder.setPlaceholdersAndArguments(this.input, context);
+    String parsedResult = holder.setPlaceholdersAndArguments(this.result, context);
 
     switch (type) {
       case STRING_CONTAINS:

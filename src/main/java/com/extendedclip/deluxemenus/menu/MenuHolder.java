@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -97,10 +98,19 @@ public class MenuHolder implements InventoryHolder {
     }
 
     public @NotNull String setPlaceholdersAndArguments(final @NotNull String string) {
-        if (parsePlaceholdersAfterArguments) {
-            return setPlaceholders(setArguments(string));
-        }
-        return setArguments(setPlaceholders(string));
+        return setPlaceholdersAndArguments(string, PlaceholderContext.of(this));
+    }
+
+    public @NotNull String setPlaceholdersAndArguments(final @NotNull String string,
+                                                       final @NotNull PlaceholderContext context) {
+        return StringUtils.replacePlaceholdersAndArguments(
+                string,
+                this.typedArgs,
+                this.placeholderPlayer != null ? this.placeholderPlayer : getViewer(),
+                this.parsePlaceholdersInArguments,
+                this.parsePlaceholdersAfterArguments,
+                context
+        );
     }
 
     public @NotNull String setPlaceholders(final @NotNull String string) {
@@ -155,7 +165,7 @@ public class MenuHolder implements InventoryHolder {
 
                     if (item.options().viewRequirements().isPresent()) {
 
-                        if (item.options().viewRequirements().get().evaluate(this)) {
+                        if (item.options().viewRequirements().get().evaluate(this, PlaceholderContext.of(this).withItem(item))) {
                             m = true;
                             active.add(item);
                             break;
@@ -284,35 +294,46 @@ public class MenuHolder implements InventoryHolder {
                             continue;
                         }
 
+                        ItemMeta meta = i.getItemMeta();
+
+                        // Without the item context, an item mixing PlaceholderAPI and internal
+                        // placeholders would lose its internal values on the first update tick.
+                        // The context is grown in the same order MenuItem.getItemStack grows it, so
+                        // an update tick resolves item placeholders exactly like the initial build:
+                        // no stack values while the amount is being computed, then the stack, then
+                        // the new display name before the lore is parsed.
+                        PlaceholderContext context = PlaceholderContext.of(getHolder()).withItem(item);
+
                         int amt = i.getAmount();
 
                         if (item.options().dynamicAmount().isPresent()) {
                             try {
-                                amt = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicAmount().get()));
+                                amt = Integer.parseInt(setPlaceholdersAndArguments(item.options().dynamicAmount().get(), context));
                                 if (amt <= 0) {
                                     amt = 1;
                                 }
                             } catch (Exception exception) {
                                 plugin.printStacktrace(
                                         "Something went wrong while updating item in slot " + item.options().slot() +
-                                                ". Invalid dynamic amount: " + setPlaceholdersAndArguments(item.options().dynamicAmount().get()),
+                                                ". Invalid dynamic amount: " + setPlaceholdersAndArguments(item.options().dynamicAmount().get(), context),
                                         exception
                                 );
                             }
                         }
 
-                        ItemMeta meta = i.getItemMeta();
+                        i.setAmount(amt);
+                        context = context.withItemStack(i, meta);
 
                         if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
-                            meta.setDisplayName(StringUtils.color(setPlaceholdersAndArguments(item.options().displayName().get())));
+                            meta.setDisplayName(StringUtils.color(setPlaceholdersAndArguments(item.options().displayName().get(), context)));
+                            context = context.withItemStack(i, meta);
                         }
 
                         if (item.options().loreHasPlaceholders()) {
-                            meta.setLore(item.getMenuItemLore(getHolder(), item.options().lore()));
+                            meta.setLore(item.getMenuItemLore(getHolder(), context, item.options().lore()));
                         }
 
                         i.setItemMeta(meta);
-                        i.setAmount(amt);
                     }
                 }
             }

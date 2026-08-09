@@ -5,6 +5,7 @@ import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -152,36 +153,43 @@ public class PlayerListener extends Listener {
             this.shiftCache.put(player.getUniqueId(), System.currentTimeMillis());
         }
 
-        if (handleClick(player, holder, item.options().clickHandler(), item.options().clickRequirements())) {
+        // Snapshotted once here: everything a click action or requirement can report about the
+        // click and the clicked item, in a form that stays valid on later ticks.
+        final PlaceholderContext context = PlaceholderContext.of(holder)
+                .withItem(item)
+                .withItemStack(event.getCurrentItem(), event.getCurrentItem() == null ? null : event.getCurrentItem().getItemMeta())
+                .withClick(event);
+
+        if (handleClick(player, holder, context, item.options().clickHandler(), item.options().clickRequirements())) {
             return;
         }
 
         if (event.isShiftClick() && event.isLeftClick()) {
-            if (handleClick(player, holder, item.options().shiftLeftClickHandler(), item.options().shiftLeftClickRequirements())) {
+            if (handleClick(player, holder, context, item.options().shiftLeftClickHandler(), item.options().shiftLeftClickRequirements())) {
                 return;
             }
         }
 
         if (event.isShiftClick() && event.isRightClick()) {
-            if (handleClick(player, holder, item.options().shiftRightClickHandler(), item.options().shiftRightClickRequirements())) {
+            if (handleClick(player, holder, context, item.options().shiftRightClickHandler(), item.options().shiftRightClickRequirements())) {
                 return;
             }
         }
 
         if (event.getClick() == ClickType.LEFT) {
-            if (handleClick(player, holder, item.options().leftClickHandler(), item.options().leftClickRequirements())) {
+            if (handleClick(player, holder, context, item.options().leftClickHandler(), item.options().leftClickRequirements())) {
                 return;
             }
         }
 
         if (event.getClick() == ClickType.RIGHT) {
-            if (handleClick(player, holder, item.options().rightClickHandler(), item.options().rightClickRequirements())) {
+            if (handleClick(player, holder, context, item.options().rightClickHandler(), item.options().rightClickRequirements())) {
                 return;
             }
         }
 
         if (event.getClick() == ClickType.MIDDLE) {
-            if (handleClick(player, holder, item.options().middleClickHandler(), item.options().middleClickRequirements())) {
+            if (handleClick(player, holder, context, item.options().middleClickHandler(), item.options().middleClickRequirements())) {
             }
         }
     }
@@ -191,11 +199,12 @@ public class PlayerListener extends Listener {
      *
      * @param player       player who clicked
      * @param holder       menu holder
+     * @param context      snapshot of the menu, the clicked item and the click itself
      * @param handler      click handler
      * @param requirements click requirements
      * @return true if click was handled successfully. will ever return false if no click handler was found
      */
-    private boolean handleClick(final @NotNull Player player, final @NotNull MenuHolder holder, final @NotNull Optional<ClickHandler> handler, final @NotNull Optional<RequirementList> requirements) {
+    private boolean handleClick(final @NotNull Player player, final @NotNull MenuHolder holder, final @NotNull PlaceholderContext context, final @NotNull Optional<ClickHandler> handler, final @NotNull Optional<RequirementList> requirements) {
         if (handler.isEmpty()) {
             return false;
         }
@@ -203,18 +212,18 @@ public class PlayerListener extends Listener {
         if (requirements.isPresent()) {
             final ClickHandler denyHandler = requirements.get().getDenyHandler();
 
-            if (!requirements.get().evaluate(holder)) {
+            if (!requirements.get().evaluate(holder, context)) {
                 if (denyHandler == null) {
                     return true;
                 }
 
-                denyHandler.onClick(holder);
+                denyHandler.onClick(holder, context);
                 return true;
             }
         }
 
         this.cache.put(player.getUniqueId(), System.currentTimeMillis());
-        handler.get().onClick(holder);
+        handler.get().onClick(holder, context);
 
         return true;
     }

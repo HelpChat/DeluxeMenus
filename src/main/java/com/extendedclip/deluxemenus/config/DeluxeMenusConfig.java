@@ -13,6 +13,8 @@ import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.placeholder.internal.InternalPlaceholderResolver;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.requirement.HasExpRequirement;
 import com.extendedclip.deluxemenus.requirement.HasItemRequirement;
 import com.extendedclip.deluxemenus.requirement.HasMetaRequirement;
@@ -169,7 +171,14 @@ public class DeluxeMenusConfig {
         c.addDefault("check_updates", true);
         c.addDefault("use_admin_commands_in_menus_list", false);
         c.addDefault("menus_list_page_size", 10);
+        c.addDefault("internal_placeholders.true_value", "true");
+        c.addDefault("internal_placeholders.false_value", "false");
         c.options().copyDefaults(true);
+
+        InternalPlaceholderResolver.setBooleanValues(
+                c.getString("internal_placeholders.true_value", "true"),
+                c.getString("internal_placeholders.false_value", "false")
+        );
 
         if (!c.contains("gui_menus")) {
             createMenuExamples(c);
@@ -1223,18 +1232,18 @@ public class DeluxeMenusConfig {
             handler = new ClickHandler() {
 
                 @Override
-                public void onClick(@NotNull final MenuHolder holder) {
+                public void onClick(@NotNull final MenuHolder holder, @NotNull final PlaceholderContext context) {
 
                     for (ClickAction action : actions) {
 
-                        if (!action.checkChance(holder)) {
+                        if (!action.checkChance(holder, context)) {
                             continue;
                         }
 
-                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments());
+                        final ClickActionTask actionTask = new ClickActionTask(plugin, holder.getViewer().getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), holder.parsePlaceholdersInArguments(), holder.parsePlaceholdersAfterArguments(), context);
 
                         if (action.hasDelay()) {
-                            actionTask.runTaskLater(plugin, action.getDelay(holder));
+                            actionTask.runTaskLater(plugin, action.getDelay(holder, context));
                             continue;
                         }
 

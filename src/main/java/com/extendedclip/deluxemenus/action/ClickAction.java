@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.action;
 
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Longs;
 import java.util.concurrent.ThreadLocalRandom;
@@ -99,16 +100,17 @@ public class ClickAction {
   /**
    * Get the parsed delay of this action. If the delay is null or can't be parsed to a {@link Long}, the delay will be 0.
    *
-   * @param holder the holder to parse placeholders in the delay for.
+   * @param holder  the holder to parse placeholders in the delay for.
+   * @param context the context to resolve internal placeholders in the delay against.
    * @return the parsed delay
    */
   @SuppressWarnings("UnstableApiUsage")
-  public long getDelay(@NotNull final MenuHolder holder) {
+  public long getDelay(@NotNull final MenuHolder holder, @NotNull final PlaceholderContext context) {
     if (delay == null || delay.isEmpty()) {
       return 0;
     }
 
-    final var parsed = Longs.tryParse(holder.setPlaceholdersAndArguments(delay));
+    final var parsed = Longs.tryParse(holder.setPlaceholdersAndArguments(delay, context));
     return parsed == null ? 0 : parsed;
   }
 
@@ -116,16 +118,17 @@ public class ClickAction {
    * Parses the chance of this action and tries it. If {@link #getChance()} is null this will return true but if it
    * can't be parsed to a {@link Double}, this will return false.
    *
-   * @param holder the holder to parse placeholders in the chance for.
+   * @param holder  the holder to parse placeholders in the chance for.
+   * @param context the context to resolve internal placeholders in the chance against.
    * @return true if the chance has passed, false otherwise
    */
   @SuppressWarnings("UnstableApiUsage")
-  public boolean checkChance(@NotNull final MenuHolder holder) {
+  public boolean checkChance(@NotNull final MenuHolder holder, @NotNull final PlaceholderContext context) {
     if (chance == null) {
       return true;
     }
 
-    final Double parsedChance = Doubles.tryParse(holder.setPlaceholdersAndArguments(this.chance));
+    final Double parsedChance = Doubles.tryParse(holder.setPlaceholdersAndArguments(this.chance, context));
     if (parsedChance == null) {
       return false;
     }

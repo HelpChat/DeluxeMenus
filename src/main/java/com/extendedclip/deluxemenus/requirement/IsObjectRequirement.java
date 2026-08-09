@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
@@ -20,8 +21,8 @@ public class IsObjectRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
-        String toCheck = holder.setPlaceholdersAndArguments(input);
+    public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
+        String toCheck = holder.setPlaceholdersAndArguments(input, context);
 
         switch (object) {
             case "int":

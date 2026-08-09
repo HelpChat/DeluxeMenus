@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.extendedclip.deluxemenus.placeholder.internal.InternalPlaceholderResolver;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
@@ -42,15 +44,32 @@ public class StringUtils {
                                                          final @Nullable Player player,
                                                          final boolean parsePlaceholdersInsideArguments,
                                                          final boolean parsePlaceholdersAfterArguments) {
+        return replacePlaceholdersAndArguments(input, arguments, player, parsePlaceholdersInsideArguments,
+                parsePlaceholdersAfterArguments, PlaceholderContext.EMPTY);
+    }
+
+    /**
+     * The one place the parsing order lives. Internal placeholders are always resolved last, so a
+     * menu can build one out of an argument or a PlaceholderAPI result. The resolver never rescans
+     * its own output, so the substitution cannot cascade further than that.
+     */
+    @NotNull
+    public static String replacePlaceholdersAndArguments(@NotNull String input, final @Nullable Map<String, String> arguments,
+                                                         final @Nullable Player player,
+                                                         final boolean parsePlaceholdersInsideArguments,
+                                                         final boolean parsePlaceholdersAfterArguments,
+                                                         final @NotNull PlaceholderContext context) {
+        final String parsed;
+
         if (player == null) {
-            return replaceArguments(input, arguments, null, parsePlaceholdersInsideArguments);
+            parsed = replaceArguments(input, arguments, null, parsePlaceholdersInsideArguments);
+        } else if (parsePlaceholdersAfterArguments) {
+            parsed = replacePlaceholders(replaceArguments(input, arguments, player, parsePlaceholdersInsideArguments), player);
+        } else {
+            parsed = replaceArguments(replacePlaceholders(input, player), arguments, player, parsePlaceholdersInsideArguments);
         }
 
-        if (parsePlaceholdersAfterArguments) {
-            return replacePlaceholders(replaceArguments(input, arguments, player, parsePlaceholdersInsideArguments), player);
-        }
-
-        return replaceArguments(replacePlaceholders(input, player), arguments, player, parsePlaceholdersInsideArguments);
+        return InternalPlaceholderResolver.resolve(parsed, context);
     }
 
     @NotNull

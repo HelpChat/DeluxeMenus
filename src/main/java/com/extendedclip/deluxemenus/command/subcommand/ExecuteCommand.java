@@ -7,6 +7,7 @@ import com.extendedclip.deluxemenus.action.ClickActionTask;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.utils.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -79,17 +80,22 @@ public class ExecuteCommand extends SubCommand {
 
         MenuHolder holder = Menu.getMenuHolder(target).orElse(new MenuHolder(plugin, target));
 
-        if (!action.checkChance(holder)) {
+        // The action runs against `target`, not against the sender (which is usually console), so
+        // the context comes from the target's holder. There is no item and no click here, and when
+        // the target is not in a menu the holder above is a bare one, leaving %menu.*% literal too.
+        final PlaceholderContext context = PlaceholderContext.of(holder);
+
+        if (!action.checkChance(holder, context)) {
             plugin.sms(sender, Messages.CHANCE_FAIL);
             return;
         }
 
-        final ClickActionTask actionTask = new ClickActionTask(plugin, target.getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), true, true);
+        final ClickActionTask actionTask = new ClickActionTask(plugin, target.getUniqueId(), action.getType(), action.getExecutable(), holder.getTypedArgs(), true, true, context);
 
         if (action.hasDelay()) {
-            actionTask.runTaskLater(plugin, action.getDelay(holder));
+            actionTask.runTaskLater(plugin, action.getDelay(holder, context));
 
-            plugin.sms(sender, Messages.ACTION_TO_BE_EXECUTED.message().replaceText(AMOUNT_REPLACER_BUILDER.replacement(String.valueOf(action.getDelay(holder))).build()));
+            plugin.sms(sender, Messages.ACTION_TO_BE_EXECUTED.message().replaceText(AMOUNT_REPLACER_BUILDER.replacement(String.valueOf(action.getDelay(holder, context))).build()));
             return;
         }
 

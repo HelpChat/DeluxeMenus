@@ -1,6 +1,7 @@
 package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import org.bukkit.Location;
 
 public class IsNearRequirement extends Requirement {
@@ -16,7 +17,7 @@ public class IsNearRequirement extends Requirement {
   }
 
   @Override
-  public boolean evaluate(MenuHolder holder) {
+  public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
     if (holder.getViewer() == null) {
       return false;
     }

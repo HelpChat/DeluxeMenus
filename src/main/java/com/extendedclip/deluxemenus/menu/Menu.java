@@ -7,6 +7,7 @@ import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
 import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
@@ -285,6 +286,9 @@ public class Menu {
         holder.setTypedArgs(args);
         holder.parsePlaceholdersInArguments(this.options.parsePlaceholdersInArguments());
         holder.parsePlaceholdersAfterArguments(this.options.parsePlaceholdersAfterArguments());
+        // Set before the requirement checks below, so %menu.*% resolves inside open_requirement
+        // and the args requirements instead of being left literal.
+        holder.setMenuName(this.options.name());
 
         if (!this.handleArgRequirements(holder)) {
             return;
@@ -316,7 +320,7 @@ public class Menu {
 
                     if (item.options().viewRequirements().isPresent()) {
 
-                        if (item.options().viewRequirements().get().evaluate(holder)) {
+                        if (item.options().viewRequirements().get().evaluate(holder, PlaceholderContext.of(holder).withItem(item))) {
 
                             activeItems.add(item);
                             break;
@@ -333,7 +337,6 @@ public class Menu {
                 return;
             }
 
-            holder.setMenuName(this.options.name());
             holder.setActiveItems(activeItems);
 
             this.options.openHandler().ifPresent(h -> h.onClick(holder));

@@ -4,6 +4,7 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.utils.*;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatMessageType;
@@ -25,6 +26,9 @@ public class ClickActionTask extends BukkitRunnable {
     private final String exec;
     // Ugly hack to get around the fact that arguments are not available at task execution time
     private final Map<String, String> arguments;
+    // Same idea, for the same reason: the menu, item and click this action came from no longer
+    // exist by the time a delayed action runs, so they are snapshotted at click time.
+    private final PlaceholderContext context;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
 
@@ -37,6 +41,20 @@ public class ClickActionTask extends BukkitRunnable {
             final boolean parsePlaceholdersInArguments,
             final boolean parsePlaceholdersAfterArguments
     ) {
+        this(plugin, uuid, actionType, exec, arguments, parsePlaceholdersInArguments,
+                parsePlaceholdersAfterArguments, PlaceholderContext.EMPTY);
+    }
+
+    public ClickActionTask(
+            @NotNull final DeluxeMenus plugin,
+            @NotNull final UUID uuid,
+            @NotNull final ActionType actionType,
+            @NotNull final String exec,
+            @NotNull final Map<String, String> arguments,
+            final boolean parsePlaceholdersInArguments,
+            final boolean parsePlaceholdersAfterArguments,
+            @NotNull final PlaceholderContext context
+    ) {
         this.plugin = plugin;
         this.uuid = uuid;
         this.actionType = actionType;
@@ -44,6 +62,7 @@ public class ClickActionTask extends BukkitRunnable {
         this.arguments = arguments;
         this.parsePlaceholdersInArguments = parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
+        this.context = context;
     }
 
     @Override
@@ -64,7 +83,8 @@ public class ClickActionTask extends BukkitRunnable {
                 this.arguments,
                 target,
                 this.parsePlaceholdersInArguments,
-                this.parsePlaceholdersAfterArguments);
+                this.parsePlaceholdersAfterArguments,
+                this.context);
 
         switch (actionType) {
             case META:

@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.action.ClickHandler;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import java.util.List;
 
 public class RequirementList {
@@ -16,19 +17,23 @@ public class RequirementList {
   }
 
   public boolean evaluate(MenuHolder holder) {
+    return evaluate(holder, PlaceholderContext.of(holder));
+  }
+
+  public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
     int successful = 0;
     for (Requirement r : getRequirements()) {
-      if (r.evaluate(holder)) {
+      if (r.evaluate(holder, context)) {
         successful = successful + 1;
         if (r.getSuccessHandler() != null) {
-          r.getSuccessHandler().onClick(holder);
+          r.getSuccessHandler().onClick(holder, context);
         }
         if (this.stopAtSuccess && successful >= minimumRequirements) {
           break;
         }
       } else {
         if (r.getDenyHandler() != null) {
-          r.getDenyHandler().onClick(holder);
+          r.getDenyHandler().onClick(holder, context);
         }
         if (!r.isOptional()) {
           return false;

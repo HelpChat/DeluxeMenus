@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.requirement;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
+import com.extendedclip.deluxemenus.placeholder.internal.PlaceholderContext;
 import com.extendedclip.deluxemenus.utils.ExpUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,14 +21,14 @@ public class HasExpRequirement extends Requirement {
     }
 
     @Override
-    public boolean evaluate(MenuHolder holder) {
+    public boolean evaluate(MenuHolder holder, PlaceholderContext context) {
         int amount;
         int has = level ? holder.getViewer().getLevel() : ExpUtils.getTotalExperience(holder.getViewer());
         try {
-            amount = Integer.parseInt(holder.setPlaceholdersAndArguments(amt));
+            amount = Integer.parseInt(holder.setPlaceholdersAndArguments(amt, context));
         } catch (final Exception exception) {
             plugin.printStacktrace(
-                "Invalid amount found for has exp requirement: " + holder.setPlaceholdersAndArguments(amt),
+                "Invalid amount found for has exp requirement: " + holder.setPlaceholdersAndArguments(amt, context),
                 exception
             );
             return false;

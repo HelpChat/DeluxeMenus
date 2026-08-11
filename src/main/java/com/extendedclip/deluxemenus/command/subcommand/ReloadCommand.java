@@ -37,19 +37,19 @@ public class ReloadCommand extends SubCommand {
         }
 
         if (!arguments.isEmpty()) {
-            if (Menu.getMenuByName(arguments.get(0)).isEmpty()) {
-                plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            if (Menu.getMenuByName(arguments.getFirst()).isEmpty()) {
+                plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.getFirst()).build()));
                 return;
             }
 
-            Menu.unload(plugin, arguments.get(0));
+            Menu.unload(plugin, arguments.getFirst());
 
-            if (plugin.getConfiguration().loadGUIMenu(arguments.get(0))) {
-                plugin.sms(sender, Messages.MENU_RELOADED.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            if (plugin.getConfiguration().loadGUIMenu(arguments.getFirst())) {
+                plugin.sms(sender, Messages.MENU_RELOADED.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.getFirst()).build()));
                 return;
             }
 
-            plugin.sms(sender, Messages.MENU_NOT_RELOADED.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            plugin.sms(sender, Messages.MENU_NOT_RELOADED.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.getFirst()).build()));
             return;
 
         }
@@ -87,11 +87,11 @@ public class ReloadCommand extends SubCommand {
         }
 
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
+            if (arguments.getFirst().isEmpty()) {
                 return List.of(getName());
             }
 
-            final String firstArgument = arguments.get(0).toLowerCase();
+            final String firstArgument = arguments.getFirst().toLowerCase();
 
             if (getName().startsWith(firstArgument)) {
                 return List.of(getName());
@@ -100,7 +100,7 @@ public class ReloadCommand extends SubCommand {
             return null;
         }
 
-        final String firstArgument = arguments.get(0).toLowerCase();
+        final String firstArgument = arguments.getFirst().toLowerCase();
 
         if (!getName().equals(firstArgument)) {
             return null;

@@ -61,10 +61,10 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final Player target = Bukkit.getPlayerExact(arguments.get(0));
+        final Player target = Bukkit.getPlayerExact(arguments.getFirst());
 
         if (target == null) {
-            plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(arguments.getFirst()).build()));
             return;
         }
 
@@ -165,7 +165,7 @@ public class MetaCommand extends SubCommand {
         }
 
         if (arguments.size() == 1) {
-            final String firstArgument = arguments.get(0).toLowerCase();
+            final String firstArgument = arguments.getFirst().toLowerCase();
             if (firstArgument.isEmpty()) {
                 return List.of(getName());
             }
@@ -177,7 +177,7 @@ public class MetaCommand extends SubCommand {
             return null;
         }
 
-        final String firstArgument = arguments.get(0).toLowerCase();
+        final String firstArgument = arguments.getFirst().toLowerCase();
 
         if (!getName().equals(firstArgument)) {
             return null;
@@ -244,7 +244,7 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String typeName = arguments.get(0).toUpperCase(Locale.ROOT);
+        final String typeName = arguments.getFirst().toUpperCase(Locale.ROOT);
         final DataType<?, ?> type = DataType.getSupportedTypeByName(typeName);
         if (type == null) {
             plugin.sms(sender, Messages.META_TYPE_UNSUPPORTED.message().replaceText(TYPE_REPLACER_BUILDER.replacement(typeName).build()));
@@ -318,7 +318,7 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        final String keyName = arguments.get(0);
+        final String keyName = arguments.getFirst();
         final NamespacedKey namespacedKey = plugin.getPersistentMetaHandler().getKey(keyName);
         if (namespacedKey == null) {
             plugin.sms(sender, Messages.META_KEY_INVALID.message().replaceText(KEY_REPLACER_BUILDER.replacement(keyName).build()));
@@ -366,25 +366,18 @@ public class MetaCommand extends SubCommand {
 
         final PersistentMetaHandler.OperationResult result = plugin.getPersistentMetaHandler().setMetaValue(target, namespacedKey, type, parsedValue);
         switch (result) {
-            case SUCCESS:
-                plugin.sms(sender, Messages.META_VALUE_SET.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
-                        .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
-                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
-                        .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
-                );
-                return;
-            case NEW_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_VALUE_TYPE_MISMATCH.message()
-                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
-                        .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
-                return;
-            case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
-                return;
-            default:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_SET_COMMAND);
+            case SUCCESS -> plugin.sms(sender, Messages.META_VALUE_SET.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                  .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
+                  .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
+                  .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
+            );
+            case NEW_VALUE_IS_DIFFERENT_TYPE -> plugin.sms(sender, Messages.META_VALUE_TYPE_MISMATCH.message()
+                  .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
+                  .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build()));
+            case EXISTENT_VALUE_IS_DIFFERENT_TYPE -> plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
+            default -> plugin.sms(sender, Messages.WRONG_USAGE_META_SET_COMMAND);
         }
     }
 
@@ -394,26 +387,19 @@ public class MetaCommand extends SubCommand {
                                   @NotNull final Map<ContextKeys, String> context) {
         final PersistentMetaHandler.OperationResult result = plugin.getPersistentMetaHandler().removeMetaValue(target, namespacedKey, type);
         switch (result) {
-            case SUCCESS:
-                plugin.sms(sender, Messages.META_VALUE_REMOVED.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
-                        .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
-                        .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
-                );
-                return;
-            case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
-                return;
-            case VALUE_NOT_FOUND:
-                plugin.sms(sender, Messages.NO_META_VALUE.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
-                        .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
-                        .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
-                );
-                return;
-            default:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_REMOVE_COMMAND);
+            case SUCCESS -> plugin.sms(sender, Messages.META_VALUE_REMOVED.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                  .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
+                  .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
+            );
+            case EXISTENT_VALUE_IS_DIFFERENT_TYPE -> plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
+            case VALUE_NOT_FOUND -> plugin.sms(sender, Messages.NO_META_VALUE.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                  .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
+                  .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
+            );
+            default -> plugin.sms(sender, Messages.WRONG_USAGE_META_REMOVE_COMMAND);
         }
     }
 
@@ -422,21 +408,18 @@ public class MetaCommand extends SubCommand {
         final PersistentMetaHandler.OperationResult result = plugin.getPersistentMetaHandler().switchMetaValue(target, namespacedKey);
 
         switch (result) {
-            case SUCCESS:
+            case SUCCESS -> {
                 final Object newValue = plugin.getPersistentMetaHandler().getMetaValue(target, namespacedKey, DataType.BOOLEAN);
 
                 plugin.sms(sender, Messages.META_VALUE_SWITCHED.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
-                        .replaceText(NEW_VALUE_REPLACER_BUILDER.replacement(String.valueOf(newValue)).build())
-                        .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
+                      .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                      .replaceText(NEW_VALUE_REPLACER_BUILDER.replacement(String.valueOf(newValue)).build())
+                      .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
                 );
-                return;
-            case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
-                return;
-            default:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_SWITCH_COMMAND);
+            }
+            case EXISTENT_VALUE_IS_DIFFERENT_TYPE -> plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
+            default -> plugin.sms(sender, Messages.WRONG_USAGE_META_SWITCH_COMMAND);
         }
     }
 
@@ -449,34 +432,29 @@ public class MetaCommand extends SubCommand {
 
         if (!(parsedValue instanceof Number)) {
             plugin.sms(sender, Messages.META_ADD_TYPE_MISMATCH.message()
-                    .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(value)).build()));
+                    .replaceText(VALUE_REPLACER_BUILDER.replacement(value).build()));
             return;
         }
 
         final PersistentMetaHandler.OperationResult result = plugin.getPersistentMetaHandler().addMetaValue(target, namespacedKey, type, (Number) parsedValue);
 
         switch (result) {
-            case SUCCESS:
+            case SUCCESS -> {
                 final Object newValue = plugin.getPersistentMetaHandler().getMetaValue(target, namespacedKey, type);
 
                 plugin.sms(sender, Messages.META_VALUE_ADDED.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
-                        .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
-                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
-                        .replaceText(NEW_VALUE_REPLACER_BUILDER.replacement(String.valueOf(newValue)).build())
-                        .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
+                      .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                      .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
+                      .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
+                      .replaceText(NEW_VALUE_REPLACER_BUILDER.replacement(String.valueOf(newValue)).build())
+                      .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
                 );
-                return;
-            case INVALID_TYPE:
-                plugin.sms(sender, Messages.META_ADD_TYPE_MISMATCH.message()
-                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
-                return;
-            case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
-                return;
-            default:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_ADD_COMMAND);
+            }
+            case INVALID_TYPE -> plugin.sms(sender, Messages.META_ADD_TYPE_MISMATCH.message()
+                  .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
+            case EXISTENT_VALUE_IS_DIFFERENT_TYPE -> plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
+            default -> plugin.sms(sender, Messages.WRONG_USAGE_META_ADD_COMMAND);
         }
     }
 
@@ -489,34 +467,29 @@ public class MetaCommand extends SubCommand {
 
         if (!(parsedValue instanceof Number)) {
             plugin.sms(sender, Messages.META_SUBTRACT_TYPE_MISMATCH.message()
-                    .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(value)).build()));
+                    .replaceText(VALUE_REPLACER_BUILDER.replacement(value).build()));
             return;
         }
 
         final PersistentMetaHandler.OperationResult result = plugin.getPersistentMetaHandler().subtractMetaValue(target, namespacedKey, type, (Number) parsedValue);
 
         switch (result) {
-            case SUCCESS:
+            case SUCCESS -> {
                 final Object newValue = plugin.getPersistentMetaHandler().getMetaValue(target, namespacedKey, type);
 
                 plugin.sms(sender, Messages.META_VALUE_SUBTRACTED.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
-                        .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
-                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
-                        .replaceText(NEW_VALUE_REPLACER_BUILDER.replacement(String.valueOf(newValue)).build())
-                        .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
+                      .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build())
+                      .replaceText(TYPE_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.TYPE_NAME, type.getComplexType().getSimpleName())).build())
+                      .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build())
+                      .replaceText(NEW_VALUE_REPLACER_BUILDER.replacement(String.valueOf(newValue)).build())
+                      .replaceText(PLAYER_REPLACER_BUILDER.replacement(target.getName()).build())
                 );
-                return;
-            case INVALID_TYPE:
-                plugin.sms(sender, Messages.META_SUBTRACT_TYPE_MISMATCH.message()
-                        .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
-                return;
-            case EXISTENT_VALUE_IS_DIFFERENT_TYPE:
-                plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
-                        .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
-                return;
-            default:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_SUBTRACT_COMMAND);
+            }
+            case INVALID_TYPE -> plugin.sms(sender, Messages.META_SUBTRACT_TYPE_MISMATCH.message()
+                  .replaceText(VALUE_REPLACER_BUILDER.replacement(String.valueOf(parsedValue)).build()));
+            case EXISTENT_VALUE_IS_DIFFERENT_TYPE -> plugin.sms(sender, Messages.META_EXISTENT_VALUE_WRONG_TYPE.message()
+                  .replaceText(KEY_REPLACER_BUILDER.replacement(context.getOrDefault(ContextKeys.KEY_NAME, namespacedKey.toString())).build()));
+            default -> plugin.sms(sender, Messages.WRONG_USAGE_META_SUBTRACT_COMMAND);
         }
     }
 
@@ -527,23 +500,12 @@ public class MetaCommand extends SubCommand {
         }
 
         switch (action) {
-            case SET:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_SET_COMMAND);
-                return;
-            case REMOVE:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_REMOVE_COMMAND);
-                return;
-            case ADD:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_ADD_COMMAND);
-                return;
-            case SUBTRACT:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_SUBTRACT_COMMAND);
-                return;
-            case SWITCH:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_SWITCH_COMMAND);
-                return;
-            default:
-                plugin.sms(sender, Messages.WRONG_USAGE_META_COMMAND);
+            case SET -> plugin.sms(sender, Messages.WRONG_USAGE_META_SET_COMMAND);
+            case REMOVE -> plugin.sms(sender, Messages.WRONG_USAGE_META_REMOVE_COMMAND);
+            case ADD -> plugin.sms(sender, Messages.WRONG_USAGE_META_ADD_COMMAND);
+            case SUBTRACT -> plugin.sms(sender, Messages.WRONG_USAGE_META_SUBTRACT_COMMAND);
+            case SWITCH -> plugin.sms(sender, Messages.WRONG_USAGE_META_SWITCH_COMMAND);
+            default -> plugin.sms(sender, Messages.WRONG_USAGE_META_COMMAND);
         }
     }
 

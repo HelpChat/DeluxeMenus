@@ -46,11 +46,11 @@ public class HelpCommand extends SubCommand {
             return null;
         }
 
-        if (arguments.isEmpty() || arguments.get(0).isEmpty()) {
+        if (arguments.isEmpty() || arguments.getFirst().isEmpty()) {
             return List.of(getName());
         }
 
-        final String argument = arguments.get(0).toLowerCase();
+        final String argument = arguments.getFirst().toLowerCase();
 
         if (!getName().startsWith(argument)) {
             return null;

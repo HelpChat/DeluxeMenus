@@ -81,8 +81,7 @@ public class SkullUtils {
     }
 
     public static String getTextureFromSkull(final DeluxeMenus plugin, ItemStack item) {
-        if (!(item.getItemMeta() instanceof SkullMeta)) return null;
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        if (!(item.getItemMeta() instanceof SkullMeta meta)) return null;
 
         if (VersionHelper.HAS_PLAYER_PROFILES) {
             PlayerProfile profile = meta.getOwnerProfile();
@@ -150,8 +149,7 @@ public class SkullUtils {
     }
 
     public static String getSkullOwner(ItemStack skull) {
-        if (skull == null || !(skull.getItemMeta() instanceof SkullMeta)) return null;
-        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        if (skull == null || !(skull.getItemMeta() instanceof SkullMeta meta)) return null;
 
         if (!VersionHelper.IS_SKULL_OWNER_LEGACY) {
             if (meta.getOwningPlayer() == null) return null;
@@ -183,7 +181,7 @@ public class SkullUtils {
      */
     @NotNull
     private static PlayerProfile getPlayerProfile(@NotNull final DeluxeMenus plugin, @NotNull final String base64Url) {
-        final PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+        final PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
 
         final String decodedBase64 = decodeSkinUrl(base64Url);
         if (decodedBase64 == null) {

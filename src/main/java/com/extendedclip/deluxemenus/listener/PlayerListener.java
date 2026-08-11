@@ -6,9 +6,10 @@ import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
+import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,14 +19,17 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class PlayerListener extends Listener {
 
+    private final TaskScheduler scheduler;
     private final Cache<UUID, Long> cache = CacheBuilder.newBuilder().expireAfterWrite(75, TimeUnit.MILLISECONDS).build();
 
     // This is so dumb. Mojang fix your shit.
@@ -33,9 +37,10 @@ public class PlayerListener extends Listener {
 
     public PlayerListener(@NotNull final DeluxeMenus plugin) {
         super(plugin);
+        this.scheduler = plugin.getScheduler();
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCommandExecute(PlayerCommandPreprocessEvent event) {
 
         final String cmd = event.getMessage().substring(1);
@@ -67,47 +72,73 @@ public class PlayerListener extends Listener {
 
     @EventHandler
     public void onOpen(InventoryOpenEvent event) {
-        if (!(event.getPlayer() instanceof Player)) {
+        if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
-
-        final Player player = (Player) event.getPlayer();
 
         if (player.isSleeping()) {
             event.setCancelled(true);
         }
 
         if (Menu.isInMenu(player)) {
-            Menu.closeMenu(plugin, player, true);
+            Menu.closeMenu(plugin, player, false);
         }
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-
-        if (!(event.getPlayer() instanceof Player)) {
+        if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
 
-        final Player player = (Player) event.getPlayer();
-
         if (Menu.isInMenu(player)) {
             Menu.closeMenu(plugin, player, false);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                Menu.cleanInventory(plugin, player);
-                player.updateInventory();
-            }, 3L);
         }
+
+        scheduler.runTaskLater(player, () -> {
+            Menu.cleanInventory(plugin, player);
+
+            boolean removed = false;
+
+            for (ItemStack itemStack : player.getInventory().getContents()) {
+                if (itemStack == null) continue;
+                if (!plugin.getMenuItemMarker().isMarked(itemStack)) continue;
+                if (!plugin.isDupeProtectionFlagged(itemStack)) continue;
+
+                player.getInventory().remove(itemStack);
+                removed = true;
+
+                plugin.debug(
+                        DebugLevel.LOWEST,
+                        Level.INFO,
+                        "DeluxeMenus item found in main inventory on close. Removing it."
+                );
+            }
+
+            ItemStack offhand = player.getInventory().getItemInOffHand();
+            if (plugin.getMenuItemMarker().isMarked(offhand) && plugin.isDupeProtectionFlagged(offhand)) {
+                player.getInventory().setItemInOffHand(null);
+                removed = true;
+
+                plugin.debug(
+                        DebugLevel.LOWEST,
+                        Level.INFO,
+                        "DeluxeMenus item found in offhand on close. Removing it."
+                );
+            }
+
+            if (removed) {
+                player.updateInventory();
+            }
+        }, 1L);
     }
 
     @EventHandler(priority = EventPriority.LOW)
     public void onClick(InventoryClickEvent event) {
 
-        if (!(event.getWhoClicked() instanceof Player)) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-
-        final Player player = (Player) event.getWhoClicked();
 
         final Optional<MenuHolder> optionalHolder = Menu.getMenuHolder(player);
 
@@ -181,8 +212,7 @@ public class PlayerListener extends Listener {
         }
 
         if (event.getClick() == ClickType.MIDDLE) {
-            if (handleClick(player, holder, item.options().middleClickHandler(), item.options().middleClickRequirements())) {
-            }
+            handleClick(player, holder, item.options().middleClickHandler(), item.options().middleClickRequirements());
         }
     }
 

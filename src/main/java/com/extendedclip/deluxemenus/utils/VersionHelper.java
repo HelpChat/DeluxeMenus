@@ -185,7 +185,6 @@ public final class VersionHelper {
             else stringBuilder.append(patch.replace(".", ""));
         }
 
-        //noinspection UnstableApiUsage
         final Integer version = Ints.tryParse(stringBuilder.toString());
 
         // Should never fail

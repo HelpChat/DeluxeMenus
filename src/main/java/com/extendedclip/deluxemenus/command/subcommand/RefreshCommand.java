@@ -42,16 +42,16 @@ public class RefreshCommand extends SubCommand {
             return;
         }
 
-        Optional<Menu> menu = Menu.getMenuByName(arguments.get(0));
+        Optional<Menu> menu = Menu.getMenuByName(arguments.getFirst());
 
         if (menu.isEmpty()) {
-            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.getFirst()).build()));
             return;
         }
 
         menu.get().refreshForAll();
 
-        if(arguments.size() < 2 || !arguments.get(1).equalsIgnoreCase("-s")) {
+        if (arguments.size() < 2 || !arguments.get(1).equalsIgnoreCase("-s")) {
             plugin.sms(sender, Messages.MENU_REFRESHED.message()
                     .replaceText(MENU_REPLACER_BUILDER.replacement(menu.get().options().name()).build())
                     .replaceText(AMOUNT_REPLACER_BUILDER.replacement(String.valueOf(menu.get().activeViewers())).build())
@@ -74,11 +74,11 @@ public class RefreshCommand extends SubCommand {
         }
 
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
+            if (arguments.getFirst().isEmpty()) {
                 return List.of(getName());
             }
 
-            final String firstArgument = arguments.get(0).toLowerCase();
+            final String firstArgument = arguments.getFirst().toLowerCase();
 
             if (getName().startsWith(firstArgument)) {
                 return List.of(getName());
@@ -87,7 +87,7 @@ public class RefreshCommand extends SubCommand {
             return null;
         }
 
-        final String firstArgument = arguments.get(0).toLowerCase();
+        final String firstArgument = arguments.getFirst().toLowerCase();
 
         if (!getName().equals(firstArgument)) {
             return null;

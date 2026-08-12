@@ -1,5 +1,7 @@
 package com.extendedclip.deluxemenus.utils;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -8,17 +10,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.profile.PlayerProfile;
-import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Base64;
 import java.util.UUID;
 
 public class SkullUtils {
+
+    private static final String TEXTURES_PROPERTY = "textures";
+    private static final String TEXTURE_URL_PREFIX = "https://textures.minecraft.net/texture/";
 
     private static final Gson GSON = new Gson();
 
@@ -31,7 +32,7 @@ public class SkullUtils {
     @NotNull
     public static String getEncoded(@NotNull final String url) {
         final byte[] encodedData = Base64.getEncoder().encode(String
-                .format("{textures:{SKIN:{url:\"%s\"}}}", "https://textures.minecraft.net/texture/" + url)
+                .format("{%s:{SKIN:{url:\"%s\"}}}", TEXTURES_PROPERTY, TEXTURE_URL_PREFIX + url)
                 .getBytes());
         return new String(encodedData);
     }
@@ -54,24 +55,33 @@ public class SkullUtils {
             return head;
         }
 
-        headMeta.setOwnerProfile(getPlayerProfile(plugin, base64Url));
+        final PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
+        profile.setProperty(new ProfileProperty(TEXTURES_PROPERTY, base64Url));
+        headMeta.setPlayerProfile(profile);
+
         head.setItemMeta(headMeta);
         return head;
     }
 
-    public static String getTextureFromSkull(final DeluxeMenus plugin, ItemStack item) {
-        if (!(item.getItemMeta() instanceof SkullMeta)) return null;
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
+    /**
+     * Get the texture id of a skull, i.e. the trailing path segment of its skin url.
+     *
+     * @return the texture id, or {@code null} if the item is not a skull or carries no texture
+     */
+    public static @Nullable String getTextureFromSkull(@NotNull final ItemStack item) {
+        if (!(item.getItemMeta() instanceof SkullMeta meta)) return null;
 
-        PlayerProfile profile = meta.getOwnerProfile();
+        final PlayerProfile profile = meta.getPlayerProfile();
         if (profile == null) return null;
 
-        URL url = profile.getTextures().getSkin();
-        if (url == null) return null;
+        for (final ProfileProperty property : profile.getProperties()) {
+            if (TEXTURES_PROPERTY.equals(property.getName())) {
+                return getTextureIdFromBase64(property.getValue());
+            }
+        }
 
-        return url.toString().substring("https://textures.minecraft.net/texture/".length() - 1);
+        return null;
     }
-
 
     /**
      * Get the skull from a player name
@@ -92,10 +102,11 @@ public class SkullUtils {
         }
 
         final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        final PlayerProfile profile = offlinePlayer.getPlayerProfile();
 
-        if (offlinePlayer.getPlayerProfile().getTextures().isEmpty()) {
+        if (!profile.hasTextures()) {
             // updates the Player Profile and populates textures for offline players - for some reason this doesn't populate when getting the Profile first time
-            headMeta.setOwnerProfile(offlinePlayer.getPlayerProfile().update().join());
+            headMeta.setPlayerProfile(profile.update().join());
         } else {
             headMeta.setOwningPlayer(offlinePlayer);
         }
@@ -113,30 +124,17 @@ public class SkullUtils {
     }
 
     /**
-     * Create a player profile object
+     * Extract the texture id from a base64 encoded texture blob.
      *
-     * @param base64Url the base64 encoded texture URL to use
-     * @return player profile
+     * @return the texture id, or {@code null} if the blob carries no skin url
      */
-    @NotNull
-    private static PlayerProfile getPlayerProfile(@NotNull final DeluxeMenus plugin, @NotNull final String base64Url) {
-        final PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
-
-        final String decodedBase64 = decodeSkinUrl(base64Url);
-        if (decodedBase64 == null) {
-            return profile;
+    public static @Nullable String getTextureIdFromBase64(@NotNull final String base64Texture) {
+        final String url = decodeSkinUrl(base64Texture);
+        if (url == null) {
+            return null;
         }
 
-        final PlayerTextures textures = profile.getTextures();
-
-        try {
-            textures.setSkin(new URL(decodedBase64));
-        } catch (final MalformedURLException exception) {
-            plugin.printStacktrace("Something went horribly wrong trying to create basehead URL", exception);
-        }
-
-        profile.setTextures(textures);
-        return profile;
+        return url.substring(url.lastIndexOf('/') + 1);
     }
 
     /**

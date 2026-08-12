@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Class for detecting server version.
@@ -17,15 +16,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class VersionHelper {
 
-    private static final String PACKAGE_NAME = Bukkit.getServer().getClass().getPackage().getName();
-    public static final String NMS_VERSION = PACKAGE_NAME.substring(PACKAGE_NAME.lastIndexOf('.') + 1);
-
     // Custom Model Data Component
     private static final int V1_21_4 = 1_21_4;
     // Tooltip Style & Item Model
     private static final int V1_21_2 = 1_21_2;
-    // Mojang obfuscation changes
-    private static final int V1_17 = 1170;
 
     public static final int CURRENT_VERSION = getCurrentVersion();
 
@@ -33,11 +27,6 @@ public final class VersionHelper {
      * Checks if the current version includes the setTooltipStyle and setItemModel
      */
     public static final boolean HAS_TOOLTIP_STYLE = CURRENT_VERSION >= V1_21_2;
-
-    /**
-     * Checks if the current version was a version without versioned packages.
-     */
-    public static final boolean HAS_OBFUSCATED_NAMES = CURRENT_VERSION >= V1_17;
 
     public static final boolean IS_CUSTOM_MODEL_DATA_COMPONENT = CURRENT_VERSION >= V1_21_4;
 
@@ -92,27 +81,6 @@ public final class VersionHelper {
         if (version == null) throw new RuntimeException("Could not retrieve server version!");
 
         return version;
-    }
-
-    /**
-     * Gets the NMS class from class name.
-     *
-     * @return The NMS class.
-     */
-    public static Class<?> getNMSClass(final String pkg, final String className) throws ClassNotFoundException {
-        if (VersionHelper.HAS_OBFUSCATED_NAMES) {
-            return Class.forName("net.minecraft." + pkg + "."  + className);
-        }
-        return Class.forName("net.minecraft.server." + VersionHelper.NMS_VERSION + "." + className);
-    }
-
-    /**
-     * Gets the craft class from class name.
-     *
-     * @return The craft class.
-     */
-    public static Class<?> getCraftClass(@NotNull final String name) throws ClassNotFoundException {
-        return Class.forName("org.bukkit.craftbukkit." + NMS_VERSION + "." + name);
     }
 
 }

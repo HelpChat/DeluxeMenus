@@ -38,7 +38,7 @@ public class TextureHeadHook implements ItemHook, SimpleCache {
     if (arguments.length == 0) {
       return false;
     }
-    return arguments[0].equals(SkullUtils.getTextureFromSkull(plugin, item));
+    return arguments[0].equals(SkullUtils.getTextureFromSkull(item));
   }
 
     @Override

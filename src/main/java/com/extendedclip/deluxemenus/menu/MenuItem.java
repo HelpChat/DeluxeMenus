@@ -6,7 +6,6 @@ import com.extendedclip.deluxemenus.menu.options.HeadType;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
-import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
@@ -475,72 +474,6 @@ public class MenuItem {
         }
 
         itemStack.setItemMeta(itemMeta);
-
-        if (NbtProvider.isAvailable()) {
-            if (this.options.nbtString().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtString().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":", 2);
-                    itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
-                }
-            }
-
-            if (this.options.nbtByte().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtByte().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
-                }
-            }
-
-            if (this.options.nbtShort().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtShort().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
-                }
-            }
-
-            if (this.options.nbtInt().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
-                }
-            }
-
-            for (String nbtTag : this.options.nbtStrings()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":", 2);
-                    itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
-                }
-            }
-
-            for (String nbtTag : this.options.nbtBytes()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
-                }
-            }
-
-            for (String nbtTag : this.options.nbtShorts()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
-                }
-            }
-
-            for (String nbtTag : this.options.nbtInts()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
-                }
-            }
-        }
 
         return itemStack;
     }

@@ -3,8 +3,9 @@ package com.extendedclip.deluxemenus.menu.command;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
+import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-import me.clip.placeholderapi.util.Msg;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -49,7 +50,7 @@ public class RegistrableMenuCommand extends Command {
         }
 
         if (!(sender instanceof Player player)) {
-            Msg.msg(sender, "Menus can only be opened by players!");
+            plugin.sms(sender, Messages.MENUS_ARE_PLAYER_ONLY);
             return true;
         }
 
@@ -60,7 +61,8 @@ public class RegistrableMenuCommand extends Command {
             if (typedArgs.length < menu.options().arguments().size()) {
                 if (menu.options().argumentsUsageMessage().isPresent()) {
                     String usageMessage = menu.options().argumentsUsageMessage().get();
-                    Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage, (Player) sender));
+                    plugin.sms(sender, LegacyComponentSerializer.legacySection().deserialize(
+                            StringUtils.color(StringUtils.replacePlaceholders(usageMessage, player))));
                 }
                 return true;
             }

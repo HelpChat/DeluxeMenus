@@ -18,8 +18,6 @@ bstats = "3.2.1"
 
 # Implementation
 nashorn = "15.7"
-adventure-platform = "4.4.1"
-adventure-minimessage = "5.2.0"
 
 [libraries]
 # Compile only
@@ -41,6 +39,4 @@ sig = { module = "io.github.valerashimchuck:simpleitemgenerator-api", version.re
 
 # Implementation
 nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }
-adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
-adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
 bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }

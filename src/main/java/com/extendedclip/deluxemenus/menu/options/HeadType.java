@@ -22,6 +22,10 @@ public enum HeadType {
      */
     HDB(HDB_HEAD_TYPE, HDB_HEAD_PREFIX),
     /**
+     * @see com.extendedclip.deluxemenus.hooks.HeadDBHook
+     */
+    HEADDB(HEADDB_HEAD_TYPE, HEADDB_HEAD_PREFIX),
+    /**
      * @see com.extendedclip.deluxemenus.hooks.BaseHeadHook
      */
     BASE64(BASE64_HEAD_TYPE, BASE64_HEAD_PREFIX);

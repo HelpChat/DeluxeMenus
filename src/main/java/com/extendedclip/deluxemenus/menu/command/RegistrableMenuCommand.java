@@ -3,6 +3,7 @@ package com.extendedclip.deluxemenus.menu.command;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
+import com.extendedclip.deluxemenus.utils.StringUtils;
 import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -58,7 +59,8 @@ public class RegistrableMenuCommand extends Command {
             plugin.debug(DebugLevel.LOWEST, Level.INFO, "has args");
             if (typedArgs.length < menu.options().arguments().size()) {
                 if (menu.options().argumentsUsageMessage().isPresent()) {
-                    Msg.msg(sender, menu.options().argumentsUsageMessage().get());
+                    String usageMessage = menu.options().argumentsUsageMessage().get();
+                    Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage, (Player) sender));
                 }
                 return true;
             }
@@ -86,9 +88,26 @@ public class RegistrableMenuCommand extends Command {
         if (registered) {
             throw new IllegalStateException("This command was already registered!");
         }
+        if (registered) {
+            throw new IllegalStateException("This command was already registered!");
+        }
 
         registered = true;
+        registered = true;
 
+        if (commandMap == null) {
+            try {
+                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+                f.setAccessible(true);
+                commandMap = (CommandMap) f.get(Bukkit.getServer());
+            } catch (final @NotNull Exception exception) {
+                plugin.printStacktrace(
+                        "Something went wrong while trying to register command: " + this.getName(),
+                        exception
+                );
+                return;
+            }
+        }
         if (commandMap == null) {
             try {
                 final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -109,6 +128,13 @@ public class RegistrableMenuCommand extends Command {
                     DebugLevel.LOW,
                     Level.INFO,
                     "Registered command: " + this.getName() + " for menu: " + menu.options().name()
+            );
+        } else {
+            plugin.debug(
+                    DebugLevel.HIGHEST,
+                    Level.WARNING,
+                    "Failed to register command: " + this.getName() + " for menu: " + menu.options().name()
+                            + ". A command with that name already exists. Use /deluxemenus:" + this.getName() + " instead."
             );
         }
     }

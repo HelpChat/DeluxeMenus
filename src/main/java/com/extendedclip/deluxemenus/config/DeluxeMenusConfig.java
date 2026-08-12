@@ -13,6 +13,7 @@ import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
+import com.extendedclip.deluxemenus.requirement.HasEphemeralCooldownRequirement;
 import com.extendedclip.deluxemenus.requirement.HasExpRequirement;
 import com.extendedclip.deluxemenus.requirement.HasItemRequirement;
 import com.extendedclip.deluxemenus.requirement.HasMetaRequirement;
@@ -169,6 +170,8 @@ public class DeluxeMenusConfig {
         c.addDefault("check_updates", true);
         c.addDefault("use_admin_commands_in_menus_list", false);
         c.addDefault("menus_list_page_size", 10);
+        // Longest duration the [ephemeralcooldown] action may set, in seconds. 0 or less = no limit.
+        c.addDefault("max_ephemeral_cooldown_seconds", -1);
         c.options().copyDefaults(true);
 
         if (!c.contains("gui_menus")) {
@@ -564,6 +567,7 @@ public class DeluxeMenusConfig {
 
         builder.parsePlaceholdersInArguments(c.getBoolean(pre + "arguments_support_placeholders", false));
         builder.parsePlaceholdersAfterArguments(c.getBoolean(pre + "parse_placeholders_after_arguments", false));
+        builder.enableBypassPerm(c.getBoolean(pre + "enable_open_requirements_bypass_permissions", false));
 
         // Don't need to register the menu since it's done in the constructor
         new Menu(plugin, builder.build(), items, path);
@@ -971,6 +975,16 @@ public class DeluxeMenusConfig {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Permission requirement at path: " + rPath + " does not contain a permission: entry");
                     }
                     break;
+                case HAS_EPHEMERAL_COOLDOWN:
+                case DOES_NOT_HAVE_EPHEMERAL_COOLDOWN:
+                    final String cooldownId = c.getString(rPath + ".id");
+                    if (cooldownId == null || cooldownId.trim().isEmpty()) {
+                        plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Ephemeral cooldown requirement at path: " + rPath + " does not contain an id: entry");
+                        break;
+                    }
+                    invert = type == RequirementType.DOES_NOT_HAVE_EPHEMERAL_COOLDOWN;
+                    req = new HasEphemeralCooldownRequirement(plugin, cooldownId, invert);
+                    break;
                 case HAS_PERMISSIONS:
                 case DOES_NOT_HAVE_PERMISSIONS:
                     if (c.contains(rPath + ".permissions")) {
@@ -1028,6 +1042,8 @@ public class DeluxeMenusConfig {
                 case STRING_DOES_NOT_CONTAIN:
                 case STRING_DOES_NOT_EQUAL:
                 case STRING_DOES_NOT_EQUAL_IGNORECASE:
+                case STRING_CONTAINS_IGNORECASE:
+                case STRING_DOES_NOT_CONTAIN_IGNORECASE:
                     if (c.contains(rPath + ".input") && c.contains(rPath + ".output")) {
                         req = new InputResultRequirement(type, c.getString(rPath + ".input"), c.getString(rPath + ".output"));
                     } else {

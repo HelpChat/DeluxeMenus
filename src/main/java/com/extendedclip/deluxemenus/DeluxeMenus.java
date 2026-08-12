@@ -4,6 +4,7 @@ import com.extendedclip.deluxemenus.cache.SimpleCache;
 import com.extendedclip.deluxemenus.command.DeluxeMenusCommand;
 import com.extendedclip.deluxemenus.config.DeluxeMenusConfig;
 import com.extendedclip.deluxemenus.config.GeneralConfig;
+import com.extendedclip.deluxemenus.cooldown.EphemeralCooldownManager;
 import com.extendedclip.deluxemenus.dupe.DupeFixer;
 import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.hooks.*;
@@ -48,6 +49,7 @@ public class DeluxeMenus extends JavaPlugin {
 
     private PersistentMetaHandler persistentMetaHandler;
     private MenuItemMarker menuItemMarker;
+    private EphemeralCooldownManager ephemeralCooldownManager;
 
     private BukkitAudiences audiences;
 
@@ -86,6 +88,9 @@ public class DeluxeMenus extends JavaPlugin {
         this.menuItemMarker = new MenuItemMarker(this);
         new DupeFixer(this, this.menuItemMarker).register();
 
+        this.ephemeralCooldownManager = new EphemeralCooldownManager(this);
+        this.ephemeralCooldownManager.startSweepTask();
+
         this.audiences = BukkitAudiences.create(this);
 
         hookIntoVault();
@@ -121,6 +126,10 @@ public class DeluxeMenus extends JavaPlugin {
         }
 
         Menu.unloadForShutdown(this);
+
+        if (this.ephemeralCooldownManager != null) {
+            this.ephemeralCooldownManager.clearAll();
+        }
 
         itemHooks.clear();
 
@@ -198,6 +207,10 @@ public class DeluxeMenus extends JavaPlugin {
         return persistentMetaHandler;
     }
 
+    public EphemeralCooldownManager getEphemeralCooldownManager() {
+        return ephemeralCooldownManager;
+    }
+
     public BukkitAudiences audiences() {
         if (this.audiences == null) {
             throw new IllegalStateException("Tried to access Adventure when the plugin was disabled!");
@@ -254,10 +267,11 @@ public class DeluxeMenus extends JavaPlugin {
         this.itemHooks = new HashMap<>();
 
         final NamedHeadHook namedHeadHook = new NamedHeadHook(this);
+        final TextureHeadHook textureHeadHook = new TextureHeadHook(this);
         namedHeadHook.register();
         this.itemHooks.put(HeadType.NAMED.getHookName(), namedHeadHook);
         this.itemHooks.put(HeadType.BASE64.getHookName(), new BaseHeadHook(this));
-        this.itemHooks.put(HeadType.TEXTURE.getHookName(), new TextureHeadHook(this));
+        this.itemHooks.put(HeadType.TEXTURE.getHookName(), textureHeadHook);
 
         if (Bukkit.getPluginManager().isPluginEnabled("HeadDatabase")) {
             try {
@@ -267,6 +281,19 @@ public class DeluxeMenus extends JavaPlugin {
                 // We are looking for this specific class because we've had issues with other plugins being named HeadDatabase
                 // in the past
             }
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("HeadDB")) {
+            try {
+                Class.forName("io.github.silentdevelopment.headdb.HeadDBService");
+                this.itemHooks.put(HeadType.HEADDB.getHookName(), new HeadDBHook(this, textureHeadHook));
+            } catch (ClassNotFoundException ignored) {
+                // We are looking for this specific class to avoid hooking into unrelated plugins named HeadDB.
+            }
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("CraftEngine")) {
+            this.itemHooks.put("craftengine", new CraftEngineHook());
         }
 
         if (Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) {

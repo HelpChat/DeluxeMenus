@@ -1,9 +1,12 @@
 package com.extendedclip.deluxemenus.hooks;
 
 import com.extendedclip.deluxemenus.cache.SimpleCache;
-import com.ssomar.score.api.ExecutableBlocksAPI;
+import com.ssomar.score.api.executableblocks.ExecutableBlocksAPI;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.ssomar.score.api.executableblocks.config.ExecutableBlockInterface;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -20,9 +23,9 @@ public class ExecutableBlocksHook implements ItemHook, SimpleCache {
     }
 
     final ItemStack item = cache.computeIfAbsent(arguments[0], (id) -> {
-      final ItemStack result = ExecutableBlocksAPI.getExecutableBlock(arguments[0]);
+      final Optional<ExecutableBlockInterface> result = ExecutableBlocksAPI.getExecutableBlocksManager().getExecutableBlock(arguments[0]);
 
-      return (result == null) ? null : result.clone();
+      return result.map(executableBlockInterface -> executableBlockInterface.buildItem(1, Optional.empty())).orElse(null);
     });
 
     return (item == null) ? new ItemStack(Material.STONE) : item.clone();

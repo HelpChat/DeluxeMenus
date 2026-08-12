@@ -51,6 +51,10 @@ public enum RequirementType {
       "Checks if a string contains another string", Arrays.asList("input", "output")),
   STRING_DOES_NOT_CONTAIN(Arrays.asList("!string contains", "!stringcontains", "!contains"),
       "Checks if a string does not contain another string", Arrays.asList("input", "output")),
+  STRING_CONTAINS_IGNORECASE(Arrays.asList("string contains ignorecase", "stringcontainsignorecase", "containsignorecase"),
+      "Checks if a string contains another string ignoring case", Arrays.asList("input", "output")),
+  STRING_DOES_NOT_CONTAIN_IGNORECASE(Arrays.asList("!string contains ignorecase", "!stringcontainsignorecase", "!containsignorecase"),
+      "Checks if a string does not contain another string ignoring case", Arrays.asList("input", "output")),
   STRING_EQUALS(Arrays.asList("string equals", "stringequals", "equals"),
       "Checks if a string equals another string", Arrays.asList("input", "output")),
   STRING_DOES_NOT_EQUAL(Arrays.asList("!string equals", "!stringequals", "!equals"),
@@ -87,7 +91,15 @@ public enum RequirementType {
           Arrays.asList("input", "min", "max")),
   IS_OBJECT(Arrays.asList("is object"),
           "Checks if the given string can be parsed as a given Java object.",
-          Arrays.asList("input", "object"));
+          Arrays.asList("input", "object")),
+  HAS_EPHEMERAL_COOLDOWN(Arrays.asList("has ephemeral cooldown", "hasephemeralcooldown",
+          "ephemeral cooldown", "ephemeralcooldown"),
+          "Checks if the player is currently on the given ephemeral cooldown.",
+          Arrays.asList("id")),
+  DOES_NOT_HAVE_EPHEMERAL_COOLDOWN(Arrays.asList("!has ephemeral cooldown", "!hasephemeralcooldown",
+          "!ephemeral cooldown", "!ephemeralcooldown", "does not have ephemeral cooldown"),
+          "Checks if the player is not currently on the given ephemeral cooldown.",
+          Arrays.asList("id"));
 
   private final List<String> identifier;
   private final String description;
@@ -122,3 +134,4 @@ public enum RequirementType {
     return configOptions;
   }
 }
+

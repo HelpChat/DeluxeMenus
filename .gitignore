@@ -1,4 +1,23 @@
-.gradle
-.idea
-build
-test-server/
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# Build tools
+.gradle/
+build/
+out/
+bin/
+local.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

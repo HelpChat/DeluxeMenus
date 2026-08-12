@@ -1,7 +1,7 @@
 plugins {
     java
-    id("com.gradleup.shadow") version("8.3.8")
-    id("com.github.ben-manes.versions") version("0.52.0")
+    id("com.gradleup.shadow") version("9.6.1")
+    id("io.github.ben-manes.versions") version("0.61.0")
 }
 
 // Change to true when releasing
@@ -17,6 +17,7 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
+    maven("https://repo.momirealms.net/releases/")
     maven("https://repo.nexomc.com/releases/")
     maven("https://repo.oraxen.com/releases")
     maven("https://maven.devs.beer/")
@@ -30,6 +31,9 @@ dependencies {
     compileOnly(libs.authlib)
 
     compileOnly(libs.headdb)
+    compileOnly(libs.headdb.api)
+    compileOnly(libs.craftengine.core)
+    compileOnly(libs.craftengine.bukkit)
     compileOnly(libs.itemsadder)
     compileOnly(libs.nexo)
     compileOnly(libs.oraxen)
@@ -45,7 +49,7 @@ dependencies {
     implementation(libs.adventure.minimessage)
     implementation(libs.bstats)
 
-    compileOnly("org.jetbrains:annotations:23.0.0")
+    compileOnly("org.jetbrains:annotations:26.1.0")
 }
 
 tasks {

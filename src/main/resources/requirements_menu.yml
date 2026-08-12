@@ -14,6 +14,11 @@ menu_title: 'Requirements Menu'
 open_command: requirementsmenu
 size: 9
 #
+# How often (in seconds) items with "update: true" have their placeholders re-parsed.
+# Example 4 below uses this to show a live cooldown countdown in the item's lore.
+#
+update_interval: 1
+#
 # as always, only cool people can open this menu :)
 #
 open_requirement:
@@ -237,5 +242,53 @@ items:
     #
     right_click_commands:
       - '[refresh]'
-    
+  #
+  # Example 4: Ephemeral cooldown
+  #
+  # Examples 2 and 3 use a temporary LuckPerms permission as a cooldown. If you don't need the
+  # cooldown to survive a server restart, DeluxeMenus can track it for you instead - no other
+  # plugin and no second item required.
+  #
+  # An ephemeral cooldown is kept in memory only. It survives /dm reload, but it is gone once the
+  # server stops. For anything longer lived, keep using temporary permissions or a cooldown plugin.
+  #
+  'free_emerald':
+    material: EMERALD
+    slot: 2
+    display_name: '&aFREE EMERALD!'
+    lore:
+      - '&7Click to get 1 free &aemerald&7!'
+      - ''
+      # %deluxemenus_ephemeral_cooldown_<id>% is the whole seconds left, or 0 when it isn't running.
+      # There is also %deluxemenus_ephemeral_cooldown_formatted_<id>%, which reads "1h 2m 3s" instead
+      # and is empty when the cooldown isn't running.
+      - '&7Cooldown: &f%deluxemenus_ephemeral_cooldown_free_emerald%&7s'
+    #
+    # "update: true" re-parses this item's placeholders every update_interval seconds,
+    # which is what makes the countdown in the lore above tick down.
+    #
+    update: true
+    click_requirement:
+      requirements:
+        not_on_cooldown:
+          #
+          # "!has ephemeral cooldown" passes only while the cooldown with this id is NOT running.
+          # The id is yours to pick and is shared across every menu, per player.
+          #
+          type: '!has ephemeral cooldown'
+          id: free_emerald
+          deny_commands:
+            - '[message] &cPlease wait &f%deluxemenus_ephemeral_cooldown_free_emerald%&c more seconds!'
+    #
+    # The requirement above only checks the cooldown, it never starts one. That is the
+    # [ephemeralcooldown] action's job, and it runs only after every requirement passed.
+    #
+    # The duration is in seconds and can be suffixed with s, m or h. It is capped by
+    # "max_ephemeral_cooldown_seconds" in config.yml. Passing 0 clears the cooldown.
+    #
+    click_commands:
+      - '[ephemeralcooldown] free_emerald 30'
+      - '[console] give %player_name% EMERALD 1'
+      - '[message] &aHere is your free emerald!'
+
   

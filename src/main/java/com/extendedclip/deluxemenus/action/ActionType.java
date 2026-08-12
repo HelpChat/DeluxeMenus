@@ -24,6 +24,7 @@ public enum ActionType {
       "- '[minibroadcast] <message>'"),
   MESSAGE("[message]", "Send a message to the menu viewer",
       "- [message] <message>"),
+  ACTION_BAR("[actionbar]", "Send a action bar message to the menu viewer", "- [actionbar] <message>"),
   LOG("[log]", "Log a message to the console", "- [log] <level> <message>"),
   BROADCAST("[broadcast]", "Broadcast a message to the server", "- '[broadcast] <message>"),
   CHAT("[chat]", "Send a chat message as the player performing the action", "- '[chat] <message>"),
@@ -33,8 +34,11 @@ public enum ActionType {
   CLOSE("[close]", "Close the viewers open menu", "- '[close]"),
   REFRESH("[refresh]", "Refresh items in the current menu view", "- '[refresh]"),
   BROADCAST_SOUND("[broadcastsound]", "Broadcast a sound to the server", "- '[broadcastsound]"),
+  BROADCAST_RAW_SOUND("[broadcastrawsound]", "Broadcast a RAW sound to the server", "- '[broadcastrawsound]"),
   BROADCAST_WORLD_SOUND("[broadcastsoundworld]", "Broadcast a sound to the player's world", "- '[broadcastsoundworld]"),
+  BROADCAST_WORLD_RAW_SOUND("[broadcastrawsoundworld]", "Broadcast a RAW sound to the player's world", "- '[broadcastrawsoundworld]"),
   PLAY_SOUND("[sound]", "Play a sound for a the specific player", "- '[sound]"),
+  PLAY_RAW_SOUND("[rawsound]", "Play a RAW sound for a the specific player", "- '[rawsound]"),
   TAKE_MONEY("[takemoney]", "Take money from a player (requires Vault)", "- '[takemoney] <amount>"),
   GIVE_MONEY("[givemoney]", "Give money to a player (requires Vault)", "- '[givemoney] <amount>"),
   TAKE_EXP("[takeexp]", "Take exp points/levels from a player", "- '[takeexp] <amount>L'"),
@@ -48,7 +52,10 @@ public enum ActionType {
   BROADCAST_JSON("[broadcastjson]", "Broadcast a json message to all online players",
       "- '[broadcastjson] {\"text\":\"message\"}'"),
   PLACEHOLDER("[placeholder]", "Parse placeholders for a player without any chat or console output",
-      "- '[placeholder] %placeholder%'");
+      "- '[placeholder] %placeholder%'"),
+  SET_EPHEMERAL_COOLDOWN("[ephemeralcooldown]",
+      "Start an ephemeral cooldown for the menu viewer. Cooldowns are kept in memory only and are lost on server restart. A duration of 0 clears the cooldown",
+      "- '[ephemeralcooldown] <id> <duration>' where duration is seconds, optionally suffixed with s, m or h");
 
   private static final Map<String, ActionType> BY_NAME = Arrays.stream(values())
       .collect(Collectors.toMap(e -> e.name().toUpperCase(Locale.ROOT), Function.identity()));

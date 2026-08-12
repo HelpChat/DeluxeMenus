@@ -160,7 +160,7 @@ public class DeluxeMenusConfig {
         FileConfiguration c = plugin.getConfig();
 
         c.options().header(
-                "DeluxeMenus " + plugin.getDescription().getVersion() + " main configuration file" +
+                "DeluxeMenus " + plugin.getPluginMeta().getVersion() + " main configuration file" +
                 "\n" +
                 "\nA full wiki on how to use this plugin can be found at:" +
                 "\nhttps://wiki.helpch.at/helpchat-plugins/deluxemenus" +

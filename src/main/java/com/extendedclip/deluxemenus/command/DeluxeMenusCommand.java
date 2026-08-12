@@ -55,7 +55,7 @@ public class DeluxeMenusCommand implements TabExecutor {
         final List<String> arguments = Arrays.asList(args);
 
         if (arguments.isEmpty()) {
-            plugin.sms(sender, Messages.PLUGIN_VERSION.message().replaceText(VERSION_REPLACER_BUILDER.replacement(plugin.getDescription().getVersion()).build()).replaceText(AUTHORS_REPLACER_BUILDER.replacement(plugin.getDescription().getAuthors().stream().map(author -> text(author, NamedTextColor.WHITE)).collect(Component.toComponent(text(", ", NamedTextColor.GRAY)))).build()));
+            plugin.sms(sender, Messages.PLUGIN_VERSION.message().replaceText(VERSION_REPLACER_BUILDER.replacement(plugin.getPluginMeta().getVersion()).build()).replaceText(AUTHORS_REPLACER_BUILDER.replacement(plugin.getPluginMeta().getAuthors().stream().map(author -> text(author, NamedTextColor.WHITE)).collect(Component.toComponent(text(", ", NamedTextColor.GRAY)))).build()));
             return true;
         }
 

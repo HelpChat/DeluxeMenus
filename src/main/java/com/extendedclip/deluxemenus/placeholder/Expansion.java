@@ -36,12 +36,12 @@ public class Expansion extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getAuthor() {
-        return plugin.getDescription().getAuthors().toString();
+        return plugin.getPluginMeta().getAuthors().toString();
     }
 
     @Override
     public @NotNull String getVersion() {
-        return plugin.getDescription().getVersion();
+        return plugin.getPluginMeta().getVersion();
     }
 
     @Override

@@ -52,7 +52,18 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.1.0")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+    disableAutoTargetJvm()
+}
+
 tasks {
+    withType<JavaCompile> {
+        options.release.set(21)
+    }
+
     shadowJar {
         relocate("org.objectweb.asm", "com.extendedclip.deluxemenus.libs.asm")
         relocate("org.openjdk.nashorn", "com.extendedclip.deluxemenus.libs.nashorn")
@@ -61,14 +72,8 @@ tasks {
         archiveFileName.set("DeluxeMenus-${rootProject.version}.jar")
     }
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-        disableAutoTargetJvm()
-    }
-
     processResources {
-        filesMatching(listOf("plugin.yml", "paper-plugin.yml")) {
+        filesMatching("paper-plugin.yml") {
             expand("version" to rootProject.version)
         }
     }

@@ -7,7 +7,6 @@ import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.PaginationUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-import com.extendedclip.deluxemenus.utils.VersionHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -51,7 +50,7 @@ public class MetaCommand extends SubCommand {
             return;
         }
 
-        if (!VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
+        if (plugin.getPersistentMetaHandler() == null) {
             plugin.sms(sender, Messages.META_NOT_SUPPORTED);
             return;
         }
@@ -152,7 +151,7 @@ public class MetaCommand extends SubCommand {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final List<String> arguments) {
-        if (!sender.hasPermission(META_COMMAND) || !VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
+        if (!sender.hasPermission(META_COMMAND) || plugin.getPersistentMetaHandler() == null) {
             return null;
         }
 

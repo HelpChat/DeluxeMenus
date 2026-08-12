@@ -19,7 +19,6 @@ import com.extendedclip.deluxemenus.placeholder.Expansion;
 import com.extendedclip.deluxemenus.updatechecker.UpdateChecker;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
-import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.kyori.adventure.text.Component;
@@ -239,13 +238,8 @@ public class DeluxeMenus extends JavaPlugin {
                 "DeluxeMenus will continue to work but some features (such as the 'has money' requirement) may not be available.");
     }
 
-    @SuppressWarnings("deprecation")
     private void setUpItemHooks() {
-        if (!VersionHelper.IS_ITEM_LEGACY) {
-            this.head = new ItemStack(Material.PLAYER_HEAD, 1);
-        } else {
-            this.head = new ItemStack(Material.valueOf("SKULL_ITEM"), 1, (short) 3);
-        }
+        this.head = new ItemStack(Material.PLAYER_HEAD, 1);
 
         this.itemHooks = new HashMap<>();
 

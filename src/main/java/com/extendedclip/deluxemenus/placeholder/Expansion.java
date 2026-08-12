@@ -4,7 +4,6 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.persistentmeta.DataType;
-import com.extendedclip.deluxemenus.utils.VersionHelper;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -112,7 +111,7 @@ public class Expansion extends PlaceholderExpansion {
             return null;
         }
 
-        if (!VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
+        if (plugin.getPersistentMetaHandler() == null) {
             return null;
         }
 

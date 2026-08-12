@@ -28,7 +28,6 @@ dependencies {
     compileOnly(libs.paper)
 
     compileOnly(libs.vault)
-    compileOnly(libs.authlib)
 
     compileOnly(libs.headdb)
     compileOnly(libs.headdb.api)

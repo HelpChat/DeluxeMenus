@@ -683,10 +683,8 @@ public class DeluxeMenusConfig {
 
             addDamageOptionToBuilder(c, currentPath, key, name, builder);
 
-            if (VersionHelper.HAS_ARMOR_TRIMS) {
-                builder.trimMaterial(c.getString(currentPath + "trim_material", null));
-                builder.trimPattern(c.getString(currentPath + "trim_pattern", null));
-            }
+            builder.trimMaterial(c.getString(currentPath + "trim_material", null));
+            builder.trimPattern(c.getString(currentPath + "trim_pattern", null));
 
             if (c.contains(currentPath + "banner_meta") && c.isList(currentPath + "banner_meta")) {
 
@@ -1097,10 +1095,6 @@ public class DeluxeMenusConfig {
                     break;
                 case HAS_META:
                 case DOES_NOT_HAVE_META:
-                    if (!VersionHelper.IS_PDC_VERSION) {
-                        plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Has Meta requirement is not available for your server version!");
-                        break;
-                    }
                     if (c.contains(rPath + ".key") && c.contains(rPath + ".meta_type") && c.contains(rPath + ".value")) {
                         String metaKey = c.getString(rPath + ".key");
                         invert = type == RequirementType.DOES_NOT_HAVE_META;

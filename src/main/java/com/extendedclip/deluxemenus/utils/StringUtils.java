@@ -28,10 +28,8 @@ public class StringUtils {
     public static String color(@NotNull String input) {
         // Hex Support for 1.16.1+
         Matcher m = HEX_PATTERN.matcher(input);
-        if (VersionHelper.IS_HEX_VERSION) {
-            while (m.find()) {
-                input = input.replace(m.group(), ChatColor.of(m.group(1)).toString());
-            }
+        while (m.find()) {
+            input = input.replace(m.group(), ChatColor.of(m.group(1)).toString());
         }
 
         return ChatColor.translateAlternateColorCodes('&', input);

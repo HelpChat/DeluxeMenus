@@ -69,7 +69,7 @@ public class ClickActionTask extends BukkitRunnable {
 
         switch (actionType) {
             case META:
-                if (!VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
+                if (plugin.getPersistentMetaHandler() == null) {
                     plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Meta action not supported on this server version.");
                     break;
                 }

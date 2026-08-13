@@ -93,6 +93,8 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case PLAYER:
+                player.performCommand(executable);
+                break;
             case PLAYER_COMMAND_EVENT:
                 player.chat("/" + executable);
                 break;
@@ -436,30 +438,14 @@ public class ClickActionTask extends BukkitRunnable {
 
                 if (!executable.contains(" ")) {
                     if (!isRaw) {
-                        try {
-                            sound = SoundUtils.getSound(executable.toUpperCase());
-                        } catch (final IllegalArgumentException exception) {
-                            plugin.printStacktrace(
-                                    "Sound name given for sound action: " + executable + ", is not a valid sound!",
-                                    exception
-                            );
-                            break;
-                        }
+                        sound = SoundUtils.getSound(executable.toUpperCase());
                     }
                 } else {
                     String[] parts = executable.split(" ", 3);
                     soundName = parts[0];
 
                     if (!isRaw) {
-                        try {
-                            sound = SoundUtils.getSound(parts[0].toUpperCase());
-                        } catch (final IllegalArgumentException exception) {
-                            plugin.printStacktrace(
-                                    "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
-                                    exception
-                            );
-                            break;
-                        }
+                        sound = SoundUtils.getSound(parts[0].toUpperCase());
                     }
 
                     if (parts.length == 3) {

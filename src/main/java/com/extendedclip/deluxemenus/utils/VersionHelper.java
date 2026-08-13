@@ -22,31 +22,34 @@ public final class VersionHelper {
     public static final String NMS_VERSION = PACKAGE_NAME.substring(PACKAGE_NAME.lastIndexOf('.') + 1);
 
     // Custom Model Data Component
-    private static final int V1_21_4 = 1_21_4;
+    private static final int V1_21_4 = 1_21_04;
     // Tooltip Style & Item Model
-    private static final int V1_21_2 = 1_21_2;
+    private static final int V1_21_2 = 1_21_02;
     // Data components
-    private static final int V1_20_5 = 1_20_5;
+    private static final int V1_20_5 = 1_20_05;
     // ArmorTrims
-    private static final int V1_19_4 = 1194;
+    private static final int V1_19_4 = 1_19_04;
     // PlayerProfile API
-    private static final int V1_18_1 = 1181;
+    private static final int V1_18_1 = 1_18_01;
     // Mojang obfuscation changes
-    private static final int V1_17 = 1170;
+    private static final int V1_17   = 1_17_00;
     // Material and components on items change
-    private static final int V1_13 = 1130;
+    private static final int V1_13   = 1_13_00;
     // PDC and customModelData
-    private static final int V1_14 = 1140;
+    private static final int V1_14   = 1_14_00;
     // Hex colors
-    private static final int V1_16 = 1160;
+    private static final int V1_16   = 1_16_00;
     // Paper adventure changes
-    private static final int V1_16_5 = 1165;
+    private static final int V1_16_5 = 1_16_05;
     // SkullMeta#setOwningPlayer was added
-    private static final int V1_12 = 1120;
+    private static final int V1_12   = 1_12_00;
 
     public static final int CURRENT_VERSION = getCurrentVersion();
 
     private static final boolean IS_PAPER = checkPaper();
+
+    // Unversioned craftbukkit package: Spigot >= 26.1.0
+    private static final int V26_1_0 = 26_01_00;
 
     /**
      * Checks if the current version includes the setTooltipStyle and setItemModel
@@ -175,14 +178,17 @@ public final class VersionHelper {
      */
     private static int getCurrentVersion() {
         // No need to cache since will only run once
-        final Matcher matcher = Pattern.compile("(?<version>\\d+\\.\\d+)(?<patch>\\.\\d+)?").matcher(Bukkit.getBukkitVersion());
+        // Format: major + 2-digit minor + 2-digit patch
+        // e.g. 1.20.1 -> 1_20_01 -> 12001, 26.1.2 -> 26_01_02 -> 260102
+        final Matcher matcher = Pattern.compile("(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?").matcher(Bukkit.getBukkitVersion());
 
         final StringBuilder stringBuilder = new StringBuilder();
         if (matcher.find()) {
-            stringBuilder.append(matcher.group("version").replace(".", ""));
+            stringBuilder.append(matcher.group("major"));
+            stringBuilder.append(String.format("%02d", Integer.parseInt(matcher.group("minor"))));
             final String patch = matcher.group("patch");
-            if (patch == null) stringBuilder.append("0");
-            else stringBuilder.append(patch.replace(".", ""));
+            if (patch == null) stringBuilder.append("00");
+            else stringBuilder.append(String.format("%02d", Integer.parseInt(patch)));
         }
 
         //noinspection UnstableApiUsage
@@ -217,6 +223,11 @@ public final class VersionHelper {
      * @return The craft class.
      */
     public static Class<?> getCraftClass(@NotNull final String name) throws ClassNotFoundException {
+        if (CURRENT_VERSION >= V26_1_0 || (IS_PAPER && CURRENT_VERSION >= V1_20_5)) {
+            try {
+                return Class.forName("org.bukkit.craftbukkit." + name);
+            } catch (ClassNotFoundException ignored) { }
+        }
         return Class.forName("org.bukkit.craftbukkit." + NMS_VERSION + "." + name);
     }
 

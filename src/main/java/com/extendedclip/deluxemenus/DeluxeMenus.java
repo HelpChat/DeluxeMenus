@@ -19,6 +19,7 @@ import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
@@ -82,9 +83,7 @@ public class DeluxeMenus extends JavaPlugin {
         }
 
         new PlayerListener(this).register();
-        if (!new DeluxeMenusCommand(this).register()) {
-            debug(DebugLevel.HIGHEST, Level.SEVERE, "Could not register the DeluxeMenus command!");
-        }
+        registerMainCommand();
         new Expansion(this).register();
 
         setUpBungeeCordMessaging();
@@ -284,6 +283,20 @@ public class DeluxeMenus extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("SimpleItemGenerator")) {
             this.itemHooks.put("simpleitemgenerator", new SimpleItemGeneratorHook(this));
         }
+    }
+
+    private void registerMainCommand() {
+        final DeluxeMenusCommand command = new DeluxeMenusCommand(this);
+
+        // paper-plugin.yml has no `commands:` block, so the command is registered through the
+        // lifecycle registrar.
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
+                event.registrar().register(
+                        "deluxemenus",
+                        "DeluxeMenus main commands",
+                        List.of("dm", "deluxemenu", "dmenu"),
+                        command
+                ));
     }
 
     private void setUpBungeeCordMessaging() {

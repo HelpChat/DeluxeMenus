@@ -6,12 +6,14 @@ import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -117,8 +119,8 @@ public class HasItemRequirement extends Requirement {
             if (wrapper.getName() != null) {
                 if (!metaToCheck.hasDisplayName()) return false;
 
-                String name = StringUtils.color(holder.setPlaceholdersAndArguments(wrapper.getName()));
-                String nameToCheck = StringUtils.color(holder.setPlaceholdersAndArguments(metaToCheck.getDisplayName()));
+                String name = StringUtils.legacyColor(holder.setPlaceholdersAndArguments(wrapper.getName()));
+                String nameToCheck = StringUtils.legacyColor(holder.setPlaceholdersAndArguments(StringUtils.legacy(metaToCheck.displayName())));
 
                 if (wrapper.checkNameContains() && wrapper.checkNameIgnoreCase()) {
                     if (!org.apache.commons.lang3.StringUtils.containsIgnoreCase(nameToCheck, name)) return false;
@@ -132,11 +134,11 @@ public class HasItemRequirement extends Requirement {
             }
 
             if (wrapper.getLoreList() != null) {
-                List<String> loreX = metaToCheck.getLore();
+                List<String> loreX = legacyLore(metaToCheck);
                 if (loreX == null) return false;
 
-                String lore = wrapper.getLoreList().stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::color).collect(Collectors.joining("&&"));
-                String loreToCheck = loreX.stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::color).collect(Collectors.joining("&&"));
+                String lore = wrapper.getLoreList().stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::legacyColor).collect(Collectors.joining("&&"));
+                String loreToCheck = loreX.stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::legacyColor).collect(Collectors.joining("&&"));
 
                 if (wrapper.checkLoreContains() && wrapper.checkLoreIgnoreCase()) {
                     if (!org.apache.commons.lang3.StringUtils.containsIgnoreCase(loreToCheck, lore)) return false;
@@ -150,11 +152,11 @@ public class HasItemRequirement extends Requirement {
             }
 
             if (wrapper.getLore() != null) {
-                List<String> loreX = metaToCheck.getLore();
+                List<String> loreX = legacyLore(metaToCheck);
                 if (loreX == null) return false;
 
-                String lore = StringUtils.color(holder.setPlaceholdersAndArguments(wrapper.getLore()));
-                String loreToCheck = loreX.stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::color).collect(Collectors.joining("&&"));
+                String lore = StringUtils.legacyColor(holder.setPlaceholdersAndArguments(wrapper.getLore()));
+                String loreToCheck = loreX.stream().map(holder::setPlaceholdersAndArguments).map(StringUtils::legacyColor).collect(Collectors.joining("&&"));
 
                 if (wrapper.checkLoreContains() && wrapper.checkLoreIgnoreCase()) {
                     return org.apache.commons.lang3.StringUtils.containsIgnoreCase(loreToCheck, lore);
@@ -166,6 +168,13 @@ public class HasItemRequirement extends Requirement {
             }
         }
         return true;
+    }
+
+    private @Nullable List<String> legacyLore(@NotNull final ItemMeta meta) {
+        final List<Component> lore = meta.lore();
+        if (lore == null) return null;
+
+        return lore.stream().map(StringUtils::legacy).collect(Collectors.toList());
     }
 
     private boolean isEmptyModelData(@NotNull final CustomModelDataComponent modelData) {

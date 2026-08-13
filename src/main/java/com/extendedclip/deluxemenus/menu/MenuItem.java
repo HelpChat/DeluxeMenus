@@ -11,6 +11,7 @@ import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.collect.ImmutableMultimap;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
@@ -270,13 +271,13 @@ public class MenuItem {
 
         if (this.options.displayName().isPresent()) {
             final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
-            itemMeta.setDisplayName(StringUtils.color(displayName));
+            itemMeta.displayName(StringUtils.colorNonItalic(displayName));
         }
 
-        List<String> lore = new ArrayList<>();
+        List<Component> lore = new ArrayList<>();
         // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
-        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
-        List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
+        // ItemMeta.lore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<Component> itemLore = Objects.requireNonNullElse(itemMeta.lore(), new ArrayList<>());
         // Ensures backwards compatibility with how hooked items are currently handled
         LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
         if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) mode = LoreAppendMode.IGNORE;
@@ -297,7 +298,7 @@ public class MenuItem {
                 break;
         }
 
-        itemMeta.setLore(lore);
+        itemMeta.lore(lore);
 
         if (this.options.unbreakable()) {
             itemMeta.setUnbreakable(true);
@@ -501,14 +502,14 @@ public class MenuItem {
         return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
-    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+    protected List<Component> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
         return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
-                .map(StringUtils::color)
                 .map(line -> line.split("\n"))
                 .flatMap(Arrays::stream)
                 .map(line -> line.split("\\\\n"))
                 .flatMap(Arrays::stream)
+                .map(StringUtils::colorNonItalic)
                 .collect(Collectors.toList());
     }
 

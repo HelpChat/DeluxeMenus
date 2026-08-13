@@ -5,7 +5,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +15,18 @@ import org.jetbrains.annotations.Nullable;
 
 public class StringUtils {
 
+    private static final char SECTION_CHAR = '§';
+    private static final String COLOR_CODES = "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx";
+
     private final static Pattern HEX_PATTERN = Pattern
             .compile("&(#[a-f0-9]{6})", Pattern.CASE_INSENSITIVE);
+
+    private static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder()
+            .character(SECTION_CHAR)
+            .hexCharacter('#')
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     /**
      * Translates the ampersand color codes like '&7' to their section symbol counterparts like '§7'.
@@ -25,14 +37,54 @@ public class StringUtils {
      * @return The string with the translated colors.
      */
     @NotNull
-    public static String color(@NotNull String input) {
-        // Hex Support for 1.16.1+
-        Matcher m = HEX_PATTERN.matcher(input);
-        while (m.find()) {
-            input = input.replace(m.group(), ChatColor.of(m.group(1)).toString());
+    public static String legacyColor(@NotNull String input) {
+        final Matcher matcher = HEX_PATTERN.matcher(input);
+        final StringBuilder builder = new StringBuilder();
+
+        while (matcher.find()) {
+            final StringBuilder replacement = new StringBuilder().append(SECTION_CHAR).append('x');
+            for (final char character : matcher.group(1).substring(1).toCharArray()) {
+                replacement.append(SECTION_CHAR).append(character);
+            }
+            matcher.appendReplacement(builder, Matcher.quoteReplacement(replacement.toString()));
+        }
+        matcher.appendTail(builder);
+
+        final char[] characters = builder.toString().toCharArray();
+        for (int i = 0; i < characters.length - 1; i++) {
+            if (characters[i] != '&' || COLOR_CODES.indexOf(characters[i + 1]) == -1) continue;
+            characters[i] = SECTION_CHAR;
+            characters[i + 1] = Character.toLowerCase(characters[i + 1]);
         }
 
-        return ChatColor.translateAlternateColorCodes('&', input);
+        return new String(characters);
+    }
+
+    /**
+     * Parses a configured string into a component. Section symbols already present in the input,
+     * such as those produced by PlaceholderAPI, are honoured alongside the '&' codes.
+     */
+    @NotNull
+    public static Component color(@NotNull final String input) {
+        return SERIALIZER.deserialize(legacyColor(input));
+    }
+
+    /**
+     * As {@link #color(String)}, but with italics explicitly disabled. Item display names and lore
+     * render italic by default when set as components, which the legacy string setters suppressed.
+     */
+    @NotNull
+    public static Component colorNonItalic(@NotNull final String input) {
+        return color(input).decoration(TextDecoration.ITALIC, false);
+    }
+
+    /**
+     * Serializes a component back into a legacy section symbol string, for comparison against
+     * configured values.
+     */
+    @NotNull
+    public static String legacy(@Nullable final Component component) {
+        return component == null ? "" : SERIALIZER.serialize(component);
     }
 
     @NotNull

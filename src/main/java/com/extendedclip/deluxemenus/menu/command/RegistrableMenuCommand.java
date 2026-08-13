@@ -5,7 +5,6 @@ import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -61,8 +60,7 @@ public class RegistrableMenuCommand extends Command {
             if (typedArgs.length < menu.options().arguments().size()) {
                 if (menu.options().argumentsUsageMessage().isPresent()) {
                     String usageMessage = menu.options().argumentsUsageMessage().get();
-                    plugin.sms(sender, LegacyComponentSerializer.legacySection().deserialize(
-                            StringUtils.color(StringUtils.replacePlaceholders(usageMessage, player))));
+                    plugin.sms(sender, StringUtils.color(StringUtils.replacePlaceholders(usageMessage, player)));
                 }
                 return true;
             }

@@ -105,7 +105,7 @@ public final class ItemUtils {
         final PotionMeta itemMeta = (PotionMeta) itemStack.getItemMeta();
 
         if (itemMeta != null) {
-            itemMeta.setBasePotionType(PotionType.WATER); // TODO: Blitz: Check if this works in 1.17.1 (seems that the setBasePotionType method was only added later)
+            itemMeta.setBasePotionType(PotionType.WATER);
             itemStack.setItemMeta(itemMeta);
         }
 

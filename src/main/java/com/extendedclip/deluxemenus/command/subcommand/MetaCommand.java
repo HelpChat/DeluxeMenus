@@ -306,7 +306,7 @@ public class MetaCommand extends SubCommand {
                 .append(pairsList)
                 .append(newline())
                 .append(text("Use /dm meta list " + typeName + " <page> to view more values of this type", NamedTextColor.GRAY));
-        plugin.sms(sender, list.build());
+        plugin.sms(sender, list.asComponent());
     }
 
     private void handleShowMeta(@NotNull final CommandSender sender, @NotNull final Player target,

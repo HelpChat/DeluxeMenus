@@ -33,12 +33,14 @@ import com.extendedclip.deluxemenus.requirement.wrappers.ItemWrapper;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.LocationUtils;
+import com.extendedclip.deluxemenus.utils.RegistryUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.base.Enums;
 import com.google.common.primitives.Ints;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Registry;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -704,15 +706,22 @@ public class DeluxeMenusConfig {
                     }
 
                     final DyeColor color;
-                    final PatternType type;
 
                     try {
                         color = DyeColor.valueOf(metaParts[0].toUpperCase());
-                        type = PatternType.valueOf(metaParts[1].toUpperCase());
                     } catch (IllegalArgumentException exception) {
                         plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Banner Meta for item: " + key + ", meta entry: " + e + " is invalid! Skipping this entry!");
 
                         plugin.printStacktrace("Banner Meta for item: " + key + ", meta entry: " + e + " is invalid! Skipping this entry!", exception);
+                        continue;
+                    }
+
+                    // Resolved through the registry, never PatternType.valueOf: PatternType is
+                    // an enum on 1.20.6 and an interface on 26.2.
+                    final PatternType type = RegistryUtils.byNameOrKey(Registry.BANNER_PATTERN, metaParts[1]);
+
+                    if (type == null) {
+                        plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Banner Meta for item: " + key + ", meta entry: " + e + " is invalid! Skipping this entry!");
                         continue;
                     }
 

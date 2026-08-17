@@ -10,19 +10,16 @@ import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.hooks.*;
 import com.extendedclip.deluxemenus.listener.PlayerListener;
 import com.extendedclip.deluxemenus.menu.Menu;
-import com.extendedclip.deluxemenus.menu.MenuItem;
 import com.extendedclip.deluxemenus.menu.options.HeadType;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
-import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.placeholder.Expansion;
 import com.extendedclip.deluxemenus.updatechecker.UpdateChecker;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
-import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
@@ -51,8 +48,6 @@ public class DeluxeMenus extends JavaPlugin {
     private MenuItemMarker menuItemMarker;
     private EphemeralCooldownManager ephemeralCooldownManager;
 
-    private BukkitAudiences audiences;
-
     private VaultHook vaultHook;
 
     private ItemStack head;
@@ -60,20 +55,6 @@ public class DeluxeMenus extends JavaPlugin {
 
     private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
-
-    @Override
-    public void onLoad() {
-        if (NbtProvider.isAvailable()) {
-            this.debug(DebugLevel.HIGHEST, Level.INFO, "NMS hook has been setup successfully!");
-            return;
-        }
-
-        this.debug(
-                DebugLevel.HIGHEST,
-                Level.WARNING,
-                "Could not setup a NMS hook for your server version! The following Item options will not work: nbt_int, nbt_ints, nbt_string and nbt_strings."
-        );
-    }
 
     @Override
     public void onEnable() {
@@ -91,8 +72,6 @@ public class DeluxeMenus extends JavaPlugin {
         this.ephemeralCooldownManager = new EphemeralCooldownManager(this);
         this.ephemeralCooldownManager.startSweepTask();
 
-        this.audiences = BukkitAudiences.create(this);
-
         hookIntoVault();
         setUpItemHooks();
 
@@ -104,9 +83,7 @@ public class DeluxeMenus extends JavaPlugin {
         }
 
         new PlayerListener(this).register();
-        if (!new DeluxeMenusCommand(this).register()) {
-            debug(DebugLevel.HIGHEST, Level.SEVERE, "Could not register the DeluxeMenus command!");
-        }
+        registerMainCommand();
         new Expansion(this).register();
 
         setUpBungeeCordMessaging();
@@ -119,11 +96,6 @@ public class DeluxeMenus extends JavaPlugin {
         Bukkit.getMessenger().unregisterOutgoingPluginChannel(this, "BungeeCord");
 
         Bukkit.getScheduler().cancelTasks(this);
-
-        if (this.audiences != null) {
-            this.audiences.close();
-            this.audiences = null;
-        }
 
         Menu.unloadForShutdown(this);
 
@@ -174,11 +146,11 @@ public class DeluxeMenus extends JavaPlugin {
     }
 
     public void sms(CommandSender s, Component msg) {
-        audiences().sender(s).sendMessage(msg);
+        s.sendMessage(msg);
     }
 
     public void sms(CommandSender s, Messages msg) {
-        audiences().sender(s).sendMessage(msg.message());
+        s.sendMessage(msg.message());
     }
 
     public void debug(@NotNull final DebugLevel messageDebugLevel, @NotNull final Level level, @NotNull final String... messages) {
@@ -209,13 +181,6 @@ public class DeluxeMenus extends JavaPlugin {
 
     public EphemeralCooldownManager getEphemeralCooldownManager() {
         return ephemeralCooldownManager;
-    }
-
-    public BukkitAudiences audiences() {
-        if (this.audiences == null) {
-            throw new IllegalStateException("Tried to access Adventure when the plugin was disabled!");
-        }
-        return this.audiences;
     }
 
     public void clearCaches() {
@@ -256,13 +221,8 @@ public class DeluxeMenus extends JavaPlugin {
                 "DeluxeMenus will continue to work but some features (such as the 'has money' requirement) may not be available.");
     }
 
-    @SuppressWarnings("deprecation")
     private void setUpItemHooks() {
-        if (!VersionHelper.IS_ITEM_LEGACY) {
-            this.head = new ItemStack(Material.PLAYER_HEAD, 1);
-        } else {
-            this.head = new ItemStack(Material.valueOf("SKULL_ITEM"), 1, (short) 3);
-        }
+        this.head = new ItemStack(Material.PLAYER_HEAD, 1);
 
         this.itemHooks = new HashMap<>();
 
@@ -325,6 +285,20 @@ public class DeluxeMenus extends JavaPlugin {
         }
     }
 
+    private void registerMainCommand() {
+        final DeluxeMenusCommand command = new DeluxeMenusCommand(this);
+
+        // paper-plugin.yml has no `commands:` block, so the command is registered through the
+        // lifecycle registrar.
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
+                event.registrar().register(
+                        "deluxemenus",
+                        "DeluxeMenus main commands",
+                        List.of("dm", "deluxemenu", "dmenu"),
+                        command
+                ));
+    }
+
     private void setUpBungeeCordMessaging() {
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     }
@@ -353,25 +327,5 @@ public class DeluxeMenus extends JavaPlugin {
                 .map(Menu::options)
                 .map(MenuOptions::type)
                 .collect(Collectors.groupingBy(Enum::name, Collectors.summingInt(type -> 1)))));
-
-        // added for 1.21 usage
-        metrics.addCustomChart(new AdvancedPie("nbt_usage", () -> {
-            final var results = new HashMap<String, Integer>();
-            final var options = Menu.getAllMenus().stream()
-                    .map(Menu::getMenuItems)
-                    .flatMap(c -> c.values().stream().map(TreeMap::values).flatMap(Collection::stream))
-                    .map(MenuItem::options)
-                    .collect(Collectors.toList());
-            results.put("Byte", options.stream().filter(option -> option.nbtByte().isPresent()).mapToInt(b -> 1).sum());
-            results.put("Bytes", options.stream().filter(option -> !option.nbtBytes().isEmpty()).mapToInt(b -> 1).sum());
-            results.put("Short", options.stream().filter(option -> option.nbtShort().isPresent()).mapToInt(s -> 1).sum());
-            results.put("Shorts", options.stream().filter(option -> !option.nbtShorts().isEmpty()).mapToInt(s -> 1).sum());
-            results.put("Int", options.stream().filter(option -> option.nbtInt().isPresent()).mapToInt(i -> 1).sum());
-            results.put("Ints", options.stream().filter(option -> !option.nbtInts().isEmpty()).mapToInt(i -> 1).sum());
-            results.put("String", options.stream().filter(option -> option.nbtString().isPresent()).mapToInt(s -> 1).sum());
-            results.put("Strings", options.stream().filter(option -> !option.nbtStrings().isEmpty()).mapToInt(s -> 1).sum());
-            results.put("Model Data", options.stream().filter(option -> option.customModelData().isPresent()).mapToInt(c -> 1).sum());
-            return results;
-        }));
     }
 }

@@ -1,21 +1,24 @@
 package com.extendedclip.deluxemenus.utils;
 
+import org.bukkit.Registry;
 import org.bukkit.Sound;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SoundUtils {
 
-    public static Sound getSound(String name) {
-        try {
-            // As of Minecraft 1.21.3, the org.bukkit.Sound class type changed from Enum to Interface.
-            // This fixes java.lang.IncompatibleClassChangeError when trying to use versions prior to 1.21.3.
-            Method valueOfMethod = Class.forName("org.bukkit.Sound").getMethod("valueOf", String.class);
-            return (Sound) valueOfMethod.invoke(null, name);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Use the Sound#valueOf method if Reflection fails.
-            return Sound.valueOf(name);
-        }
+    /**
+     * Resolves a sound from either a namespaced key ({@code entity.player.levelup},
+     * {@code minecraft:entity.player.levelup}) or a legacy enum constant name
+     * ({@code ENTITY_PLAYER_LEVELUP}).
+     * <p>
+     * Uses {@code Registry.SOUNDS} rather than {@code Registry.SOUND_EVENT}: the latter does
+     * not exist on 1.20.6, the minimum supported version. On current versions they are the
+     * same registry instance.
+     *
+     * @return the sound, or {@code null} if no sound matches
+     */
+    public static @Nullable Sound getSound(@NotNull final String name) {
+        return RegistryUtils.byNameOrKey(Registry.SOUNDS, name);
     }
 }

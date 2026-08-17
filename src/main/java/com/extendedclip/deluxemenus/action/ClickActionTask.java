@@ -6,8 +6,6 @@ import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.utils.*;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -69,7 +67,7 @@ public class ClickActionTask extends BukkitRunnable {
 
         switch (actionType) {
             case META:
-                if (!VersionHelper.IS_PDC_VERSION || plugin.getPersistentMetaHandler() == null) {
+                if (plugin.getPersistentMetaHandler() == null) {
                     plugin.debug(DebugLevel.HIGHEST, Level.INFO, "Meta action not supported on this server version.");
                     break;
                 }
@@ -95,6 +93,8 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case PLAYER:
+                player.performCommand(executable);
+                break;
             case PLAYER_COMMAND_EVENT:
                 player.chat("/" + executable);
                 break;
@@ -112,11 +112,11 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case MINI_MESSAGE:
-                plugin.audiences().player(player).sendMessage(MiniMessage.miniMessage().deserialize(executable));
+                player.sendMessage(MiniMessage.miniMessage().deserialize(executable));
                 break;
 
             case MINI_BROADCAST:
-                plugin.audiences().all().sendMessage(MiniMessage.miniMessage().deserialize(executable));
+                AdventureUtils.broadcast(MiniMessage.miniMessage().deserialize(executable));
                 break;
 
             case MESSAGE:
@@ -124,7 +124,7 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case ACTION_BAR:
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(StringUtils.color(executable)));
+                player.sendActionBar(StringUtils.color(executable));
                 break;
 
             case LOG:
@@ -156,7 +156,7 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case BROADCAST:
-                Bukkit.broadcastMessage(StringUtils.color(executable));
+                AdventureUtils.broadcast(StringUtils.color(executable));
                 break;
 
             case CLOSE:
@@ -272,12 +272,12 @@ public class ClickActionTask extends BukkitRunnable {
                 break;
 
             case JSON_MESSAGE:
-                AdventureUtils.sendJson(plugin, player, executable);
+                AdventureUtils.sendJson(player, executable);
                 break;
 
             case JSON_BROADCAST:
             case BROADCAST_JSON:
-                plugin.audiences().all().sendMessage(AdventureUtils.fromJson(executable));
+                AdventureUtils.broadcast(AdventureUtils.fromJson(executable));
                 break;
 
             case REFRESH:
@@ -438,30 +438,14 @@ public class ClickActionTask extends BukkitRunnable {
 
                 if (!executable.contains(" ")) {
                     if (!isRaw) {
-                        try {
-                            sound = SoundUtils.getSound(executable.toUpperCase());
-                        } catch (final IllegalArgumentException exception) {
-                            plugin.printStacktrace(
-                                    "Sound name given for sound action: " + executable + ", is not a valid sound!",
-                                    exception
-                            );
-                            break;
-                        }
+                        sound = SoundUtils.getSound(executable.toUpperCase());
                     }
                 } else {
                     String[] parts = executable.split(" ", 3);
                     soundName = parts[0];
 
                     if (!isRaw) {
-                        try {
-                            sound = SoundUtils.getSound(parts[0].toUpperCase());
-                        } catch (final IllegalArgumentException exception) {
-                            plugin.printStacktrace(
-                                    "Sound name given for sound action: " + parts[0] + ", is not a valid sound!",
-                                    exception
-                            );
-                            break;
-                        }
+                        sound = SoundUtils.getSound(parts[0].toUpperCase());
                     }
 
                     if (parts.length == 3) {

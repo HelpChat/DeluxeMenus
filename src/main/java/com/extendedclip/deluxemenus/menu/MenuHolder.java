@@ -304,7 +304,7 @@ public class MenuHolder implements InventoryHolder {
                         ItemMeta meta = i.getItemMeta();
 
                         if (item.options().displayNameHasPlaceholders() && item.options().displayName().isPresent()) {
-                            meta.displayName(StringUtils.colorNonItalic(setPlaceholdersAndArguments(item.options().displayName().get())));
+                            meta.displayName(StringUtils.colorItemText(setPlaceholdersAndArguments(item.options().displayName().get()), plugin.getGeneralConfig().suppressDefaultItalics()));
                         }
 
                         if (item.options().loreHasPlaceholders()) {

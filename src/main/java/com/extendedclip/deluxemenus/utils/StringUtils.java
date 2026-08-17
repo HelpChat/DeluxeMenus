@@ -70,17 +70,21 @@ public class StringUtils {
     }
 
     /**
-     * As {@link #color(String)}, but with italics disabled <em>by default</em>. Item display names
-     * and lore render italic when set as components, which the legacy string setters suppressed by
-     * building on a {@code Style.EMPTY.withItalic(false)} base.
-     * <p>
-     * This must be a <b>fallback</b>, not an override. The legacy serializer puts a single-format
-     * line's style on the root component, so {@code decoration(ITALIC, false)} would overwrite an
-     * explicit {@code &o} and make italic text impossible to configure.
+     * Parses item display name / lore text.
+     *
+     * @param suppressDefaultItalics when {@code true}, italics are turned off for any part of the
+     *                               text that does not set them, so item text is non-italic unless
+     *                               the author writes {@code &o}. When {@code false} italics are
+     *                               left untouched and the server's default applies. On 1.20.6
+     *                               that renders unformatted text italic. See
+     *                               {@code GeneralConfig#suppressDefaultItalics}.
      */
     @NotNull
-    public static Component colorNonItalic(@NotNull final String input) {
-        return color(input).applyFallbackStyle(TextDecoration.ITALIC.withState(false));
+    public static Component colorItemText(@NotNull final String input, final boolean suppressDefaultItalics) {
+        final Component component = color(input);
+        return suppressDefaultItalics
+                ? component.applyFallbackStyle(TextDecoration.ITALIC.withState(false))
+                : component;
     }
 
     /**

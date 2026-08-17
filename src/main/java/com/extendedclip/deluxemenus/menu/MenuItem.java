@@ -271,7 +271,7 @@ public class MenuItem {
 
         if (this.options.displayName().isPresent()) {
             final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
-            itemMeta.displayName(StringUtils.colorNonItalic(displayName));
+            itemMeta.displayName(StringUtils.colorItemText(displayName, plugin.getGeneralConfig().suppressDefaultItalics()));
         }
 
         List<Component> lore = new ArrayList<>();
@@ -503,13 +503,15 @@ public class MenuItem {
     }
 
     protected List<Component> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        final boolean suppressDefaultItalics = plugin.getGeneralConfig().suppressDefaultItalics();
+
         return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
                 .map(line -> line.split("\n"))
                 .flatMap(Arrays::stream)
                 .map(line -> line.split("\\\\n"))
                 .flatMap(Arrays::stream)
-                .map(StringUtils::colorNonItalic)
+                .map(line -> StringUtils.colorItemText(line, suppressDefaultItalics))
                 .collect(Collectors.toList());
     }
 

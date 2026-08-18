@@ -902,8 +902,13 @@ public class DeluxeMenusConfig {
                         break;
                     }
                     wrapper.setAmount(c.getInt(rPath + ".amount", 1));
-                    wrapper.hasData(c.contains(rPath + ".data") && c.isInt(rPath + ".data"));
-                    wrapper.setData((short) c.getInt(rPath + ".data", 0));
+                    if (c.contains(rPath + ".data") && c.isInt(rPath + ".data")) {
+                        wrapper.hasData(true);
+                        wrapper.setData((short) c.getInt(rPath + ".data", 0));
+                    } else if (c.contains(rPath + ".durability") && c.isInt(rPath + ".durability")) {
+                        wrapper.hasData(true);
+                        wrapper.setData((short) c.getInt(rPath + ".durability", 0));
+                    }
 
                     if (c.isString(rPath + ".name")) {
                         wrapper.setName(c.getString(rPath + ".name"));

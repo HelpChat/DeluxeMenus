@@ -83,23 +83,6 @@ public class HasItemRequirement extends Requirement {
         if (wrapper.hasData() && itemToCheck.getDurability() != wrapper.getData()) return false;
 
         ItemMeta metaToCheck = itemToCheck.getItemMeta();
-
-        if (wrapper.getDurability() != -1) {
-            if (!(metaToCheck instanceof Damageable damageable)) {
-                return false;
-            }
-
-            int maxDurability = damageable.hasMaxDamage() ? damageable.getMaxDamage() : itemToCheck.getType().getMaxDurability();
-            if (maxDurability <= 0) {
-                return false;
-            }
-
-            int currentDurability = maxDurability - damageable.getDamage();
-            if (currentDurability < wrapper.getDurability()) {
-                return false;
-            }
-        }
-
         if (wrapper.isStrict()) {
             if (metaToCheck != null) {
                 if (VersionHelper.IS_CUSTOM_MODEL_DATA && metaToCheck.hasCustomModelData()) {

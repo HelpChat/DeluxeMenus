@@ -17,7 +17,6 @@ public class ItemWrapper {
     private CustomModelDataComponent customDataComponent = CustomModelDataComponent.builder();
     private int customData = 0;
     private int amount = 1;
-    private int durability = -1;
 
     private boolean strict = false;
     private boolean armor = false;
@@ -99,14 +98,6 @@ public class ItemWrapper {
 
     public void setAmount(int amount) {
         this.amount = amount;
-    }
-
-    public int getDurability() {
-        return durability;
-    }
-
-    public void setDurability(int durability) {
-        this.durability = durability;
     }
 
     public boolean isStrict() {

@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.command.subcommand;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
+import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,13 +57,10 @@ public class OpenCommand extends SubCommand {
 
         String viewerName = null;
         String placeholderPlayerName = null;
-        Map<String, String> menuArgs = null;
+        List<String> rawArgumentValues = null;
 
         int index = 1;
 
-        // Optional <viewer> — only consumed if it isn't the -p: flag or the -args: marker.
-        // This is what actually fixes "/dm open <menu> myArg": myArg no longer gets
-        // swallowed as a viewer name unless it genuinely occupies the viewer slot
         if (index < arguments.size()
                 && !arguments.get(index).startsWith(PLACEHOLDER_FLAG)
                 && !arguments.get(index).equals(ARGS_MARKER)) {
@@ -69,7 +68,6 @@ public class OpenCommand extends SubCommand {
             index++;
         }
 
-        // Optional -p:<target> flag
         if (index < arguments.size() && arguments.get(index).startsWith(PLACEHOLDER_FLAG)) {
             if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
                 plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
@@ -80,24 +78,11 @@ public class OpenCommand extends SubCommand {
             index++;
         }
 
-        // Once -args: is seen, everything after it is taken as key=value pairs and
         if (index < arguments.size() && arguments.get(index).equals(ARGS_MARKER)) {
             index++;
-            menuArgs = new HashMap<>();
-
-            for (int i = index; i < arguments.size(); i++) {
-                final String token = arguments.get(i);
-                final int equalsPos = token.indexOf('=');
-
-                if (equalsPos <= 0) {
-                    // Malformed token (no "=" or starts with "="): skip rather than fail the command.
-                    continue;
-                }
-
-                final String key = token.substring(0, equalsPos);
-                final String value = token.substring(equalsPos + 1);
-                menuArgs.put(key, value);
-            }
+            rawArgumentValues = index < arguments.size()
+                    ? arguments.subList(index, arguments.size())
+                    : List.of();
         }
 
         Player viewer;
@@ -146,7 +131,50 @@ public class OpenCommand extends SubCommand {
             return;
         }
 
-        menu.get().openMenu(viewer, menuArgs, placeholder);
+        final Menu menuToOpen = menu.get();
+        final List<String> menuArgumentNames = menuToOpen.options().arguments();
+
+        Map<String, String> argumentsMap = null;
+
+        if (menuArgumentNames.isEmpty()) {
+            if (rawArgumentValues != null && !rawArgumentValues.isEmpty()) {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Arguments were given for menu " + menuName + " via /dm open, but the menu does not support arguments!"
+                );
+            }
+
+        } else if (rawArgumentValues != null && !rawArgumentValues.isEmpty()) {
+            if (rawArgumentValues.size() < menuArgumentNames.size()) {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Not enough arguments given for menu " + menuName + " when opening using /dm open!"
+                );
+                plugin.sms(sender, Messages.WRONG_USAGE_OPEN_COMMAND);
+                return;
+            }
+
+            argumentsMap = new HashMap<>();
+
+            for (int argIndex = 0; argIndex < menuArgumentNames.size(); argIndex++) {
+                final String argumentName = menuArgumentNames.get(argIndex);
+
+                if (menuArgumentNames.size() == argIndex + 1) {
+                    final String lastArgumentValue = String.join(
+                            " ",
+                            rawArgumentValues.subList(argIndex, rawArgumentValues.size())
+                    );
+                    argumentsMap.put(argumentName, lastArgumentValue);
+                    break;
+                }
+
+                argumentsMap.put(argumentName, rawArgumentValues.get(argIndex));
+            }
+        }
+
+        menuToOpen.openMenu(viewer, argumentsMap, placeholder);
     }
 
     @Override

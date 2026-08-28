@@ -284,6 +284,9 @@ public class MenuHolder implements InventoryHolder {
                             continue;
                         }
 
+                        if (item.options().materialHasPlaceholders()){
+                            i.setType(item.getItemStack(getHolder()).getType());
+                        }
                         int amt = i.getAmount();
 
                         if (item.options().dynamicAmount().isPresent()) {

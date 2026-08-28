@@ -51,6 +51,7 @@ public class MenuItemOptions {
     private final boolean unbreakable;
 
     private final boolean displayNameHasPlaceholders;
+    private final boolean materialHasPlaceholders;
     private final boolean loreHasPlaceholders;
     private final boolean hasLore;
     private final LoreAppendMode loreAppendMode;
@@ -111,6 +112,7 @@ public class MenuItemOptions {
         this.itemFlags.addAll(builder.itemFlags);
         this.unbreakable = builder.unbreakable;
         this.displayNameHasPlaceholders = builder.displayNameHasPlaceholders;
+        this.materialHasPlaceholders = builder.materialHasPlaceholders;
         this.loreHasPlaceholders = builder.loreHasPlaceholders;
         this.nbtString = builder.nbtString;
         this.nbtByte = builder.nbtByte;
@@ -244,6 +246,10 @@ public class MenuItemOptions {
 
     public boolean displayNameHasPlaceholders() {
         return displayNameHasPlaceholders;
+    }
+
+    public boolean materialHasPlaceholders() {
+        return materialHasPlaceholders;
     }
 
     public boolean loreHasPlaceholders() {
@@ -440,6 +446,7 @@ public class MenuItemOptions {
         private boolean unbreakable;
 
         private boolean displayNameHasPlaceholders;
+        private boolean materialHasPlaceholders;
         private boolean loreHasPlaceholders;
         private boolean hasLore;
         private LoreAppendMode loreAppendMode;
@@ -477,6 +484,7 @@ public class MenuItemOptions {
 
         public MenuItemOptionsBuilder material(final @NotNull String configMaterial) {
             this.material = configMaterial;
+            this.materialHasPlaceholders = DeluxeMenusConfig.containsPlaceholders(this.material);
             return this;
         }
 

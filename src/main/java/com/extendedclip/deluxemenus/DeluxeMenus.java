@@ -63,6 +63,15 @@ public class DeluxeMenus extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        if (VersionHelper.HAS_DATA_COMPONENTS) {
+            this.debug(
+                    DebugLevel.HIGHEST,
+                    Level.INFO,
+                    "Legacy NBT item options are not supported on data component versions. The following options are unavailable: nbt_int, nbt_ints, nbt_string and nbt_strings."
+            );
+            return;
+        }
+
         if (NbtProvider.isAvailable()) {
             this.debug(DebugLevel.HIGHEST, Level.INFO, "NMS hook has been setup successfully!");
             return;

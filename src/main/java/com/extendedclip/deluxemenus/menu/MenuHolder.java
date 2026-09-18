@@ -33,6 +33,7 @@ public class MenuHolder implements InventoryHolder {
     private BukkitTask refreshTask = null;
     private Inventory inventory;
     private boolean updating;
+    private volatile boolean closed;
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
     private Map<String, String> typedArgs;
@@ -105,7 +106,7 @@ public class MenuHolder implements InventoryHolder {
 
     public @NotNull String setPlaceholders(final @NotNull String string) {
         final Player player = this.placeholderPlayer != null ? this.placeholderPlayer : this.getViewer();
-        if (player == null) {
+        if (player == null || !player.isOnline()) {
             return string;
         }
 
@@ -118,12 +119,16 @@ public class MenuHolder implements InventoryHolder {
         return StringUtils.replaceArguments(
                 string,
                 this.typedArgs,
-                player,
+                player != null && player.isOnline() ? player : null,
                 this.parsePlaceholdersInArguments
         );
     }
 
     public void refreshMenu() {
+
+        if (stopIfClosedOrOffline()) {
+            return;
+        }
 
         Optional<Menu> optionalMenu = getMenu();
         if (optionalMenu.isEmpty()) {
@@ -139,6 +144,10 @@ public class MenuHolder implements InventoryHolder {
         setUpdating(true);
 
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
+
+            if (stopIfClosedOrOffline()) {
+                return;
+            }
 
             final Set<MenuItem> active = new HashSet<>();
 
@@ -172,11 +181,17 @@ public class MenuHolder implements InventoryHolder {
                 }
             }
 
-            if (active.isEmpty()) {
-                Menu.closeMenu(plugin, getViewer(), true);
-            }
-
             Bukkit.getScheduler().runTask(plugin, () -> {
+
+                // A refresh queued before close must not recreate the update task.
+                if (stopIfClosedOrOffline()) {
+                    return;
+                }
+
+                if (active.isEmpty()) {
+                    Menu.closeMenu(plugin, getViewer(), true);
+                    return;
+                }
 
                 boolean update = false;
 
@@ -216,7 +231,21 @@ public class MenuHolder implements InventoryHolder {
         });
     }
 
-    public void stopPlaceholderUpdate() {
+    public synchronized void close() {
+        closed = true;
+        stopPlaceholderUpdate();
+        stopRefreshTask();
+    }
+
+    private boolean stopIfClosedOrOffline() {
+        if (closed || !viewer.isOnline()) {
+            close();
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized void stopPlaceholderUpdate() {
         if (updateTask != null) {
             try {
                 updateTask.cancel();
@@ -226,7 +255,7 @@ public class MenuHolder implements InventoryHolder {
         }
     }
 
-    public void stopRefreshTask() {
+    public synchronized void stopRefreshTask() {
         if(refreshTask != null) {
             try {
                 refreshTask.cancel();
@@ -236,7 +265,10 @@ public class MenuHolder implements InventoryHolder {
         }
     }
 
-    public void startRefreshTask() {
+    public synchronized void startRefreshTask() {
+        if (stopIfClosedOrOffline()) {
+            return;
+        }
         if(refreshTask != null) {
             stopRefreshTask();
         }
@@ -253,7 +285,11 @@ public class MenuHolder implements InventoryHolder {
                         .orElse(10));
     }
 
-    public void startUpdatePlaceholdersTask() {
+    public synchronized void startUpdatePlaceholdersTask() {
+
+        if (stopIfClosedOrOffline()) {
+            return;
+        }
 
         if (updateTask != null) {
             stopPlaceholderUpdate();
@@ -263,6 +299,10 @@ public class MenuHolder implements InventoryHolder {
 
             @Override
             public void run() {
+
+                if (stopIfClosedOrOffline()) {
+                    return;
+                }
 
                 if (updating) {
                     return;

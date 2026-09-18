@@ -191,8 +191,7 @@ public class Menu {
 
         MenuHolder holder = optionalHolder.get();
 
-        holder.stopPlaceholderUpdate();
-        holder.stopRefreshTask();
+        holder.close();
 
         if (executeCloseActions) {
             holder.getMenu().map(Menu::options).map(MenuOptions::closeHandler).flatMap(h -> h).ifPresent(h -> h.onClick(holder));
@@ -209,7 +208,7 @@ public class Menu {
     }
 
     public static void closeMenuForShutdown(final @NotNull DeluxeMenus plugin, final @NotNull Player player) {
-        getMenuHolder(player).ifPresent(MenuHolder::stopPlaceholderUpdate);
+        getMenuHolder(player).ifPresent(MenuHolder::close);
 
         player.closeInventory();
         cleanInventory(plugin, player);
@@ -384,6 +383,10 @@ public class Menu {
             final boolean updatePlaceholders = update;
 
             Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!viewer.isOnline()) {
+                    holder.close();
+                    return;
+                }
                 if(options.refresh()) {
                     holder.startRefreshTask();
                 }

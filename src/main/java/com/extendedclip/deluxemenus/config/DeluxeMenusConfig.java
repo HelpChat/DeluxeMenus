@@ -558,6 +558,9 @@ public class DeluxeMenusConfig {
         final boolean refresh = c.getBoolean(pre + "refresh", false);
         builder.refresh(refresh);
 
+        final boolean parseRequirementsAsync = c.getBoolean(pre+"parse_requirements_async",true);
+        builder.parseRequirementsAsync(parseRequirementsAsync);
+
         Map<Integer, TreeMap<Integer, MenuItem>> items = loadMenuItems(c, key, mainConfig);
 
         if (items == null || items.isEmpty()) {

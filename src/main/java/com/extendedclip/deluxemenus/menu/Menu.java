@@ -1,8 +1,6 @@
 package com.extendedclip.deluxemenus.menu;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import com.extendedclip.deluxemenus.action.ClickHandler;
-import com.extendedclip.deluxemenus.dupe.MenuItemMarker;
 import com.extendedclip.deluxemenus.events.DeluxeMenusOpenMenuEvent;
 import com.extendedclip.deluxemenus.events.DeluxeMenusPreOpenMenuEvent;
 import com.extendedclip.deluxemenus.menu.command.RegistrableMenuCommand;
@@ -10,11 +8,6 @@ import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -22,6 +15,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.logging.Level;
 
 public class Menu {
 
@@ -274,11 +271,11 @@ public class Menu {
         }
 
         DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
-    Bukkit.getPluginManager().callEvent(preOpenEvent);
+        Bukkit.getPluginManager().callEvent(preOpenEvent);
 
-    if (preOpenEvent.isCancelled()) return;
+        if (preOpenEvent.isCancelled()) return;
 
-    final MenuHolder holder = new MenuHolder(plugin, viewer);
+        final MenuHolder holder = new MenuHolder(plugin, viewer);
         if (placeholderPlayer != null) {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
@@ -294,8 +291,9 @@ public class Menu {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        final boolean parseRequirementsAsync = this.options.parseRequirementsAsync();
 
+        final Runnable setItemsRunnable = () -> {
             Set<MenuItem> activeItems = new HashSet<>();
 
             for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
@@ -383,8 +381,8 @@ public class Menu {
 
             final boolean updatePlaceholders = update;
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if(options.refresh()) {
+            final Runnable openInventoryRunnable = () -> {
+                if (options.refresh()) {
                     holder.startRefreshTask();
                 }
 
@@ -395,17 +393,33 @@ public class Menu {
                 viewer.openInventory(inventory);
                 menuHolders.add(holder);
 
-        if (updatePlaceholders) {
-          holder.startUpdatePlaceholdersTask();
-        }
-      });
+                if (updatePlaceholders) {
+                    holder.startUpdatePlaceholdersTask();
+                }
+            };
+            if(parseRequirementsAsync){
+                Bukkit.getScheduler().runTask(plugin,openInventoryRunnable);
+            }else {
+                openInventoryRunnable.run();
+            }
 
-      Bukkit.getScheduler().runTask(plugin, () -> {
-        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
-        Bukkit.getPluginManager().callEvent(openEvent);
-      });
-    });
-  }
+
+            final Runnable callEventRunnable = () -> {
+                DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+                Bukkit.getPluginManager().callEvent(openEvent);
+            };
+            if (parseRequirementsAsync) {
+                Bukkit.getScheduler().runTask(plugin,callEventRunnable);
+            }else {
+                callEventRunnable.run();
+            }
+        };
+        if(parseRequirementsAsync){
+            Bukkit.getScheduler().runTaskAsynchronously(plugin,setItemsRunnable);
+        }else {
+            Bukkit.getScheduler().runTask(plugin,setItemsRunnable);
+        }
+    }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

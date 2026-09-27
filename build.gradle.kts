@@ -21,6 +21,7 @@ repositories {
     maven("https://repo.momirealms.net/releases/")
     maven("https://repo.nexomc.com/releases/")
     maven("https://repo.oraxen.com/releases")
+    maven("https://repo.auxilor.io/repository/maven-public/")
     maven("https://jitpack.io")
 }
 
@@ -35,6 +36,7 @@ dependencies {
     compileOnly(libs.craftengine.core)
     compileOnly(libs.craftengine.bukkit)
     compileOnly(libs.itemsadder)
+    compileOnly(libs.ecoitems)
     compileOnly(libs.nexo)
     compileOnly(libs.oraxen)
     compileOnly(libs.mythiclib)

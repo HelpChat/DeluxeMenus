@@ -300,6 +300,10 @@ public class DeluxeMenus extends JavaPlugin {
             this.itemHooks.put("itemsadder", new ItemsAdderHook());
         }
 
+        if (Bukkit.getPluginManager().isPluginEnabled("EcoItems")) {
+            this.itemHooks.put("ecoitems", new EcoItemsHook());
+        }
+
         if (Bukkit.getPluginManager().isPluginEnabled("Nexo")) {
             this.itemHooks.put("nexo", new NexoHook());
         }

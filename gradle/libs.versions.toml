@@ -20,7 +20,7 @@ bstats = "3.2.1"
 # Implementation
 nashorn = "15.7"
 adventure-platform = "4.4.1"
-adventure-minimessage = "5.2.0"
+adventure-minimessage = "4.26.1" # versions 5+ causes that DM cannot send messages on MC version 1.21.11 (haven't tested other ones)
 
 [libraries]
 # Compile only

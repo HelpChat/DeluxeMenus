@@ -14,21 +14,20 @@ version = "$majorVersion-$minorVersion"
 
 repositories {
     mavenCentral()
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-    maven("https://repo.glaremasters.me/repository/public/")
     maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
     maven("https://repo.momirealms.net/releases/")
     maven("https://repo.nexomc.com/releases/")
     maven("https://repo.oraxen.com/releases")
+    maven("https://maven.devs.beer/")
     maven("https://jitpack.io")
 }
 
 dependencies {
-    compileOnly(libs.spigot)
+    compileOnly(libs.paper)
 
     compileOnly(libs.vault)
-    compileOnly(libs.authlib)
 
     compileOnly(libs.headdb)
     compileOnly(libs.headdb.api)
@@ -45,29 +44,32 @@ dependencies {
     compileOnly(libs.papi)
 
     implementation(libs.nashorn)
-    implementation(libs.adventure.platform)
-    implementation(libs.adventure.minimessage)
     implementation(libs.bstats)
 
     compileOnly("org.jetbrains:annotations:26.1.0")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+    disableAutoTargetJvm()
+}
+
 tasks {
+    withType<JavaCompile> {
+        options.release.set(21)
+    }
+
     shadowJar {
         relocate("org.objectweb.asm", "com.extendedclip.deluxemenus.libs.asm")
         relocate("org.openjdk.nashorn", "com.extendedclip.deluxemenus.libs.nashorn")
-        relocate("net.kyori", "com.extendedclip.deluxemenus.libs.adventure")
         relocate("org.bstats", "com.extendedclip.deluxemenus.libs.bstats")
         archiveFileName.set("DeluxeMenus-${rootProject.version}.jar")
     }
-    java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-        disableAutoTargetJvm()
-    }
 
     processResources {
-        filesMatching("plugin.yml") {
+        filesMatching("paper-plugin.yml") {
             expand("version" to rootProject.version)
         }
     }

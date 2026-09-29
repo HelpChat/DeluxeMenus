@@ -41,11 +41,10 @@ public class BaseHeadHook implements ItemHook, SimpleCache {
     if (arguments.length == 0) {
       return false;
     }
-    String itemTexture = SkullUtils.getTextureFromSkull(plugin, item);
-    String texture = SkullUtils.decodeSkinUrl(arguments[0]);
+    String itemTexture = SkullUtils.getTextureFromSkull(item);
+    String texture = SkullUtils.getTextureIdFromBase64(arguments[0]);
     if (itemTexture == null || texture == null) return false;
 
-    texture = texture.substring("https://textures.minecraft.net/texture/".length()-1);
     return texture.equals(itemTexture);
   }
 

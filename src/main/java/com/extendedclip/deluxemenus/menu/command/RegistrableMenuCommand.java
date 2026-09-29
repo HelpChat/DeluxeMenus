@@ -3,17 +3,15 @@ package com.extendedclip.deluxemenus.menu.command;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
+import com.extendedclip.deluxemenus.utils.Messages;
 import com.extendedclip.deluxemenus.utils.StringUtils;
-import me.clip.placeholderapi.util.Msg;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
@@ -23,7 +21,6 @@ import java.util.logging.Level;
 public class RegistrableMenuCommand extends Command {
 
     private static final String FALLBACK_PREFIX = "DeluxeMenus".toLowerCase(Locale.ROOT).trim();
-    private static CommandMap commandMap = null;
 
     private final DeluxeMenus plugin;
 
@@ -33,7 +30,7 @@ public class RegistrableMenuCommand extends Command {
 
     public RegistrableMenuCommand(final @NotNull DeluxeMenus plugin,
                                   final @NotNull Menu menu) {
-        super(menu.options().commands().isEmpty() ? menu.options().name() : menu.options().commands().get(0));
+        super(menu.options().commands().isEmpty() ? menu.options().name() : menu.options().commands().getFirst());
         this.plugin = plugin;
         this.menu = menu;
 
@@ -43,13 +40,13 @@ public class RegistrableMenuCommand extends Command {
     }
 
     @Override
-    public boolean execute(final @NotNull CommandSender sender, final @NotNull String commandLabel, final @NotNull String[] typedArgs) {
+    public boolean execute(final @NotNull CommandSender sender, final @NotNull String commandLabel, final @NotNull String @NotNull [] typedArgs) {
         if (this.unregistered) {
             throw new IllegalStateException("This command was unregistered!");
         }
 
-        if (!(sender instanceof Player)) {
-            Msg.msg(sender, "Menus can only be opened by players!");
+        if (!(sender instanceof Player player)) {
+            plugin.sms(sender, Messages.MENUS_ARE_PLAYER_ONLY);
             return true;
         }
 
@@ -60,7 +57,7 @@ public class RegistrableMenuCommand extends Command {
             if (typedArgs.length < menu.options().arguments().size()) {
                 if (menu.options().argumentsUsageMessage().isPresent()) {
                     String usageMessage = menu.options().argumentsUsageMessage().get();
-                    Msg.msg(sender, StringUtils.replacePlaceholders(usageMessage, (Player) sender));
+                    plugin.sms(sender, StringUtils.color(StringUtils.replacePlaceholders(usageMessage, player)));
                 }
                 return true;
             }
@@ -79,7 +76,6 @@ public class RegistrableMenuCommand extends Command {
             }
         }
 
-        Player player = (Player) sender;
         plugin.debug(DebugLevel.LOWEST, Level.INFO, "opening menu: " + menu.options().name());
         menu.openMenu(player, argMap, null);
         return true;
@@ -89,41 +85,10 @@ public class RegistrableMenuCommand extends Command {
         if (registered) {
             throw new IllegalStateException("This command was already registered!");
         }
-        if (registered) {
-            throw new IllegalStateException("This command was already registered!");
-        }
 
         registered = true;
-        registered = true;
 
-        if (commandMap == null) {
-            try {
-                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                f.setAccessible(true);
-                commandMap = (CommandMap) f.get(Bukkit.getServer());
-            } catch (final @NotNull Exception exception) {
-                plugin.printStacktrace(
-                        "Something went wrong while trying to register command: " + this.getName(),
-                        exception
-                );
-                return;
-            }
-        }
-        if (commandMap == null) {
-            try {
-                final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                f.setAccessible(true);
-                commandMap = (CommandMap) f.get(Bukkit.getServer());
-            } catch (final @NotNull Exception exception) {
-                plugin.printStacktrace(
-                        "Something went wrong while trying to register command: " + this.getName(),
-                        exception
-                );
-                return;
-            }
-        }
-
-        boolean registered = commandMap.register(FALLBACK_PREFIX, this);
+        boolean registered = Bukkit.getCommandMap().register(FALLBACK_PREFIX, this);
         if (registered) {
             plugin.debug(
                     DebugLevel.LOW,
@@ -151,20 +116,9 @@ public class RegistrableMenuCommand extends Command {
 
         unregistered = true;
 
-        if (commandMap == null) {
-            this.menu = null;
-            return;
-        }
-
-        Field cMap;
-        Field knownCommands;
         try {
-            cMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            cMap.setAccessible(true);
-            knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
-            knownCommands.setAccessible(true);
-
-            final Map<String, Command> knownCommandsMap = (Map<String, Command>) knownCommands.get(cMap.get(Bukkit.getServer()));
+            final CommandMap commandMap = Bukkit.getCommandMap();
+            final Map<String, Command> knownCommandsMap = commandMap.getKnownCommands();
 
             // We need to remove every single alias because CommandMap#register() adds them all to the map.
             // If we do not remove them, then we will have dangling references to the command.
@@ -176,8 +130,7 @@ public class RegistrableMenuCommand extends Command {
                 knownCommandsMap.remove(FALLBACK_PREFIX + ":" + alias);
             }
 
-            boolean unregistered = this.unregister((CommandMap) cMap.get(Bukkit.getServer()));
-            this.unregister(commandMap);
+            boolean unregistered = this.unregister(commandMap);
             if (unregistered) {
                 plugin.debug(
                         DebugLevel.HIGH,

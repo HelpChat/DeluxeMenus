@@ -111,6 +111,7 @@ public enum Messages {
                     .append(text("is exempt from placeholder target arguments.", NamedTextColor.GRAY))),
 
     MUST_SPECIFY_PLAYER(text("You must specify a player to open a menu for!", NamedTextColor.RED)),
+    MENUS_ARE_PLAYER_ONLY(text("Menus can only be opened by players!", NamedTextColor.RED)),
     WRONG_ACTION_TYPE(text("Action type specified does not exist!", NamedTextColor.RED)),
     CHANCE_FAIL(text("The chance for this action determined the action should not execute!", NamedTextColor.RED)),
 

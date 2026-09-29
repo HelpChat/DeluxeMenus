@@ -39,4 +39,3 @@ If you would like to contribute towards DeluxeMenus should you take a look at ou
 - [CI Server][ci]
 - [Spigot Page][spigot]
 - [Plugin Statistics][bstats]
-

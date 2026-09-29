@@ -116,8 +116,7 @@ public class SkullUtils {
     }
 
     public static String getSkullOwner(ItemStack skull) {
-        if (skull == null || !(skull.getItemMeta() instanceof SkullMeta)) return null;
-        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        if (skull == null || !(skull.getItemMeta() instanceof SkullMeta meta)) return null;
 
         if (meta.getOwningPlayer() == null) return null;
         return meta.getOwningPlayer().getName();

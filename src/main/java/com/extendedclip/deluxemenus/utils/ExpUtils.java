@@ -26,7 +26,7 @@ public final class ExpUtils {
         final String lowerCase = stringAmount.toLowerCase(Locale.ENGLISH);
 
         if (stringAmount.contains("l")) {
-            final int neededLevel = Integer.parseInt(lowerCase.replaceAll("l", "")) + target.getLevel();
+            final int neededLevel = Integer.parseInt(lowerCase.replace("l", "")) + target.getLevel();
             amount = getExpToLevel(neededLevel) + (getTotalExperience(target) - getExpToLevel(target.getLevel()));
             setTotalExperience(target, 0);
         }

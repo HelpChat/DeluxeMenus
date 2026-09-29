@@ -15,7 +15,6 @@ public class ExecutableBlocksHook implements ItemHook, SimpleCache {
 
   private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
 
-  @SuppressWarnings("deprecation")
   @Override
   public ItemStack getItem(@NotNull String... arguments) {
     if (arguments.length == 0) {

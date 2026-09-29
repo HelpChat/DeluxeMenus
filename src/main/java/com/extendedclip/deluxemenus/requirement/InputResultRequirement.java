@@ -21,24 +21,32 @@ public class InputResultRequirement extends Requirement {
     String parsedResult = holder.setPlaceholdersAndArguments(this.result);
 
     switch (type) {
-      case STRING_CONTAINS:
-        return parsedInput.contains(parsedResult);
-      case STRING_EQUALS:
-        return parsedInput.equals(parsedResult);
-      case STRING_EQUALS_IGNORECASE:
-        return parsedInput.equalsIgnoreCase(parsedResult);
-      case STRING_DOES_NOT_CONTAIN:
-        return !parsedInput.contains(parsedResult);
-      case STRING_DOES_NOT_EQUAL:
-        return !parsedInput.equals(parsedResult);
-      case STRING_DOES_NOT_EQUAL_IGNORECASE:
-        return !parsedInput.equalsIgnoreCase(parsedResult);
-      case STRING_CONTAINS_IGNORECASE:
-        return parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
-      case STRING_DOES_NOT_CONTAIN_IGNORECASE:
-        return !parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
-      default:
-        break;
+      case STRING_CONTAINS -> {
+          return parsedInput.contains(parsedResult);
+      }
+      case STRING_EQUALS -> {
+          return parsedInput.equals(parsedResult);
+      }
+      case STRING_EQUALS_IGNORECASE -> {
+          return parsedInput.equalsIgnoreCase(parsedResult);
+      }
+      case STRING_DOES_NOT_CONTAIN -> {
+          return !parsedInput.contains(parsedResult);
+      }
+      case STRING_DOES_NOT_EQUAL -> {
+          return !parsedInput.equals(parsedResult);
+      }
+      case STRING_DOES_NOT_EQUAL_IGNORECASE -> {
+          return !parsedInput.equalsIgnoreCase(parsedResult);
+      }
+      case STRING_CONTAINS_IGNORECASE -> {
+          return parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
+      }
+      case STRING_DOES_NOT_CONTAIN_IGNORECASE -> {
+          return !parsedInput.toLowerCase().contains(parsedResult.toLowerCase());
+      }
+      default -> {
+      }
     }
 
     double in;
@@ -64,23 +72,14 @@ public class InputResultRequirement extends Requirement {
       return false;
     }
 
-    switch (type) {
-      case GREATER_THAN:
-        return in > res;
-      case GREATER_THAN_EQUAL_TO:
-        return in >= res;
-      case EQUAL_TO:
-        return in == res;
-      case NOT_EQUAL_TO:
-        return in != res;
-      case LESS_THAN_EQUAL_TO:
-        return in <= res;
-      case LESS_THAN:
-        return in < res;
-      default:
-        break;
-    }
-    return false;
+    return switch (type) {
+      case GREATER_THAN -> in > res;
+      case GREATER_THAN_EQUAL_TO -> in >= res;
+      case EQUAL_TO -> in == res;
+      case NOT_EQUAL_TO -> in != res;
+      case LESS_THAN_EQUAL_TO -> in <= res;
+      case LESS_THAN -> in < res;
+      default -> false;
+    };
   }
 }
-

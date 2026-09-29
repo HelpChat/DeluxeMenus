@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class SubCommand {
 
@@ -37,7 +36,7 @@ public abstract class SubCommand {
         final List<String> onlinePlayerNames = Bukkit.getOnlinePlayers()
                 .stream()
                 .map(Player::getName)
-                .collect(Collectors.toList());
+                .toList();
 
         if (onlinePlayerNames.isEmpty()) {
             return null;
@@ -49,6 +48,6 @@ public abstract class SubCommand {
 
         return onlinePlayerNames.stream()
                 .filter(playerName -> playerName.toLowerCase().startsWith(argument.toLowerCase()))
-                .collect(Collectors.toList());
+                .toList();
     }
 }

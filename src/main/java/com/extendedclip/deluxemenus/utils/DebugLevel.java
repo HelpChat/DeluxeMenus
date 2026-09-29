@@ -17,7 +17,7 @@ public enum DebugLevel {
     private final String[] names;
     private final int priority;
 
-    private DebugLevel(final int priority, @NotNull final String... names) {
+    DebugLevel(final int priority, @NotNull final String... names) {
         this.priority = priority;
         this.names = names;
     }

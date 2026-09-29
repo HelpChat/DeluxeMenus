@@ -73,13 +73,13 @@ public class Expansion extends PlaceholderExpansion {
         final String parsedInputLower = parsedInput.toLowerCase();
 
         switch (parsedInputLower) {
-            case "is_in_menu": {
+            case "is_in_menu" -> {
                 return getBooleanAsString(Menu.getMenuHolder(onlinePlayer).isPresent());
             }
-            case "opened_menu": {
+            case "opened_menu" -> {
                 return Menu.getOpenMenu(onlinePlayer).map(Menu::options).map(MenuOptions::name).orElse("");
             }
-            case "last_menu": {
+            case "last_menu" -> {
                 return Menu.getLastMenu(onlinePlayer).map(Menu::options).map(MenuOptions::name).orElse("");
             }
         }
@@ -206,12 +206,12 @@ public class Expansion extends PlaceholderExpansion {
         }
 
         if (minutes > 0) {
-            if (builder.length() > 0) builder.append(' ');
+            if (!builder.isEmpty()) builder.append(' ');
             builder.append(minutes).append('m');
         }
 
         if (seconds > 0) {
-            if (builder.length() > 0) builder.append(' ');
+            if (!builder.isEmpty()) builder.append(' ');
             builder.append(seconds).append('s');
         }
 

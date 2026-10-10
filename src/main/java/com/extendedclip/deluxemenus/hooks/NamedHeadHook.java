@@ -6,7 +6,6 @@ import com.extendedclip.deluxemenus.listener.Listener;
 import com.extendedclip.deluxemenus.utils.SkullUtils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;

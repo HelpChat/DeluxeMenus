@@ -24,6 +24,6 @@ public class IsNearRequirement extends Requirement {
     if (holder.getViewer().getWorld().getName().equals(location.getWorld().getName())) {
       withinRange = holder.getViewer().getLocation().distance(location) < distance;
     }
-    return invert ? !withinRange : withinRange;
+    return invert != withinRange;
   }
 }

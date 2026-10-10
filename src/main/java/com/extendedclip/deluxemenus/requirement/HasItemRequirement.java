@@ -174,7 +174,7 @@ public class HasItemRequirement extends Requirement {
         final List<Component> lore = meta.lore();
         if (lore == null) return null;
 
-        return lore.stream().map(StringUtils::legacy).collect(Collectors.toList());
+        return lore.stream().map(StringUtils::legacy).toList();
     }
 
     private boolean isEmptyModelData(@NotNull final CustomModelDataComponent modelData) {
@@ -192,7 +192,7 @@ public class HasItemRequirement extends Requirement {
                     .map(holder::setPlaceholdersAndArguments)
                     .map(StringUtils::parseRGBColor)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
 
             for (Color color : colors) {
                 if (!modelData.getColors().contains(color)) {
@@ -206,7 +206,7 @@ public class HasItemRequirement extends Requirement {
                     .stream()
                     .map(holder::setPlaceholdersAndArguments)
                     .map(Boolean::parseBoolean)
-                    .collect(Collectors.toList());
+                    .toList();
 
             for (Boolean flag : flags) {
                 if (!modelData.getFlags().contains(flag)) {
@@ -220,7 +220,7 @@ public class HasItemRequirement extends Requirement {
                     .stream()
                     .map(holder::setPlaceholdersAndArguments)
                     .map(Float::parseFloat)
-                    .collect(Collectors.toList());
+                    .toList();
 
             for (Float floatValue : floats) {
                 if (!modelData.getFloats().contains(floatValue)) {
@@ -233,7 +233,7 @@ public class HasItemRequirement extends Requirement {
             final List<String> strings = wrapper.strings()
                     .stream()
                     .map(holder::setPlaceholdersAndArguments)
-                    .collect(Collectors.toList());
+                    .toList();
 
             for (String string : strings) {
                 if (!modelData.getStrings().contains(string)) {

@@ -14,6 +14,8 @@ import com.extendedclip.deluxemenus.menu.options.HeadType;
 import com.extendedclip.deluxemenus.menu.options.MenuOptions;
 import com.extendedclip.deluxemenus.persistentmeta.PersistentMetaHandler;
 import com.extendedclip.deluxemenus.placeholder.Expansion;
+import com.extendedclip.deluxemenus.scheduler.UniversalScheduler;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import com.extendedclip.deluxemenus.updatechecker.UpdateChecker;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
@@ -26,14 +28,22 @@ import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -55,6 +65,9 @@ public class DeluxeMenus extends JavaPlugin {
 
     private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
+
+    @NotNull
+    private final TaskScheduler scheduler = UniversalScheduler.getScheduler(this);
 
     @Override
     public void onEnable() {
@@ -95,7 +108,7 @@ public class DeluxeMenus extends JavaPlugin {
     public void onDisable() {
         Bukkit.getMessenger().unregisterOutgoingPluginChannel(this, "BungeeCord");
 
-        Bukkit.getScheduler().cancelTasks(this);
+        scheduler.cancelTasks(this);
 
         Menu.unloadForShutdown(this);
 
@@ -193,6 +206,10 @@ public class DeluxeMenus extends JavaPlugin {
 
     public GeneralConfig getGeneralConfig() {
         return generalConfig;
+    }
+
+    public @NotNull TaskScheduler getScheduler() {
+        return scheduler;
     }
 
     private boolean hookIntoPlaceholderAPI() {
@@ -327,5 +344,24 @@ public class DeluxeMenus extends JavaPlugin {
                 .map(Menu::options)
                 .map(MenuOptions::type)
                 .collect(Collectors.groupingBy(Enum::name, Collectors.summingInt(type -> 1)))));
+    }
+
+    public boolean isDupeProtectionFlagged(@NotNull ItemStack item) {
+        if (!item.hasItemMeta()) return false;
+
+        return item.getItemMeta().getPersistentDataContainer()
+                .has(new NamespacedKey(this, "deluxemenus.item.dupeprotection"), PersistentDataType.BYTE);
+    }
+
+    public void markDupeProtection(@NotNull ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(this, "deluxemenus.item.dupeprotection"),
+                PersistentDataType.BYTE,
+                (byte) 1
+        );
+        item.setItemMeta(meta);
     }
 }

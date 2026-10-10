@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
@@ -42,7 +42,7 @@ public final class DumpUtils {
     public static CompletableFuture<String> postDump(@NotNull final String dump) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                final HttpURLConnection connection = ((HttpURLConnection) new URL(URL + "documents")
+                final HttpURLConnection connection = ((HttpURLConnection) URI.create(URL + "documents").toURL()
                     .openConnection());
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "text/plain; charset=utf-8");

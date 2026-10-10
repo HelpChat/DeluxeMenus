@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OpenCommand extends SubCommand {
@@ -35,7 +34,8 @@ public class OpenCommand extends SubCommand {
             return;
         }
 
-        boolean player = (sender instanceof Player);
+        final Player senderPlayer = sender instanceof Player playerSender ? playerSender : null;
+        final boolean player = senderPlayer != null;
 
         if (arguments.isEmpty()) {
             plugin.sms(sender, Messages.WRONG_USAGE_OPEN_COMMAND);
@@ -91,7 +91,7 @@ public class OpenCommand extends SubCommand {
                         return;
                     }
 
-                    viewer = (Player) sender;
+                    viewer = senderPlayer;
                 }
             }
 
@@ -101,7 +101,7 @@ public class OpenCommand extends SubCommand {
                 return;
             }
 
-            viewer = (Player) sender;
+            viewer = senderPlayer;
         }
 
         if (viewer == null) {
@@ -127,10 +127,10 @@ public class OpenCommand extends SubCommand {
             }
         }
 
-        Optional<Menu> menu = Menu.getMenuByName(arguments.get(0));
+        Optional<Menu> menu = Menu.getMenuByName(arguments.getFirst());
 
         if (menu.isEmpty()) {
-            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.getFirst()).build()));
             return;
         }
 
@@ -152,11 +152,11 @@ public class OpenCommand extends SubCommand {
         }
 
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
+            if (arguments.getFirst().isEmpty()) {
                 return List.of(getName());
             }
 
-            final String firstArgument = arguments.get(0).toLowerCase();
+            final String firstArgument = arguments.getFirst().toLowerCase();
 
             if (getName().startsWith(firstArgument)) {
                 return List.of(getName());
@@ -165,7 +165,7 @@ public class OpenCommand extends SubCommand {
             return null;
         }
 
-        final String firstArgument = arguments.get(0).toLowerCase();
+        final String firstArgument = arguments.getFirst().toLowerCase();
 
         if (!getName().equals(firstArgument)) {
             return null;
@@ -186,31 +186,31 @@ public class OpenCommand extends SubCommand {
 
             return menuNames.stream()
                     .filter(menuName -> menuName.toLowerCase().startsWith(secondArgument))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         final List<String> onlinePlayerNames = Bukkit.getOnlinePlayers()
                 .stream()
                 .map(Player::getName)
-                .collect(Collectors.toList());
+                .toList();
 
         if (arguments.size() == 3) {
             final String thirdArgument = arguments.get(2).toLowerCase();
 
             if (thirdArgument.isEmpty()) {
-                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:")).collect(Collectors.toList());
+                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:")).toList();
             }
 
             if (!thirdArgument.startsWith("-")) {
                 return onlinePlayerNames.stream()
                         .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
-                        .collect(Collectors.toList());
+                        .toList();
             }
 
             return onlinePlayerNames.stream()
                     .map(playerName -> "-p:" + playerName)
                     .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         if (arguments.size() == 4) {
@@ -227,7 +227,7 @@ public class OpenCommand extends SubCommand {
 
             return onlinePlayerNames.stream()
                     .filter(playerName -> playerName.toLowerCase().startsWith(fourthArgument))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         return null;

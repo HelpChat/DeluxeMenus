@@ -21,6 +21,7 @@ repositories {
     maven("https://repo.nexomc.com/releases/")
     maven("https://repo.oraxen.com/releases")
     maven("https://jitpack.io")
+    maven("https://maven.devs.beer/")
 }
 
 dependencies {

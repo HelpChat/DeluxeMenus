@@ -14,17 +14,17 @@ jobs:
       contents: read
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
+    - uses: actions/checkout@v7
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
 
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v6
 
     - name: Add SHORT_SHA env property with commit short sha
       run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
@@ -35,7 +35,7 @@ jobs:
         BUILD_NUMBER: 'PR-${{ github.event.number }}-${{ env.SHORT_SHA }}'
 
     - name: Upload build
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: 'DeluxeMenus build PR-${{ github.event.number }}-${{ env.SHORT_SHA }}'
         path: build/libs
@@ -58,14 +58,14 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
+    - uses: actions/checkout@v7
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
 
     # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
     # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
     - name: Generate and submit dependency graph
-      uses: gradle/actions/setup-gradle@v3 # v3.1.0
+      uses: gradle/actions/setup-gradle@v6 # v6.4.0

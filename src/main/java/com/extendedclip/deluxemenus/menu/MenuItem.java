@@ -6,12 +6,12 @@ import com.extendedclip.deluxemenus.menu.options.HeadType;
 import com.extendedclip.deluxemenus.menu.options.LoreAppendMode;
 import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
-import com.extendedclip.deluxemenus.nbt.NbtProvider;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.collect.ImmutableMultimap;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
@@ -257,7 +257,7 @@ public class MenuItem {
             return itemStack;
         }
 
-        if (VersionHelper.IS_CUSTOM_MODEL_DATA && this.options.customModelData().isPresent()) {
+        if (this.options.customModelData().isPresent()) {
             try {
                 final int modelData = Integer.parseInt(holder.setPlaceholdersAndArguments(this.options.customModelData().get()));
                 itemMeta.setCustomModelData(modelData);
@@ -271,13 +271,13 @@ public class MenuItem {
 
         if (this.options.displayName().isPresent()) {
             final String displayName = holder.setPlaceholdersAndArguments(this.options.displayName().get());
-            itemMeta.setDisplayName(StringUtils.color(displayName));
+            itemMeta.displayName(StringUtils.colorItemText(displayName, plugin.getGeneralConfig().suppressDefaultItalics()));
         }
 
-        List<String> lore = new ArrayList<>();
+        List<Component> lore = new ArrayList<>();
         // This checks if a lore should be kept from the hooked item, and then if a lore exists on the item
-        // ItemMeta.getLore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
-        List<String> itemLore = Objects.requireNonNullElse(itemMeta.getLore(), new ArrayList<>());
+        // ItemMeta.lore is nullable. In that case, we just create a new ArrayList so we don't add stuff to a null list.
+        List<Component> itemLore = Objects.requireNonNullElse(itemMeta.lore(), new ArrayList<>());
         // Ensures backwards compatibility with how hooked items are currently handled
         LoreAppendMode mode = this.options.loreAppendMode().orElse(LoreAppendMode.OVERRIDE);
         if (!this.options.hasLore() && this.options.loreAppendMode().isEmpty()) mode = LoreAppendMode.IGNORE;
@@ -298,34 +298,33 @@ public class MenuItem {
                 break;
         }
 
-        itemMeta.setLore(lore);
+        itemMeta.lore(lore);
 
         if (this.options.unbreakable()) {
             itemMeta.setUnbreakable(true);
         }
 
-        if (VersionHelper.HAS_DATA_COMPONENTS) {
-            if (this.options.hideTooltip().isPresent()) {
-                String hideTooltip = holder.setPlaceholdersAndArguments(this.options.hideTooltip().get());
-                itemMeta.setHideTooltip(Boolean.parseBoolean(hideTooltip));
-            }
-            if (this.options.enchantmentGlintOverride().isPresent()) {
-                String enchantmentGlintOverride = holder.setPlaceholdersAndArguments(this.options.enchantmentGlintOverride().get());
-                itemMeta.setEnchantmentGlintOverride(Boolean.parseBoolean(enchantmentGlintOverride));
-            }
-            if (this.options.rarity().isPresent()) {
-                String rarity = holder.setPlaceholdersAndArguments(this.options.rarity().get());
-                try {
-                    itemMeta.setRarity(ItemRarity.valueOf(rarity.toUpperCase()));
-                } catch (IllegalArgumentException e) {
-                    plugin.debug(
-                            DebugLevel.HIGHEST,
-                            Level.WARNING,
-                            "Rarity " + rarity + " is not a valid!"
-                    );
-                }
+        if (this.options.hideTooltip().isPresent()) {
+            String hideTooltip = holder.setPlaceholdersAndArguments(this.options.hideTooltip().get());
+            itemMeta.setHideTooltip(Boolean.parseBoolean(hideTooltip));
+        }
+        if (this.options.enchantmentGlintOverride().isPresent()) {
+            String enchantmentGlintOverride = holder.setPlaceholdersAndArguments(this.options.enchantmentGlintOverride().get());
+            itemMeta.setEnchantmentGlintOverride(Boolean.parseBoolean(enchantmentGlintOverride));
+        }
+        if (this.options.rarity().isPresent()) {
+            String rarity = holder.setPlaceholdersAndArguments(this.options.rarity().get());
+            try {
+                itemMeta.setRarity(ItemRarity.valueOf(rarity.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Rarity " + rarity + " is not a valid!"
+                );
             }
         }
+
         if (VersionHelper.HAS_TOOLTIP_STYLE) {
             if (this.options.tooltipStyle().isPresent()) {
                 NamespacedKey tooltipStyle = NamespacedKey.fromString(holder.setPlaceholdersAndArguments(this.options.tooltipStyle().get()));
@@ -337,7 +336,7 @@ public class MenuItem {
             }
         }
 
-        if (VersionHelper.HAS_ARMOR_TRIMS && ItemUtils.hasArmorMeta(itemStack)) {
+        if (ItemUtils.hasArmorMeta(itemStack)) {
             final Optional<String> trimMaterialName = this.options.trimMaterial();
             final Optional<String> trimPatternName = this.options.trimPattern();
 
@@ -469,79 +468,13 @@ public class MenuItem {
             for (final ItemFlag flag : this.options.itemFlags()) {
                 itemMeta.addItemFlags(flag);
 
-                if (flag == ItemFlag.HIDE_ATTRIBUTES && VersionHelper.HAS_DATA_COMPONENTS) {
+                if (flag == ItemFlag.HIDE_ATTRIBUTES) {
                     itemMeta.setAttributeModifiers(ImmutableMultimap.of());
                 }
             }
         }
 
         itemStack.setItemMeta(itemMeta);
-
-        if (NbtProvider.isAvailable()) {
-            if (this.options.nbtString().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtString().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":", 2);
-                    itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
-                }
-            }
-
-            if (this.options.nbtByte().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtByte().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
-                }
-            }
-
-            if (this.options.nbtShort().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtShort().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
-                }
-            }
-
-            if (this.options.nbtInt().isPresent()) {
-                final String tag = holder.setPlaceholdersAndArguments(this.options.nbtInt().get());
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
-                }
-            }
-
-            for (String nbtTag : this.options.nbtStrings()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":", 2);
-                    itemStack = NbtProvider.setString(itemStack, parts[0], parts[1]);
-                }
-            }
-
-            for (String nbtTag : this.options.nbtBytes()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setByte(itemStack, parts[0], Byte.parseByte(parts[1]));
-                }
-            }
-
-            for (String nbtTag : this.options.nbtShorts()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setShort(itemStack, parts[0], Short.parseShort(parts[1]));
-                }
-            }
-
-            for (String nbtTag : this.options.nbtInts()) {
-                final String tag = holder.setPlaceholdersAndArguments(nbtTag);
-                if (tag.contains(":")) {
-                    final String[] parts = tag.split(":");
-                    itemStack = NbtProvider.setInt(itemStack, parts[0], Integer.parseInt(parts[1]));
-                }
-            }
-        }
 
         return itemStack;
     }
@@ -569,14 +502,16 @@ public class MenuItem {
         return plugin.getItemHook(hookName).map(itemHook -> itemHook.getItem(args));
     }
 
-    protected List<String> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+    protected List<Component> getMenuItemLore(@NotNull final MenuHolder holder, @NotNull final List<String> lore) {
+        final boolean suppressDefaultItalics = plugin.getGeneralConfig().suppressDefaultItalics();
+
         return lore.stream()
                 .map(holder::setPlaceholdersAndArguments)
-                .map(StringUtils::color)
                 .map(line -> line.split("\n"))
                 .flatMap(Arrays::stream)
                 .map(line -> line.split("\\\\n"))
                 .flatMap(Arrays::stream)
+                .map(line -> StringUtils.colorItemText(line, suppressDefaultItalics))
                 .collect(Collectors.toList());
     }
 

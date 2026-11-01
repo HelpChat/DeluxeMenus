@@ -8,6 +8,7 @@ import com.extendedclip.deluxemenus.menu.options.MenuItemOptions;
 import com.extendedclip.deluxemenus.menu.options.CustomModelDataComponent;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.ItemUtils;
+import com.extendedclip.deluxemenus.utils.RegistryUtils;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 import com.extendedclip.deluxemenus.utils.VersionHelper;
 import com.google.common.collect.ImmutableMultimap;
@@ -341,8 +342,8 @@ public class MenuItem {
             final Optional<String> trimPatternName = this.options.trimPattern();
 
             if (trimMaterialName.isPresent() && trimPatternName.isPresent()) {
-                final TrimMaterial trimMaterial = Registry.TRIM_MATERIAL.match(holder.setPlaceholdersAndArguments(trimMaterialName.get()));
-                final TrimPattern trimPattern = Registry.TRIM_PATTERN.match(holder.setPlaceholdersAndArguments(trimPatternName.get()));
+                final TrimMaterial trimMaterial = RegistryUtils.byNameOrKey(Registry.TRIM_MATERIAL, normalizeRegistryInput(holder.setPlaceholdersAndArguments(trimMaterialName.get())));
+                final TrimPattern trimPattern = RegistryUtils.byNameOrKey(Registry.TRIM_PATTERN, normalizeRegistryInput(holder.setPlaceholdersAndArguments(trimPatternName.get())));
 
                 if (trimMaterial != null && trimPattern != null) {
                     final ArmorTrim armorTrim = new ArmorTrim(trimMaterial, trimPattern);
@@ -417,7 +418,7 @@ public class MenuItem {
                     plugin.debug(
                             DebugLevel.HIGHEST,
                             Level.INFO,
-                            "Failed to add enchantment " + entry.getKey().getName() + " to item " + itemStack.getType()
+                            "Failed to add enchantment " + entry.getKey().getKey() + " to item " + itemStack.getType()
                     );
                 }
             }
@@ -496,6 +497,14 @@ public class MenuItem {
         final Optional<HeadType> headType = HeadType.parseHeadType(material);
         headType.ifPresent(this.options::headType);
         return headType.isPresent();
+    }
+
+    /**
+     * Applies the same normalization the deprecated {@code Registry#match} used (lower case, whitespace to
+     * underscores), so configured values keep resolving exactly as before.
+     */
+    private static @NotNull String normalizeRegistryInput(@NotNull final String input) {
+        return input.toLowerCase(Locale.ROOT).replaceAll("\\s+", "_");
     }
 
     private @NotNull Optional<ItemStack> getItemFromHook(String hookName, String... args) {

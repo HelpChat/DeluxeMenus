@@ -47,7 +47,7 @@ dependencies:
       load: BEFORE
       required: false
       join-classpath: true
-    Score:
+    SCore:
       load: BEFORE
       required: false
       join-classpath: true

@@ -6,6 +6,7 @@ import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
@@ -153,22 +154,33 @@ public class SkullUtils {
      */
     @Nullable
     public static String decodeSkinUrl(@NotNull final String base64Texture) {
-        final String decoded = new String(Base64.getDecoder().decode(base64Texture));
-        final JsonObject object = GSON.fromJson(decoded, JsonObject.class);
+        // Heads created by other plugins can carry texture values that are not valid base64 or not the expected
+        // JSON shape. Treat those as "no skin url" instead of throwing, so requirement checks that inspect a
+        // player's inventory keep working.
+        try {
+            final String decoded = new String(Base64.getDecoder().decode(base64Texture));
+            final JsonObject object = GSON.fromJson(decoded, JsonObject.class);
 
-        final JsonElement textures = object.get("textures");
+            if (object == null) {
+                return null;
+            }
 
-        if (textures == null) {
+            final JsonElement textures = object.get("textures");
+
+            if (textures == null || !textures.isJsonObject()) {
+                return null;
+            }
+
+            final JsonElement skin = textures.getAsJsonObject().get("SKIN");
+
+            if (skin == null || !skin.isJsonObject()) {
+                return null;
+            }
+
+            final JsonElement url = skin.getAsJsonObject().get("url");
+            return url == null || !url.isJsonPrimitive() ? null : url.getAsString();
+        } catch (final IllegalArgumentException | JsonParseException exception) {
             return null;
         }
-
-        final JsonElement skin = textures.getAsJsonObject().get("SKIN");
-
-        if (skin == null) {
-            return null;
-        }
-
-        final JsonElement url = skin.getAsJsonObject().get("url");
-        return url == null ? null : url.getAsString();
     }
 }

@@ -218,7 +218,7 @@ public class MenuItem {
             final String parsedDamage = holder.setPlaceholdersAndArguments(this.options.damage().get());
             try {
                 int damage = Integer.parseInt(parsedDamage);
-                if (damage > 0) {
+                if (damage >= 0) {
                     final ItemMeta meta = itemStack.getItemMeta();
                     if (meta instanceof Damageable) {
                         ((Damageable) meta).setDamage(damage);

@@ -23,6 +23,8 @@ public class MenuOptions {
     private final boolean enableBypassPerm;
 
     private final List<String> commands;
+    private final List<String> guiCloseCommands;
+    private final List<String> guiOpenCommands;
     private final boolean registerCommands;
     private final List<String> arguments;
     private final List<RequirementList> argumentRequirements;
@@ -45,6 +47,8 @@ public class MenuOptions {
         this.enableBypassPerm = builder.enableBypassPerm;
 
         this.commands = builder.commands;
+        this.guiCloseCommands = builder.guiCloseCommands;
+        this.guiOpenCommands = builder.guiOpenCommands;
         this.registerCommands = builder.registerCommands;
         this.arguments = builder.arguments;
         this.argumentRequirements = builder.argumentRequirements;
@@ -103,6 +107,14 @@ public class MenuOptions {
         return this.commands;
     }
 
+    public @Nullable List<String> guiCloseCommands() {
+        return this.guiCloseCommands;
+    }
+
+    public @Nullable List<String> guiOpenCommands() {
+        return this.guiOpenCommands;
+    }
+
     public boolean registerCommands() {
         return this.registerCommands;
     }
@@ -142,6 +154,8 @@ public class MenuOptions {
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
                 .enableBypassPerm(this.enableBypassPerm)
                 .commands(this.commands)
+                .guiCloseCommands(this.guiCloseCommands)
+                .guiOpenCommands(this.guiOpenCommands)
                 .registerCommands(this.registerCommands)
                 .arguments(this.arguments)
                 .argumentRequirements(this.argumentRequirements)
@@ -165,6 +179,8 @@ public class MenuOptions {
         private boolean enableBypassPerm = false;
 
         private List<String> commands = List.of();
+        private List<String> guiCloseCommands;
+        private List<String> guiOpenCommands;
         private boolean registerCommands = false;
         private List<String> arguments = List.of();
         private List<RequirementList> argumentRequirements = List.of();
@@ -231,6 +247,16 @@ public class MenuOptions {
 
         public MenuOptionsBuilder commands(final @NotNull List<@NotNull String> commands) {
             this.commands = commands;
+            return this;
+        }
+
+        public MenuOptionsBuilder guiCloseCommands(final @Nullable List<String> guiCloseCommands) {
+            this.guiCloseCommands = guiCloseCommands;
+            return this;
+        }
+
+        public MenuOptionsBuilder guiOpenCommands(final @Nullable List<String> guiOpenCommands) {
+            this.guiOpenCommands = guiOpenCommands;
             return this;
         }
 

@@ -1,7 +1,7 @@
 package com.extendedclip.deluxemenus.cooldown;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
-import org.bukkit.Bukkit;
+import com.extendedclip.deluxemenus.scheduler.scheduling.schedulers.TaskScheduler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -27,7 +27,7 @@ public class EphemeralCooldownManager {
      */
     private static final long SWEEP_INTERVAL = 20L * 300L;
 
-    private final DeluxeMenus plugin;
+    private final TaskScheduler scheduler;
 
     /**
      * Player uuid -> cooldown id -> epoch millis at which the cooldown ends.
@@ -35,7 +35,7 @@ public class EphemeralCooldownManager {
     private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
 
     public EphemeralCooldownManager(final @NotNull DeluxeMenus plugin) {
-        this.plugin = plugin;
+        this.scheduler = plugin.getScheduler();
     }
 
     /**
@@ -124,7 +124,7 @@ public class EphemeralCooldownManager {
      * {@link DeluxeMenus#onDisable()}.
      */
     public void startSweepTask() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::sweep, SWEEP_INTERVAL, SWEEP_INTERVAL);
+        scheduler.runTaskTimerAsynchronously(this::sweep, SWEEP_INTERVAL, SWEEP_INTERVAL);
     }
 
     private void sweep() {

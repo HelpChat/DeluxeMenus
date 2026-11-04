@@ -9,7 +9,7 @@ public class HasMoneyRequirement extends Requirement {
   private final DeluxeMenus plugin;
   private final boolean invert;
   private final String placeholder;
-  private double amount;
+  private final double amount;
 
   public HasMoneyRequirement(@NotNull final DeluxeMenus plugin, double amount, boolean invert, String placeholder) {
     this.plugin = plugin;
@@ -24,21 +24,25 @@ public class HasMoneyRequirement extends Requirement {
       return false;
     }
 
+    double requiredAmount = amount;
     if (placeholder != null) {
+      final String expected = holder.setPlaceholdersAndArguments(placeholder);
       try {
-        String expected = holder.setPlaceholdersAndArguments(placeholder);
-        amount = Double.parseDouble(expected);
+        requiredAmount = Double.parseDouble(expected);
       } catch (final NumberFormatException exception) {
-        plugin.printStacktrace(
-            "Invalid amount found for has money requirement: " + holder.setPlaceholdersAndArguments(placeholder),
-            exception
-        );
+        plugin.printStacktrace("Invalid amount found for has money requirement", exception);
+        return false;
       }
     }
+
+    if (!Double.isFinite(requiredAmount) || requiredAmount < 0) {
+      return false;
+    }
+
     if (invert) {
-      return !plugin.getVault().hasEnough(holder.getViewer(), amount);
+      return !plugin.getVault().hasEnough(holder.getViewer(), requiredAmount);
     } else {
-      return plugin.getVault().hasEnough(holder.getViewer(), amount);
+      return plugin.getVault().hasEnough(holder.getViewer(), requiredAmount);
     }
   }
 }

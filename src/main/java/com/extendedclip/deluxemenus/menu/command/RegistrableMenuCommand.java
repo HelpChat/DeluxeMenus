@@ -122,12 +122,12 @@ public class RegistrableMenuCommand extends Command {
 
             // We need to remove every single alias because CommandMap#register() adds them all to the map.
             // If we do not remove them, then we will have dangling references to the command.
-            knownCommandsMap.remove(this.getName());
-            knownCommandsMap.remove(FALLBACK_PREFIX + ":" + this.getName());
+            knownCommandsMap.remove(this.getName(), this);
+            knownCommandsMap.remove(FALLBACK_PREFIX + ":" + this.getName(), this);
 
             for (String alias : this.getAliases()) {
-                knownCommandsMap.remove(alias);
-                knownCommandsMap.remove(FALLBACK_PREFIX + ":" + alias);
+                knownCommandsMap.remove(alias, this);
+                knownCommandsMap.remove(FALLBACK_PREFIX + ":" + alias, this);
             }
 
             boolean unregistered = this.unregister(commandMap);

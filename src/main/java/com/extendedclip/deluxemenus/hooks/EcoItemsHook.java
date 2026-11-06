@@ -1,9 +1,7 @@
 package com.extendedclip.deluxemenus.hooks;
 
+import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.cache.SimpleCache;
-import com.willfp.ecoitems.items.EcoItem;
-import com.willfp.ecoitems.items.EcoItemFinder;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -15,20 +13,22 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class EcoItemsHook implements ItemHook, SimpleCache {
 
+    private final DeluxeMenus plugin;
     private final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
 
-    private final Object ecoItems;
-    private final Method getByID;
+    private Object ecoItems;
+    private Method getByID;
 
-    private final Method getItemStack;
-    private final Method getID;
+    private Method getItemStack;
+    private Method getID;
 
-    private final Object ecoItemFinder;
-    private final Method find;
+    private Object ecoItemFinder;
+    private Method find;
 
-    public EcoItemsHook() {
+    public EcoItemsHook(@NotNull final DeluxeMenus plugin) {
+        this.plugin = plugin;
         try {
-            // this is only way of doing it, because EcoItems is build lets say differently and DM cannot be compiled if accessed using EI as a dependency :|
+            // this is the only way of doing it, because EcoItems is build lets say differently and DM cannot be compiled if accessed using EI as a dependency :|
             Class<?> ecoItemsClass = Class.forName("com.willfp.ecoitems.items.EcoItems");
 
             Class<?> ecoItemClass = Class.forName("com.willfp.ecoitems.items.EcoItem");
@@ -44,8 +44,8 @@ public class EcoItemsHook implements ItemHook, SimpleCache {
             ecoItemFinder = ecoItemFinderClass.getField("INSTANCE").get(null);
             find = ecoItemFinderClass.getMethod("find", ItemStack.class);
 
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Unable to hook into EcoItems", e);
+        } catch (Exception e) {
+            this.plugin.printStacktrace("Unable to hook into EcoItems", e);
         }
     }
 
@@ -74,8 +74,8 @@ public class EcoItemsHook implements ItemHook, SimpleCache {
 
             return item.clone();
 
-        } catch (ReflectiveOperationException e) {
-            Bukkit.getLogger().warning("Failed to get EcoItems item '" + arguments[0] + "': " + e.getMessage());
+        } catch (Exception e) {
+            this.plugin.printStacktrace("Failed to get EcoItems item '" + arguments[0] + "'", e);
             return new ItemStack(Material.STONE);
         }
     }
@@ -96,8 +96,8 @@ public class EcoItemsHook implements ItemHook, SimpleCache {
             }
             return false;
 
-        } catch (ReflectiveOperationException e) {
-            Bukkit.getLogger().warning("Failed to find EcoItems item: " + e.getMessage());
+        } catch (Exception e) {
+            this.plugin.printStacktrace("Failed to find EcoItems item '" + arguments[0] + "'", e);
             return false;
         }
     }

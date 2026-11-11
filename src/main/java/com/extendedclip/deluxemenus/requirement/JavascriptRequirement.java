@@ -3,10 +3,10 @@ package com.extendedclip.deluxemenus.requirement;
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.MenuHolder;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
-import java.util.logging.Level;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
@@ -27,8 +27,8 @@ public class JavascriptRequirement extends Requirement {
     this.expression = expression;
     if (engine == null) {
       if (manager.isProvidedFor(ScriptEngineManager.class)) {
-        final RegisteredServiceProvider provider = manager.getRegistration(ScriptEngineManager.class);
-        engine = (ScriptEngineManager) provider.getProvider();
+        final RegisteredServiceProvider<ScriptEngineManager> provider = manager.getRegistration(ScriptEngineManager.class);
+        engine = provider.getProvider();
       } else {
         engine = new ScriptEngineManager();
         manager.register(ScriptEngineManager.class, engine, plugin, ServicePriority.Highest);

@@ -120,9 +120,9 @@ public class PersistentMetaHandler {
         return player.getPersistentDataContainer().getKeys().stream()
                 .filter(key -> player.getPersistentDataContainer().has(key, type.getPDType()))
                 .map(key -> Pair.of(key.toString(), player.getPersistentDataContainer().get(key, type.getPDType())))
-                .filter(entry -> entry.getValue() != null)
-                .filter(entry -> type.isSupported(entry.getValue()))
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .filter(entry -> entry.value() != null)
+                .filter(entry -> type.isSupported(entry.value()))
+                .collect(Collectors.toMap(Pair::key, Pair::value));
     }
 
     /**
@@ -223,7 +223,7 @@ public class PersistentMetaHandler {
             return OperationResult.EXISTENT_VALUE_IS_DIFFERENT_TYPE;
         }
 
-        player.getPersistentDataContainer().set(key, DataType.BOOLEAN.getPDType(), currentValue.equalsIgnoreCase("true") ? "false" : "true");
+        player.getPersistentDataContainer().set(key, DataType.BOOLEAN.getPDType(), Boolean.toString(!currentValue.equalsIgnoreCase("true")));
         return OperationResult.SUCCESS;
     }
 
@@ -352,30 +352,32 @@ public class PersistentMetaHandler {
 
         final Object parsedValue = parseValueByType(type, args.length >= 4 ? args[3] : null);
 
-        switch (action) {
-            case SET:
+        return switch (action) {
+            case SET -> {
                 if (parsedValue == null) {
-                    return OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
+                    yield OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
                 }
 
-                return setMetaValue(player, key, type, parsedValue);
-            case REMOVE:
-                return removeMetaValue(player, key, type);
-            case ADD:
+                yield setMetaValue(player, key, type, parsedValue);
+            }
+            case REMOVE -> removeMetaValue(player, key, type);
+            case ADD -> {
                 if (!(parsedValue instanceof Number)) {
-                    return OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
+                    yield OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
                 }
 
-                return addMetaValue(player, key, type, (Number) parsedValue);
-            case SUBTRACT:
+                yield addMetaValue(player, key, type, (Number) parsedValue);
+            }
+            case SUBTRACT -> {
                 if (!(parsedValue instanceof Number)) {
-                    return OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
+                    yield OperationResult.NEW_VALUE_IS_DIFFERENT_TYPE;
                 }
 
-                return subtractMetaValue(player, key, type, (Number) parsedValue);
-        }
+                yield subtractMetaValue(player, key, type, (Number) parsedValue);
+            }
+            default -> OperationResult.INVALID_SYNTAX;
+        };
 
-        return OperationResult.INVALID_SYNTAX;
     }
 
     /**
@@ -424,7 +426,6 @@ public class PersistentMetaHandler {
      * @param key The string to parse.
      * @return The {@link NamespacedKey} or null if the key could not be parsed.
      */
-    @SuppressWarnings("UnstableApiUsage")
     public @Nullable NamespacedKey getKey(@NotNull final String key) {
         final NamespacedKey namespacedKey;
 

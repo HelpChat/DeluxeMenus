@@ -22,6 +22,7 @@ repositories {
     maven("https://repo.oraxen.com/releases")
     maven("https://repo.auxilor.io/repository/maven-public/")
     maven("https://jitpack.io")
+    maven("https://maven.devs.beer/")
 }
 
 dependencies {

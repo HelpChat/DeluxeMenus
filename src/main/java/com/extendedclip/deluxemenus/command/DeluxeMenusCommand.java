@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
 
@@ -39,12 +38,12 @@ public class DeluxeMenusCommand implements BasicCommand {
         final CommandSender sender = source.getSender();
         final List<String> arguments = Arrays.asList(args);
 
-        if (arguments.isEmpty()) {
+        if (arguments.isEmpty() || (arguments.size() == 1 && arguments.getFirst().isEmpty())) {
             plugin.sms(sender, Messages.PLUGIN_VERSION.message().replaceText(VERSION_REPLACER_BUILDER.replacement(plugin.getPluginMeta().getVersion()).build()).replaceText(AUTHORS_REPLACER_BUILDER.replacement(plugin.getPluginMeta().getAuthors().stream().map(author -> text(author, NamedTextColor.WHITE)).collect(Component.toComponent(text(", ", NamedTextColor.GRAY)))).build()));
             return;
         }
 
-        final SubCommand subCommand = subCommands.get(arguments.get(0).toLowerCase());
+        final SubCommand subCommand = subCommands.get(arguments.getFirst().toLowerCase());
 
         if (subCommand != null) {
             subCommand.execute(sender, arguments.subList(1, arguments.size()));
@@ -65,7 +64,7 @@ public class DeluxeMenusCommand implements BasicCommand {
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private void registerSubCommands() {

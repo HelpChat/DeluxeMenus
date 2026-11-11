@@ -103,7 +103,9 @@ public class DeluxeMenus extends JavaPlugin {
             this.ephemeralCooldownManager.clearAll();
         }
 
-        itemHooks.clear();
+        if (this.itemHooks != null) {
+            this.itemHooks.clear();
+        }
 
         HandlerList.unregisterAll(this);
     }

@@ -560,6 +560,10 @@ public class DeluxeMenusConfig {
         final boolean refresh = c.getBoolean(pre + "refresh", false);
         builder.refresh(refresh);
 
+        if (c.contains(pre + "click_cooldown_ms")) {
+            builder.clickCooldownMillis(Math.max(0, c.getInt(pre + "click_cooldown_ms")));
+        }
+
         Map<Integer, TreeMap<Integer, MenuItem>> items = loadMenuItems(c, key, mainConfig);
 
         if (items == null || items.isEmpty()) {

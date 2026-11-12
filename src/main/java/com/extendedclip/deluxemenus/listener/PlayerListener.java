@@ -20,13 +20,15 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class PlayerListener extends Listener {
 
-    private final Cache<UUID, Long> cache = CacheBuilder.newBuilder().expireAfterWrite(75, TimeUnit.MILLISECONDS).build();
+    private final Map<UUID, Long> nextClickAt = new HashMap<>();
 
     // This is so dumb. Mojang fix your shit.
     private final Cache<UUID, Long> shiftCache = CacheBuilder.newBuilder().expireAfterWrite(200, TimeUnit.MILLISECONDS).build();
@@ -59,6 +61,8 @@ public class PlayerListener extends Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+
+        this.nextClickAt.remove(player.getUniqueId());
 
         if (Menu.isInMenu(player)) {
             Menu.closeMenu(plugin, player, false);
@@ -119,6 +123,7 @@ public class PlayerListener extends Listener {
 
         if (holder.getMenu().isEmpty()) {
             Menu.closeMenu(plugin, player, true);
+            return;
         }
 
         if (holder.isUpdating()) {
@@ -136,7 +141,8 @@ public class PlayerListener extends Listener {
             return;
         }
 
-        if (this.cache.getIfPresent(player.getUniqueId()) != null) {
+        final Long nextClick = this.nextClickAt.get(player.getUniqueId());
+        if (nextClick != null && System.nanoTime() - nextClick < 0) {
             return;
         }
 
@@ -213,7 +219,9 @@ public class PlayerListener extends Listener {
             }
         }
 
-        this.cache.put(player.getUniqueId(), System.currentTimeMillis());
+        final int cooldownMillis = holder.getMenu().orElseThrow().options().clickCooldownMillis()
+                .orElse(plugin.getGeneralConfig().clickCooldownMillis());
+        this.nextClickAt.put(player.getUniqueId(), System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(cooldownMillis));
         handler.get().onClick(holder);
 
         return true;

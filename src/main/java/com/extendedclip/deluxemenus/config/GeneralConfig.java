@@ -14,6 +14,7 @@ public class GeneralConfig {
     private int metasListPageSize = 15;
     private int maxEphemeralCooldownSeconds = -1;
     private boolean suppressDefaultItalics = true;
+    private int clickCooldownMillis = 75;
 
     public GeneralConfig(final @NotNull DeluxeMenus plugin) {
         this.plugin = plugin;
@@ -27,6 +28,7 @@ public class GeneralConfig {
         plugin.getConfig().addDefault("metas_list_page_size", metasListPageSize);
         plugin.getConfig().addDefault("max_ephemeral_cooldown_seconds", maxEphemeralCooldownSeconds);
         plugin.getConfig().addDefault("suppress_default_italics", suppressDefaultItalics);
+        plugin.getConfig().addDefault("click_cooldown_ms", 75);
 
         checkForUpdates = plugin.getConfig().getBoolean("check_updates", false);
         debugLevel = loadDebugLevel();
@@ -35,6 +37,7 @@ public class GeneralConfig {
         metasListPageSize = plugin.getConfig().getInt("metas_list_page_size", 15);
         maxEphemeralCooldownSeconds = plugin.getConfig().getInt("max_ephemeral_cooldown_seconds", maxEphemeralCooldownSeconds);
         suppressDefaultItalics = plugin.getConfig().getBoolean("suppress_default_italics", true);
+        clickCooldownMillis = Math.max(0, plugin.getConfig().getInt("click_cooldown_ms", 75));
     }
 
     public void reload() {
@@ -72,6 +75,10 @@ public class GeneralConfig {
 
     public boolean suppressDefaultItalics() {
         return suppressDefaultItalics;
+    }
+
+    public int clickCooldownMillis() {
+        return clickCooldownMillis;
     }
 
     private @NotNull DebugLevel loadDebugLevel() {

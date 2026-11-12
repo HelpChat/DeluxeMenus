@@ -48,6 +48,27 @@ dependencies {
     implementation(libs.bstats)
 
     compileOnly("org.jetbrains:annotations:26.1.0")
+
+    testImplementation(platform("org.junit:junit-bom:5.14.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:5.23.0")
+    testImplementation(libs.paper)
+    testImplementation(libs.papi)
+}
+
+configurations.testCompileOnly {
+    extendsFrom(configurations.compileOnly.get())
+}
+
+val mockitoAgent = configurations.create("mockitoAgent")
+dependencies {
+    mockitoAgent("org.mockito:mockito-core:5.23.0") { isTransitive = false }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    jvmArgs("-javaagent:${mockitoAgent.asPath}")
 }
 
 java {

@@ -30,6 +30,29 @@ DeluxeMenus depends on [PlaceholderAPI](https://www.spigotmc.org/resources/place
 ## Contribute
 If you would like to contribute towards DeluxeMenus should you take a look at our [Contributing file][contributing] for the ins and outs on how you can do that and what you need to keep in mind.
 
+## Click cooldown
+
+`click_cooldown_ms` in `config.yml` sets the minimum time between accepted menu
+clicks for each player, in milliseconds. It defaults to **75**, preserving the
+existing behavior. A menu can override this value at its top level:
+
+```yaml
+# config.yml: default for menus without an override
+click_cooldown_ms: 200
+```
+
+```yaml
+# A menu file: override the global value for clicks accepted in this menu
+click_cooldown_ms: 250
+```
+
+The cooldown starts when a click passes its requirements, before its actions run.
+Clicks rejected during that time do not run requirements or actions and do not
+extend the cooldown. Closing, refreshing or switching menus does not reset an
+active cooldown. New settings apply to subsequent accepted clicks after reload.
+Zero or negative values disable this general delay; the existing shift-click
+workaround and `DOUBLE_CLICK` rejection still apply.
+
 ## Support
 - [Issue Tracker][issues]
 - [Discord Support][discord]

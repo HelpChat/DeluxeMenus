@@ -30,7 +30,7 @@ jobs:
       run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
     - name: Build with Gradle Wrapper
-      run: ./gradlew shadowJar
+      run: ./gradlew test shadowJar
       env:
         BUILD_NUMBER: 'PR-${{ github.event.number }}-${{ env.SHORT_SHA }}'
 

@@ -17,6 +17,7 @@ public class MenuOptions {
     private final int size;
     private final int updateInterval;
     private final int refreshInterval;
+    private final Integer clickCooldownMillis;
     private final boolean refresh;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
@@ -39,6 +40,7 @@ public class MenuOptions {
         this.size = builder.size;
         this.updateInterval = builder.updateInterval;
         this.refreshInterval = builder.refreshInterval;
+        this.clickCooldownMillis = builder.clickCooldownMillis;
         this.refresh = builder.refresh;
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
@@ -81,6 +83,10 @@ public class MenuOptions {
 
     public int refreshInterval() {
         return this.refreshInterval;
+    }
+
+    public @NotNull Optional<Integer> clickCooldownMillis() {
+        return Optional.ofNullable(this.clickCooldownMillis);
     }
 
     public boolean refresh() {
@@ -137,6 +143,7 @@ public class MenuOptions {
                 .size(this.size)
                 .updateInterval(this.updateInterval)
                 .refreshInterval(this.refreshInterval)
+                .clickCooldownMillis(this.clickCooldownMillis)
                 .refresh(this.refresh)
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
@@ -159,6 +166,7 @@ public class MenuOptions {
         private int size = 9;
         private int updateInterval = 10;
         private int refreshInterval = 10;
+        private Integer clickCooldownMillis;
         private boolean refresh;
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
@@ -206,6 +214,11 @@ public class MenuOptions {
 
         public MenuOptionsBuilder refreshInterval(final int refreshInterval) {
             this.refreshInterval = refreshInterval;
+            return this;
+        }
+
+        public MenuOptionsBuilder clickCooldownMillis(final @Nullable Integer clickCooldownMillis) {
+            this.clickCooldownMillis = clickCooldownMillis;
             return this;
         }
 

@@ -59,6 +59,7 @@ public class PlayerListener extends Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        Menu.clearPendingMenuOpen(player.getUniqueId());
 
         if (Menu.isInMenu(player)) {
             Menu.closeMenu(plugin, player, false);
@@ -121,7 +122,7 @@ public class PlayerListener extends Listener {
             Menu.closeMenu(plugin, player, true);
         }
 
-        if (holder.isUpdating()) {
+        if (holder.isUpdating() || Menu.isOpeningMenu(player)) {
             event.setCancelled(true);
             return;
         }

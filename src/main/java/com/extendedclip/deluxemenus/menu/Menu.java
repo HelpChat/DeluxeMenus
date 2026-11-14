@@ -11,6 +11,9 @@ import com.extendedclip.deluxemenus.utils.StringUtils;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import net.kyori.adventure.text.Component;
@@ -24,9 +27,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class Menu {
 
-    private static final Map<String, Menu> menus = new HashMap<>();
-    private static final Set<MenuHolder> menuHolders = new HashSet<>();
-    private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
+    private static final Map<String, Menu> menus = new ConcurrentHashMap<>();
+    private static final Set<MenuHolder> menuHolders = ConcurrentHashMap.newKeySet();
+    private static final Map<UUID, Menu> lastOpenedMenus = new ConcurrentHashMap<>();
+    private static final AtomicLong OPEN_SEQUENCE = new AtomicLong();
+    private static final Map<UUID, OpenAttempt> pendingMenuOpens = new ConcurrentHashMap<>();
+    private static final long OPEN_ATTEMPT_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(5);
+
+    private record OpenAttempt(long requestId, long startedAtNanos) {
+    }
 
     private final DeluxeMenus plugin;
     private final MenuOptions options;
@@ -69,6 +78,7 @@ public class Menu {
 
         optionalMenu.get().unregisterCommand();
         menus.remove(name);
+        lastOpenedMenus.values().removeIf(menu -> menu.options().name().equalsIgnoreCase(name));
     }
 
     public static void unload(final @NotNull DeluxeMenus plugin) {
@@ -83,6 +93,7 @@ public class Menu {
         menus.clear();
         menuHolders.clear();
         lastOpenedMenus.clear();
+        pendingMenuOpens.clear();
     }
 
     private void unregisterCommand() {
@@ -167,6 +178,37 @@ public class Menu {
         return Optional.ofNullable(lastOpenedMenus.get(player.getUniqueId()));
     }
 
+    static long beginMenuOpen(final @NotNull UUID playerId) {
+        final long requestId = OPEN_SEQUENCE.incrementAndGet();
+        pendingMenuOpens.put(playerId, new OpenAttempt(requestId, System.nanoTime()));
+        return requestId;
+    }
+
+    static boolean isCurrentOpenRequest(final @NotNull UUID playerId, final long requestId) {
+        final OpenAttempt attempt = pendingMenuOpens.get(playerId);
+        return attempt != null && attempt.requestId() == requestId;
+    }
+
+    static void finishMenuOpen(final @NotNull UUID playerId, final long requestId) {
+        pendingMenuOpens.computeIfPresent(playerId, (id, attempt) -> attempt.requestId() == requestId ? null : attempt);
+    }
+
+    public static void clearPendingMenuOpen(final @NotNull UUID playerId) {
+        pendingMenuOpens.remove(playerId);
+    }
+
+    public static boolean isOpeningMenu(final @NotNull Player player) {
+        final OpenAttempt attempt = pendingMenuOpens.get(player.getUniqueId());
+        if (attempt == null) {
+            return false;
+        }
+        if (System.nanoTime() - attempt.startedAtNanos() >= OPEN_ATTEMPT_TIMEOUT_NANOS) {
+            pendingMenuOpens.remove(player.getUniqueId(), attempt);
+            return false;
+        }
+        return true;
+    }
+
     public static void cleanInventory(final @NotNull DeluxeMenus plugin, final @NotNull Player player) {
         for (final ItemStack itemStack : player.getInventory().getContents()) {
             if (itemStack == null) continue;
@@ -183,6 +225,20 @@ public class Menu {
     }
 
     public static void closeMenu(final @NotNull DeluxeMenus plugin, final @NotNull Player player, final boolean close, final boolean executeCloseActions) {
+        closeMenuInternal(plugin, player, close, executeCloseActions, null);
+    }
+
+    static void closeMenuForTransition(final @Nullable DeluxeMenus plugin, final @NotNull Player player, final @NotNull Menu nextMenu) {
+        closeMenuInternal(plugin, player, false, false, nextMenu);
+    }
+
+    private static void closeMenuInternal(
+            final @Nullable DeluxeMenus plugin,
+            final @NotNull Player player,
+            final boolean close,
+            final boolean executeCloseActions,
+            final @Nullable Menu nextMenu
+    ) {
         Optional<MenuHolder> optionalHolder = getMenuHolder(player);
         if (optionalHolder.isEmpty()) {
             return;
@@ -197,14 +253,18 @@ public class Menu {
             holder.getMenu().map(Menu::options).map(MenuOptions::closeHandler).flatMap(h -> h).ifPresent(h -> h.onClick(holder));
         }
 
-        if (close) {
+        if (close && plugin != null) {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 player.closeInventory();
                 cleanInventory(plugin, player);
             });
         }
         menuHolders.remove(holder);
-        lastOpenedMenus.put(player.getUniqueId(), holder.getMenu().orElse(null));
+        holder.getMenu().ifPresent(closedMenu -> {
+            if (nextMenu == null || !closedMenu.options().name().equalsIgnoreCase(nextMenu.options().name())) {
+                lastOpenedMenus.put(player.getUniqueId(), closedMenu);
+            }
+        });
     }
 
     public static void closeMenuForShutdown(final @NotNull DeluxeMenus plugin, final @NotNull Player player) {
@@ -293,13 +353,81 @@ public class Menu {
             return;
         }
 
+        final UUID viewerId = viewer.getUniqueId();
+        final long openRequestId = beginMenuOpen(viewerId);
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            boolean handedOff = false;
+            try {
+                if (!isCurrentOpenRequest(viewerId, openRequestId)) {
+                    return;
+                }
 
-            Set<MenuItem> activeItems = new HashSet<>();
+                Set<MenuItem> activeItems = new HashSet<>();
 
-            for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
+                for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
 
-                for (MenuItem item : entry.getValue().values()) {
+                    for (MenuItem item : entry.getValue().values()) {
+
+                        int slot = item.options().slot();
+
+                        if (slot >= this.options.size()) {
+                            plugin.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
+                                    "This item will not be added to the menu!"
+                            );
+                            continue;
+                        }
+
+                        if (item.options().viewRequirements().isPresent()) {
+
+                            if (item.options().viewRequirements().get().evaluate(holder)) {
+
+                                activeItems.add(item);
+                                break;
+                            }
+                        } else {
+
+                            activeItems.add(item);
+                            break;
+                        }
+                    }
+                }
+
+                if (activeItems.isEmpty() || !isCurrentOpenRequest(viewerId, openRequestId)) {
+                    return;
+                }
+
+                holder.setMenuName(this.options.name());
+                holder.setActiveItems(activeItems);
+
+                this.options.openHandler().ifPresent(h -> h.onClick(holder));
+
+                Component title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
+
+                Inventory inventory;
+
+                if (this.options.type() != InventoryType.CHEST) {
+                    inventory = Bukkit.createInventory(holder, this.options.type(), title);
+                } else {
+                    inventory = Bukkit.createInventory(holder, this.options.size(), title);
+                }
+
+                holder.setInventory(inventory);
+
+                boolean update = false;
+
+                for (MenuItem item : activeItems) {
+
+                    ItemStack iStack = item.getItemStack(holder);
+
+                    if (iStack == null) {
+                        continue;
+                    }
+
+                    iStack = plugin.getMenuItemMarker().mark(iStack);
 
                     int slot = item.options().slot();
 
@@ -313,98 +441,66 @@ public class Menu {
                         continue;
                     }
 
-                    if (item.options().viewRequirements().isPresent()) {
-
-                        if (item.options().viewRequirements().get().evaluate(holder)) {
-
-                            activeItems.add(item);
-                            break;
-                        }
-                    } else {
-
-                        activeItems.add(item);
-                        break;
+                    if (item.options().updatePlaceholders()) {
+                        update = true;
                     }
+
+                    inventory.setItem(item.options().slot(), iStack);
+                }
+
+                if (!isCurrentOpenRequest(viewerId, openRequestId)) {
+                    return;
+                }
+
+                final boolean updatePlaceholders = update;
+
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (completeMenuOpen(openRequestId, holder, inventory, updatePlaceholders)) {
+                        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+                        Bukkit.getPluginManager().callEvent(openEvent);
+                    }
+                });
+                handedOff = true;
+            } finally {
+                if (!handedOff) {
+                    finishMenuOpen(viewerId, openRequestId);
                 }
             }
+        });
+    }
 
-            if (activeItems.isEmpty()) {
-                return;
+    boolean completeMenuOpen(
+            final long openRequestId,
+            final @NotNull MenuHolder holder,
+            final @NotNull Inventory inventory,
+            final boolean updatePlaceholders
+    ) {
+        final Player viewer = holder.getViewer();
+        final UUID viewerId = viewer.getUniqueId();
+        try {
+            if (!isCurrentOpenRequest(viewerId, openRequestId) || !viewer.isOnline()) {
+                return false;
             }
 
-            holder.setMenuName(this.options.name());
-            holder.setActiveItems(activeItems);
-
-            this.options.openHandler().ifPresent(h -> h.onClick(holder));
-
-            Component title = StringUtils.color(holder.setPlaceholdersAndArguments(this.options.title()));
-
-            Inventory inventory;
-
-            if (this.options.type() != InventoryType.CHEST) {
-                inventory = Bukkit.createInventory(holder, this.options.type(), title);
-            } else {
-                inventory = Bukkit.createInventory(holder, this.options.size(), title);
+            if (options.refresh()) {
+                holder.startRefreshTask();
             }
 
-            holder.setInventory(inventory);
-
-            boolean update = false;
-
-            for (MenuItem item : activeItems) {
-
-                ItemStack iStack = item.getItemStack(holder);
-
-                if (iStack == null) {
-                    continue;
-                }
-
-                iStack = plugin.getMenuItemMarker().mark(iStack);
-
-                int slot = item.options().slot();
-
-                if (slot >= this.options.size()) {
-                    plugin.debug(
-                            DebugLevel.HIGHEST,
-                            Level.WARNING,
-                            "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
-                            "This item will not be added to the menu!"
-                    );
-                    continue;
-                }
-
-                if (item.options().updatePlaceholders()) {
-                    update = true;
-                }
-
-                inventory.setItem(item.options().slot(), iStack);
+            if (isInMenu(viewer)) {
+                closeMenuForTransition(plugin, viewer, this);
             }
 
-            final boolean updatePlaceholders = update;
+            viewer.openInventory(inventory);
+            menuHolders.add(holder);
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if(options.refresh()) {
-                    holder.startRefreshTask();
-                }
-
-                if (isInMenu(holder.getViewer())) {
-                    closeMenu(plugin, holder.getViewer(), false);
-                }
-
-                viewer.openInventory(inventory);
-                menuHolders.add(holder);
-
-        if (updatePlaceholders) {
-          holder.startUpdatePlaceholdersTask();
+            if (updatePlaceholders) {
+                holder.startUpdatePlaceholdersTask();
+            }
+            return true;
+        } finally {
+            finishMenuOpen(viewerId, openRequestId);
         }
-      });
-
-      Bukkit.getScheduler().runTask(plugin, () -> {
-        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
-        Bukkit.getPluginManager().callEvent(openEvent);
-      });
-    });
-  }
+    }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

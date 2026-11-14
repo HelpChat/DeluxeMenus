@@ -27,7 +27,17 @@ public class NamedHeadHook extends Listener implements ItemHook, SimpleCache {
         }
 
         try {
-            return cache.computeIfAbsent(arguments[0], value -> SkullUtils.getSkullByName(plugin, value)).clone();
+            final ItemStack cached = cache.get(arguments[0]);
+            if (cached != null) {
+                return cached.clone();
+            }
+
+            // Do not resolve the head inside computeIfAbsent: getSkullByName may block on a Mojang profile lookup,
+            // and ConcurrentHashMap holds a bin lock for the whole mapping function. Menus are built off the main
+            // thread, so a slow lookup would block onPlayerQuit's remove() on the main thread and freeze the server.
+            final ItemStack head = SkullUtils.getSkullByName(plugin, arguments[0]);
+            final ItemStack existing = cache.putIfAbsent(arguments[0], head);
+            return (existing != null ? existing : head).clone();
         } catch (Exception exception) {
             plugin.printStacktrace(
                     "Something went wrong while trying to get a head by name" +

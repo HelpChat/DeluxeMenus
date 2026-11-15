@@ -2,6 +2,7 @@ package com.extendedclip.deluxemenus.command.subcommand;
 
 import com.extendedclip.deluxemenus.DeluxeMenus;
 import com.extendedclip.deluxemenus.menu.Menu;
+import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -10,14 +11,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OpenCommand extends SubCommand {
 
     private static final String OPEN_COMMAND = "deluxemenus.open";
+    private static final String ARGS_MARKER = "-args:";
+    private static final String PLACEHOLDER_FLAG = "-p:";
 
     public OpenCommand(final @NotNull DeluxeMenus plugin) {
         super(plugin);
@@ -47,52 +53,51 @@ public class OpenCommand extends SubCommand {
             return;
         }
 
-        Player viewer;
-        String placeholderPlayer = null;
+        final String menuName = arguments.get(0);
 
-        if (arguments.size() == 2 && arguments.get(1).startsWith("-p:")) {
-            if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
-                plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
-                return;
-            }
+        String viewerName = null;
+        String placeholderPlayerName = null;
+        List<String> rawArgumentValues = null;
 
-            placeholderPlayer = arguments.get(1).replace("-p:", "");
+        int index = 1;
 
-        } else if (arguments.size() >= 3 && arguments.get(2).startsWith("-p:")) {
-            if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
-                plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
-                return;
-            }
-
-            placeholderPlayer = arguments.get(2).replace("-p:", "");
+        if (index < arguments.size()
+                && !arguments.get(index).startsWith(PLACEHOLDER_FLAG)
+                && !arguments.get(index).equals(ARGS_MARKER)) {
+            viewerName = arguments.get(index);
+            index++;
         }
 
-        if (arguments.size() >= 2) {
-            if (placeholderPlayer == null) {
-                if (player && !sender.hasPermission("deluxemenus.open.others")) {
-                    plugin.sms(sender, Messages.NO_PERMISSION);
-                    return;
-                }
+        if (index < arguments.size() && arguments.get(index).startsWith(PLACEHOLDER_FLAG)) {
+            if (!sender.hasPermission("deluxemenus.placeholdersfor")) {
+                plugin.sms(sender, Messages.NO_PERMISSION_PLAYER_ARGUMENT);
+                return;
+            }
 
-                viewer = Bukkit.getPlayerExact(arguments.get(1));
+            placeholderPlayerName = arguments.get(index).substring(PLACEHOLDER_FLAG.length());
+            index++;
+        }
 
-            } else {
-                if (arguments.size() >= 3) {
-                    if (!sender.hasPermission("deluxemenus.open.others")) {
-                        plugin.sms(sender, Messages.NO_PERMISSION);
-                        return;
-                    }
+        if (index < arguments.size() && arguments.get(index).equals(ARGS_MARKER)) {
+            index++;
+            rawArgumentValues = index < arguments.size()
+                    ? arguments.subList(index, arguments.size())
+                    : List.of();
+        }
 
-                    viewer = Bukkit.getPlayerExact(arguments.get(1));
+        Player viewer;
 
-                } else {
-                    if (!player) {
-                        plugin.sms(sender, Messages.MUST_SPECIFY_PLAYER);
-                        return;
-                    }
+        if (viewerName != null) {
+            if (player && !sender.hasPermission("deluxemenus.open.others")) {
+                plugin.sms(sender, Messages.NO_PERMISSION);
+                return;
+            }
 
-                    viewer = (Player) sender;
-                }
+            viewer = Bukkit.getPlayerExact(viewerName);
+
+            if (viewer == null) {
+                plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(viewerName).build()));
+                return;
             }
 
         } else {
@@ -104,37 +109,72 @@ public class OpenCommand extends SubCommand {
             viewer = (Player) sender;
         }
 
-        if (viewer == null) {
-            plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(arguments.get(1)).build()));
-            return;
-        }
-
         Player placeholder = null;
 
-        if (placeholderPlayer != null) {
-            placeholder = Bukkit.getPlayerExact(placeholderPlayer);
+        if (placeholderPlayerName != null) {
+            placeholder = Bukkit.getPlayerExact(placeholderPlayerName);
 
             if (placeholder == null) {
-                plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayer).build()));
+                plugin.sms(sender, Messages.PLAYER_IS_NOT_ONLINE.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayerName).build()));
                 return;
 
-            } else {
-                if (placeholder.hasPermission("deluxemenus.placeholdersfor.exempt")) {
-                    plugin.sms(sender, Messages.PLAYER_IS_EXEMPT.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayer).build()));
-
-                    return;
-                }
+            } else if (placeholder.hasPermission("deluxemenus.placeholdersfor.exempt")) {
+                plugin.sms(sender, Messages.PLAYER_IS_EXEMPT.message().replaceText(PLAYER_REPLACER_BUILDER.replacement(placeholderPlayerName).build()));
+                return;
             }
         }
 
-        Optional<Menu> menu = Menu.getMenuByName(arguments.get(0));
+        Optional<Menu> menu = Menu.getMenuByName(menuName);
 
         if (menu.isEmpty()) {
-            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(arguments.get(0)).build()));
+            plugin.sms(sender, Messages.INVALID_MENU.message().replaceText(MENU_REPLACER_BUILDER.replacement(menuName).build()));
             return;
         }
 
-        menu.get().openMenu(viewer, null, placeholder);
+        final Menu menuToOpen = menu.get();
+        final List<String> menuArgumentNames = menuToOpen.options().arguments();
+
+        Map<String, String> argumentsMap = null;
+
+        if (menuArgumentNames.isEmpty()) {
+            if (rawArgumentValues != null && !rawArgumentValues.isEmpty()) {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Arguments were given for menu " + menuName + " via /dm open, but the menu does not support arguments!"
+                );
+            }
+
+        } else if (rawArgumentValues != null && !rawArgumentValues.isEmpty()) {
+            if (rawArgumentValues.size() < menuArgumentNames.size()) {
+                plugin.debug(
+                        DebugLevel.HIGHEST,
+                        Level.WARNING,
+                        "Not enough arguments given for menu " + menuName + " when opening using /dm open!"
+                );
+                plugin.sms(sender, Messages.WRONG_USAGE_OPEN_COMMAND);
+                return;
+            }
+
+            argumentsMap = new HashMap<>();
+
+            for (int argIndex = 0; argIndex < menuArgumentNames.size(); argIndex++) {
+                final String argumentName = menuArgumentNames.get(argIndex);
+
+                if (menuArgumentNames.size() == argIndex + 1) {
+                    final String lastArgumentValue = String.join(
+                            " ",
+                            rawArgumentValues.subList(argIndex, rawArgumentValues.size())
+                    );
+                    argumentsMap.put(argumentName, lastArgumentValue);
+                    break;
+                }
+
+                argumentsMap.put(argumentName, rawArgumentValues.get(argIndex));
+            }
+        }
+
+        menuToOpen.openMenu(viewer, argumentsMap, placeholder);
     }
 
     @Override
@@ -147,18 +187,10 @@ public class OpenCommand extends SubCommand {
             return List.of(getName());
         }
 
-        if (arguments.size() > 4) {
-            return null;
-        }
-
         if (arguments.size() == 1) {
-            if (arguments.get(0).isEmpty()) {
-                return List.of(getName());
-            }
-
             final String firstArgument = arguments.get(0).toLowerCase();
 
-            if (getName().startsWith(firstArgument)) {
+            if (firstArgument.isEmpty() || getName().startsWith(firstArgument)) {
                 return List.of(getName());
             }
 
@@ -194,40 +226,73 @@ public class OpenCommand extends SubCommand {
                 .map(Player::getName)
                 .collect(Collectors.toList());
 
-        if (arguments.size() == 3) {
-            final String thirdArgument = arguments.get(2).toLowerCase();
+        boolean viewerConsumed = false;
+        boolean placeholderConsumed = false;
+        boolean argsMarkerConsumed = false;
 
-            if (thirdArgument.isEmpty()) {
-                return Stream.concat(onlinePlayerNames.stream(), Stream.of("-p:")).collect(Collectors.toList());
+        for (int i = 2; i < arguments.size() - 1; i++) {
+            final String current = arguments.get(i);
+
+            if (argsMarkerConsumed) {
+                continue;
             }
 
-            if (!thirdArgument.startsWith("-")) {
-                return onlinePlayerNames.stream()
-                        .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
+            if (!viewerConsumed && !placeholderConsumed
+                    && !current.startsWith(PLACEHOLDER_FLAG)
+                    && !current.equals(ARGS_MARKER)) {
+                viewerConsumed = true;
+            } else if (!placeholderConsumed && current.startsWith(PLACEHOLDER_FLAG)) {
+                placeholderConsumed = true;
+            } else if (current.equals(ARGS_MARKER)) {
+                argsMarkerConsumed = true;
+            }
+        }
+
+        if (argsMarkerConsumed) {
+            return null;
+        }
+
+        final String lastArgument = arguments.get(arguments.size() - 1);
+        final String lastArgumentLower = lastArgument.toLowerCase();
+
+        if (!viewerConsumed && !placeholderConsumed) {
+            // Still in the viewer slot: suggest online players, -p:, or -args:
+            if (lastArgumentLower.isEmpty()) {
+                return Stream.concat(onlinePlayerNames.stream(), Stream.of(PLACEHOLDER_FLAG, ARGS_MARKER))
+                        .collect(Collectors.toList());
+            }
+
+            if (lastArgumentLower.startsWith("-")) {
+                return Stream.of(PLACEHOLDER_FLAG, ARGS_MARKER)
+                        .filter(option -> option.startsWith(lastArgumentLower))
                         .collect(Collectors.toList());
             }
 
             return onlinePlayerNames.stream()
-                    .map(playerName -> "-p:" + playerName)
-                    .filter(playerName -> playerName.toLowerCase().startsWith(thirdArgument))
+                    .filter(playerName -> playerName.toLowerCase().startsWith(lastArgumentLower))
                     .collect(Collectors.toList());
         }
 
-        if (arguments.size() == 4) {
-            final String thirdArgument = arguments.get(2).toLowerCase();
-            final String fourthArgument = arguments.get(3).toLowerCase();
-
-            if (!thirdArgument.startsWith("-p:")) {
-                return null;
+        if (viewerConsumed && !placeholderConsumed) {
+            // Viewer already given: suggest -p:<target> or -args:
+            if (lastArgumentLower.isEmpty()) {
+                return List.of(PLACEHOLDER_FLAG, ARGS_MARKER);
             }
 
-            if (fourthArgument.isEmpty()) {
-                return onlinePlayerNames;
+            if (lastArgumentLower.startsWith(PLACEHOLDER_FLAG)) {
+                return onlinePlayerNames.stream()
+                        .map(playerName -> PLACEHOLDER_FLAG + playerName)
+                        .filter(option -> option.toLowerCase().startsWith(lastArgumentLower))
+                        .collect(Collectors.toList());
             }
 
-            return onlinePlayerNames.stream()
-                    .filter(playerName -> playerName.toLowerCase().startsWith(fourthArgument))
+            return Stream.of(PLACEHOLDER_FLAG, ARGS_MARKER)
+                    .filter(option -> option.startsWith(lastArgumentLower))
                     .collect(Collectors.toList());
+        }
+
+        if (lastArgumentLower.isEmpty() || ARGS_MARKER.startsWith(lastArgumentLower)) {
+            return List.of(ARGS_MARKER);
         }
 
         return null;

@@ -44,7 +44,7 @@ public class StringUtils {
         while (matcher.find()) {
             final StringBuilder replacement = new StringBuilder().append(SECTION_CHAR).append('x');
             for (final char character : matcher.group(1).substring(1).toCharArray()) {
-                replacement.append(SECTION_CHAR).append(character);
+                replacement.append(SECTION_CHAR).append(Character.toLowerCase(character));
             }
             matcher.appendReplacement(builder, Matcher.quoteReplacement(replacement.toString()));
         }

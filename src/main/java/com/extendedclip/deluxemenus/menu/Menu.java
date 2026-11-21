@@ -9,10 +9,6 @@ import com.extendedclip.deluxemenus.requirement.RequirementList;
 import com.extendedclip.deluxemenus.utils.DebugLevel;
 import com.extendedclip.deluxemenus.utils.StringUtils;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,6 +17,11 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 public class Menu {
 
@@ -273,11 +274,11 @@ public class Menu {
         }
 
         DeluxeMenusPreOpenMenuEvent preOpenEvent = new DeluxeMenusPreOpenMenuEvent(viewer);
-    Bukkit.getPluginManager().callEvent(preOpenEvent);
+        Bukkit.getPluginManager().callEvent(preOpenEvent);
 
-    if (preOpenEvent.isCancelled()) return;
+        if (preOpenEvent.isCancelled()) return;
 
-    final MenuHolder holder = new MenuHolder(plugin, viewer);
+        final MenuHolder holder = new MenuHolder(plugin, viewer);
         if (placeholderPlayer != null) {
             holder.setPlaceholderPlayer(placeholderPlayer);
         }
@@ -293,39 +294,53 @@ public class Menu {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        final boolean parseRequirementsAsync = this.options.parseRequirementsAsync();
+        holder.setParseRequirementsAsync(parseRequirementsAsync);
 
+        Bukkit.getScheduler().runTaskAsynchronously(plugin,() -> {
             Set<MenuItem> activeItems = new HashSet<>();
 
-            for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
+            final Runnable handleItemsRunnable = () -> {
+                for (Entry<Integer, TreeMap<Integer, MenuItem>> entry : items.entrySet()) {
 
-                for (MenuItem item : entry.getValue().values()) {
+                    for (MenuItem item : entry.getValue().values()) {
 
-                    int slot = item.options().slot();
+                        int slot = item.options().slot();
 
-                    if (slot >= this.options.size()) {
-                        plugin.debug(
-                                DebugLevel.HIGHEST,
-                                Level.WARNING,
-                                "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
-                                "This item will not be added to the menu!"
-                        );
-                        continue;
-                    }
+                        if (slot >= this.options.size()) {
+                            plugin.debug(
+                                    DebugLevel.HIGHEST,
+                                    Level.WARNING,
+                                    "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
+                                    "This item will not be added to the menu!"
+                            );
+                            continue;
+                        }
 
-                    if (item.options().viewRequirements().isPresent()) {
+                        if (item.options().viewRequirements().isPresent()) {
 
-                        if (item.options().viewRequirements().get().evaluate(holder)) {
+                            if (item.options().viewRequirements().get().evaluate(holder)) {
+
+                                activeItems.add(item);
+                                break;
+                            }
+                        } else {
 
                             activeItems.add(item);
                             break;
                         }
-                    } else {
-
-                        activeItems.add(item);
-                        break;
                     }
                 }
+            };
+            if(parseRequirementsAsync){
+                handleItemsRunnable.run();
+            }else {
+                try {
+                    Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                        handleItemsRunnable.run();
+                        return null;
+                    }).get();
+                }catch (Exception ignored){}
             }
 
             if (activeItems.isEmpty()) {
@@ -349,41 +364,52 @@ public class Menu {
 
             holder.setInventory(inventory);
 
-            boolean update = false;
+            final AtomicBoolean update = new AtomicBoolean(false);
+            final Runnable setItemsRunnable = () -> {
 
-            for (MenuItem item : activeItems) {
+                for (MenuItem item : activeItems) {
+                    ItemStack iStack = item.getItemStack(holder);
 
-                ItemStack iStack = item.getItemStack(holder);
 
-                if (iStack == null) {
-                    continue;
+                    if (iStack == null) {
+                        continue;
+                    }
+
+                    iStack = plugin.getMenuItemMarker().mark(iStack);
+
+                    int slot = item.options().slot();
+
+                    if (slot >= this.options.size()) {
+                        plugin.debug(
+                                DebugLevel.HIGHEST,
+                                Level.WARNING,
+                                "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
+                                "This item will not be added to the menu!"
+                        );
+                        continue;
+                    }
+
+                    if (item.options().updatePlaceholders()) {
+                        update.set(true);
+                    }
+
+                    inventory.setItem(item.options().slot(), iStack);
                 }
+            };
 
-                iStack = plugin.getMenuItemMarker().mark(iStack);
-
-                int slot = item.options().slot();
-
-                if (slot >= this.options.size()) {
-                    plugin.debug(
-                            DebugLevel.HIGHEST,
-                            Level.WARNING,
-                            "Item set to slot " + slot + " for menu: " + this.options.name() + " exceeds the inventory size!",
-                            "This item will not be added to the menu!"
-                    );
-                    continue;
-                }
-
-                if (item.options().updatePlaceholders()) {
-                    update = true;
-                }
-
-                inventory.setItem(item.options().slot(), iStack);
+            if(parseRequirementsAsync) {
+                setItemsRunnable.run();
+            }else {
+                try {
+                    Bukkit.getScheduler().callSyncMethod(plugin,() -> {setItemsRunnable.run(); return null;}).get();
+                } catch (Exception ignored) {}
             }
 
-            final boolean updatePlaceholders = update;
+            final boolean updatePlaceholders = update.get();
+
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if(options.refresh()) {
+                if (options.refresh()) {
                     holder.startRefreshTask();
                 }
 
@@ -394,17 +420,18 @@ public class Menu {
                 viewer.openInventory(inventory);
                 menuHolders.add(holder);
 
-        if (updatePlaceholders) {
-          holder.startUpdatePlaceholdersTask();
-        }
-      });
+                if (updatePlaceholders) {
+                    holder.startUpdatePlaceholdersTask();
+                }
+            });
 
-      Bukkit.getScheduler().runTask(plugin, () -> {
-        DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
-        Bukkit.getPluginManager().callEvent(openEvent);
-      });
-    });
-  }
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                DeluxeMenusOpenMenuEvent openEvent = new DeluxeMenusOpenMenuEvent(viewer, holder);
+                Bukkit.getPluginManager().callEvent(openEvent);
+            });
+        });
+    }
 
     public void refreshForAll() {
         menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);

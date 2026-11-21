@@ -20,6 +20,7 @@ public class MenuOptions {
     private final boolean refresh;
     private final boolean parsePlaceholdersInArguments;
     private final boolean parsePlaceholdersAfterArguments;
+    private final boolean parseRequirementsAsync;
     private final boolean enableBypassPerm;
 
     private final List<String> commands;
@@ -42,6 +43,7 @@ public class MenuOptions {
         this.refresh = builder.refresh;
         this.parsePlaceholdersInArguments = builder.parsePlaceholdersInArguments;
         this.parsePlaceholdersAfterArguments = builder.parsePlaceholdersAfterArguments;
+        this.parseRequirementsAsync=builder.parseRequirementsAsync;
         this.enableBypassPerm = builder.enableBypassPerm;
 
         this.commands = builder.commands;
@@ -95,6 +97,10 @@ public class MenuOptions {
         return this.parsePlaceholdersAfterArguments;
     }
 
+    public boolean parseRequirementsAsync() {
+        return this.parseRequirementsAsync;
+    }
+
     public boolean enableBypassPerm() {
         return this.enableBypassPerm;
     }
@@ -140,6 +146,7 @@ public class MenuOptions {
                 .refresh(this.refresh)
                 .parsePlaceholdersInArguments(this.parsePlaceholdersInArguments)
                 .parsePlaceholdersAfterArguments(this.parsePlaceholdersAfterArguments)
+                .parseRequirementsAsync(this.parseRequirementsAsync)
                 .enableBypassPerm(this.enableBypassPerm)
                 .commands(this.commands)
                 .registerCommands(this.registerCommands)
@@ -162,6 +169,7 @@ public class MenuOptions {
         private boolean refresh;
         private boolean parsePlaceholdersInArguments = false;
         private boolean parsePlaceholdersAfterArguments = false;
+        private boolean parseRequirementsAsync = true;
         private boolean enableBypassPerm = false;
 
         private List<String> commands = List.of();
@@ -221,6 +229,11 @@ public class MenuOptions {
 
         public MenuOptionsBuilder parsePlaceholdersAfterArguments(final boolean parsePlaceholdersAfterArguments) {
             this.parsePlaceholdersAfterArguments = parsePlaceholdersAfterArguments;
+            return this;
+        }
+
+        public MenuOptionsBuilder parseRequirementsAsync(final boolean parseRequirementsAsync) {
+            this.parseRequirementsAsync=parseRequirementsAsync;
             return this;
         }
 

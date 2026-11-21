@@ -13,9 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +34,7 @@ public class MenuHolder implements InventoryHolder {
     private boolean parsePlaceholdersInArguments;
     private boolean parsePlaceholdersAfterArguments;
     private Map<String, String> typedArgs;
+    private boolean parseRequirementsAsync;
 
     public MenuHolder(final @NotNull DeluxeMenus plugin, final @NotNull Player viewer) {
         this.plugin = plugin;
@@ -139,45 +138,49 @@ public class MenuHolder implements InventoryHolder {
         setUpdating(true);
 
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
-
             final Set<MenuItem> active = new HashSet<>();
+            final Runnable refreshRunnable = () -> {
 
-            for (int i = 0; i < getInventory().getSize(); i++) {
-                TreeMap<Integer, MenuItem> e = menu.getMenuItems().get(i);
+                for (int i = 0; i < getInventory().getSize(); i++) {
+                    TreeMap<Integer, MenuItem> e = menu.getMenuItems().get(i);
 
-                if (e == null) {
-                    getInventory().setItem(i, null);
-                    continue;
-                }
+                    if (e == null) {
+                        getInventory().setItem(i, null);
+                        continue;
+                    }
 
-                boolean m = false;
-                for (MenuItem item : e.values()) {
+                    boolean m = false;
+                    for (MenuItem item : e.values()) {
 
-                    if (item.options().viewRequirements().isPresent()) {
+                        if (item.options().viewRequirements().isPresent()) {
 
-                        if (item.options().viewRequirements().get().evaluate(this)) {
+                            if (item.options().viewRequirements().get().evaluate(this)) {
+                                m = true;
+                                active.add(item);
+                                break;
+                            }
+                        } else {
                             m = true;
                             active.add(item);
                             break;
                         }
-                    } else {
-                        m = true;
-                        active.add(item);
-                        break;
+                    }
+
+                    if (!m) {
+                        getInventory().setItem(i, null);
                     }
                 }
 
-                if (!m) {
-                    getInventory().setItem(i, null);
+                if (active.isEmpty()) {
+                    Menu.closeMenu(plugin, getViewer(), true);
                 }
-            }
-
-            if (active.isEmpty()) {
-                Menu.closeMenu(plugin, getViewer(), true);
+            };
+            if(parseRequirementsAsync){
+                refreshRunnable.run();
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-
+                refreshRunnable.run();
                 boolean update = false;
 
                 for (MenuItem item : active) {
@@ -371,6 +374,10 @@ public class MenuHolder implements InventoryHolder {
 
     public Player getPlaceholderPlayer() {
         return placeholderPlayer;
+    }
+
+    public void setParseRequirementsAsync(final boolean parseRequirementsAsync){
+        this.parseRequirementsAsync = parseRequirementsAsync;
     }
 
     public @NotNull DeluxeMenus getPlugin() {

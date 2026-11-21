@@ -138,7 +138,7 @@ public class ListCommand extends SubCommand {
                     : text(menu.options().name(), NamedTextColor.DARK_AQUA).append(text(" - ", NamedTextColor.GRAY)).append(text(menuCommand, NamedTextColor.GREEN));
             }).collect(Component.toComponent(text(" | ", NamedTextColor.WHITE)));
 
-            plugin.sms(sender, list.append(menusList).build());
+            plugin.sms(sender, list.append(menusList).asComponent());
             return;
         }
 
@@ -153,7 +153,7 @@ public class ListCommand extends SubCommand {
         }).collect(Component.toComponent(text(", ", NamedTextColor.WHITE)));
 
         list.append(menusList);
-        plugin.sms(sender, list.build());
+        plugin.sms(sender, list.asComponent());
     }
 
     private void sendPaginatedMenuList(@NotNull final CommandSender sender, @NotNull final Map<String, List<Menu>> menus,
@@ -187,7 +187,7 @@ public class ListCommand extends SubCommand {
             final var menuList = createMenuListForConsole(pageMenusTree, 0);
 
             list.append(newline()).append(menuList).append(newline()).append(text("Use /dm list <page> to view more menus", NamedTextColor.GRAY));
-            plugin.sms(sender, list.build());
+            plugin.sms(sender, list.asComponent());
             return;
         }
 
@@ -225,7 +225,7 @@ public class ListCommand extends SubCommand {
             }
         }
 
-        plugin.sms(sender, list.build());
+        plugin.sms(sender, list.asComponent());
     }
 
     private Map<String, List<Menu>> getPaginatedMenus(final Map<String, List<Menu>> menus,
@@ -293,7 +293,7 @@ public class ListCommand extends SubCommand {
             }
         }
 
-        return list.build();
+        return list.asComponent();
     }
 
     @SuppressWarnings("unchecked")
@@ -318,7 +318,7 @@ public class ListCommand extends SubCommand {
             }
         }
 
-        return list.build();
+        return list.asComponent();
     }
 
     private Map<String, Object> convertMenusToTree(final Map<String, List<Menu>> menus) {

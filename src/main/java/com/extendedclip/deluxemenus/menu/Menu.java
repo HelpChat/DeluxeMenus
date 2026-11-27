@@ -25,7 +25,10 @@ import org.jetbrains.annotations.Nullable;
 public class Menu {
 
     private static final Map<String, Menu> menus = new HashMap<>();
-    private static final Set<MenuHolder> menuHolders = new HashSet<>();
+    // Lowercase open command -> menu, so the command listener does not have to scan every menu.
+    private static final Map<String, Menu> menusByCommand = new HashMap<>();
+    // Viewer UUID -> the menu they have open. A player can only have one menu open at a time.
+    private static final Map<UUID, MenuHolder> menuHolders = new HashMap<>();
     private static final Map<UUID, Menu> lastOpenedMenus = new HashMap<>();
 
     private final DeluxeMenus plugin;
@@ -52,7 +55,20 @@ public class Menu {
             this.command.register();
         }
 
-        menus.put(this.options.name(), this);
+        final Menu previous = menus.put(this.options.name(), this);
+        if (previous != null && previous != this) {
+            previous.removeCommandMappings();
+        }
+
+        for (String command : this.options.commands()) {
+            menusByCommand.putIfAbsent(command.toLowerCase(Locale.ROOT), this);
+        }
+    }
+
+    private void removeCommandMappings() {
+        for (String command : this.options.commands()) {
+            menusByCommand.remove(command.toLowerCase(Locale.ROOT), this);
+        }
     }
 
     public static void unload(final @NotNull DeluxeMenus plugin, final @NotNull String name) {
@@ -68,7 +84,10 @@ public class Menu {
         }
 
         optionalMenu.get().unregisterCommand();
-        menus.remove(name);
+        final Menu removed = menus.remove(name);
+        if (removed != null) {
+            removed.removeCommandMappings();
+        }
     }
 
     public static void unload(final @NotNull DeluxeMenus plugin) {
@@ -81,6 +100,7 @@ public class Menu {
             menu.unregisterCommand();
         }
         menus.clear();
+        menusByCommand.clear();
         menuHolders.clear();
         lastOpenedMenus.clear();
     }
@@ -102,6 +122,7 @@ public class Menu {
             }
         }
         menus.clear();
+        menusByCommand.clear();
     }
 
     public static int getLoadedMenuSize() {
@@ -140,7 +161,7 @@ public class Menu {
     }
 
     public static @NotNull Optional<Menu> getMenuByCommand(final @NotNull String command) {
-        return menus.values().stream().filter(m -> m.getMenuCommandUsed(command).isPresent()).findFirst();
+        return Optional.ofNullable(menusByCommand.get(command.toLowerCase(Locale.ROOT)));
     }
 
     public static boolean isMenuCommand(final @NotNull String command) {
@@ -148,15 +169,16 @@ public class Menu {
     }
 
     public static boolean isInMenu(final @NotNull Player player) {
-        return menuHolders.stream().anyMatch(h -> h.getViewerName().equals(player.getName()));
+        return menuHolders.containsKey(player.getUniqueId());
     }
 
     public static boolean isInMenu(final @NotNull Player player, final @NotNull String menu) {
-        return menuHolders.stream().anyMatch(h -> h.getMenuName().equals(menu) && h.getViewerName().equals(player.getName()));
+        final MenuHolder holder = menuHolders.get(player.getUniqueId());
+        return holder != null && menu.equals(holder.getMenuName());
     }
 
     public static Optional<MenuHolder> getMenuHolder(final @NotNull Player player) {
-        return menuHolders.stream().filter(h -> h.getViewerName().equals(player.getName())).findFirst();
+        return Optional.ofNullable(menuHolders.get(player.getUniqueId()));
     }
 
     public static Optional<Menu> getOpenMenu(final @NotNull Player player) {
@@ -203,7 +225,7 @@ public class Menu {
                 cleanInventory(plugin, player);
             });
         }
-        menuHolders.remove(holder);
+        menuHolders.remove(player.getUniqueId(), holder);
         lastOpenedMenus.put(player.getUniqueId(), holder.getMenu().orElse(null));
     }
 
@@ -392,7 +414,7 @@ public class Menu {
                 }
 
                 viewer.openInventory(inventory);
-                menuHolders.add(holder);
+                menuHolders.put(viewer.getUniqueId(), holder);
 
         if (updatePlaceholders) {
           holder.startUpdatePlaceholdersTask();
@@ -407,7 +429,7 @@ public class Menu {
   }
 
     public void refreshForAll() {
-        menuHolders.stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);
+        menuHolders.values().stream().filter(menuHolder -> menuHolder.getMenuName().equalsIgnoreCase(options.name())).forEach(MenuHolder::refreshMenu);
     }
 
     public @NotNull Map<Integer, TreeMap<Integer, MenuItem>> getMenuItems() {
@@ -427,7 +449,7 @@ public class Menu {
     }
 
     public int activeViewers() {
-        return (int) menuHolders.stream().filter(holder -> holder.getMenuName().equalsIgnoreCase(options.name())).count();
+        return (int) menuHolders.values().stream().filter(holder -> holder.getMenuName().equalsIgnoreCase(options.name())).count();
     }
 
 }

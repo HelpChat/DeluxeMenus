@@ -125,6 +125,7 @@ public enum Messages {
             .append(text("<player>"))),
 
     RELOAD_FAIL(text("Errors detected in config.yml. Failed to reload.", NamedTextColor.RED)),
+    RELOAD_IN_PROGRESS(text("A reload is already in progress, please wait.", NamedTextColor.RED)),
     RELOAD_SUCCESS(PLUGIN_TITLE.message
             .append(space())
             .append(text("successfully reloaded!", NamedTextColor.GREEN))),

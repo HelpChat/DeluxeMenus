@@ -52,6 +52,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -203,12 +204,13 @@ public class DeluxeMenusConfig {
     }
 
     private boolean saveResourceToFile(String resource, File file) {
-        try {
-            InputStream is = plugin.getResource(resource);
-            byte[] buffer = new byte[is.available()];
-            is.read(buffer);
-            OutputStream os = new FileOutputStream(file);
-            os.write(buffer);
+        try (InputStream is = plugin.getResource(resource)) {
+            if (is == null) {
+                throw new NullPointerException("Resource not found: " + resource);
+            }
+            try (OutputStream os = new FileOutputStream(file)) {
+                is.transferTo(os);
+            }
             return true;
         } catch (NullPointerException | IOException ex) {
             plugin.printStacktrace("Failed to update file: " + resource, ex);
@@ -340,12 +342,31 @@ public class DeluxeMenusConfig {
     }
 
     public boolean loadMenuFromFile(String menuName) {
+        final ParsedMenu parsedMenu = parseMenuFile(menuName, plugin.getConfig().getString("gui_menus." + menuName + ".file"));
 
-        String fileName = plugin.getConfig().getString("gui_menus." + menuName + ".file");
-
-        if (!fileName.endsWith(".yml")) {
-            plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Filename specified for menu: " + menuName + " is not a .yml file!", "Make sure that the file name to load this menu from is specified as a .yml file!", "Skipping loading of menu: " + menuName);
+        if (parsedMenu == null) {
             return false;
+        }
+
+        loadMenu(parsedMenu.config(), menuName, false, parsedMenu.path());
+        return Menu.getMenuByName(menuName).isPresent();
+    }
+
+    /**
+     * Reads and parses the file of a menu that is stored in the gui_menus directory. Creates the file with the default
+     * menu if it does not exist yet.
+     * <p>
+     * This method only does file I/O and YAML parsing. It does not touch any Bukkit or plugin state, so it is safe to
+     * call from an async thread.
+     *
+     * @param menuName the name of the menu
+     * @param fileName the file name of the menu, relative to the gui_menus directory
+     * @return the parsed menu, or null if the file could not be loaded
+     */
+    public @Nullable ParsedMenu parseMenuFile(final @NotNull String menuName, final @Nullable String fileName) {
+        if (fileName == null || !fileName.endsWith(".yml")) {
+            plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Filename specified for menu: " + menuName + " is not a .yml file!", "Make sure that the file name to load this menu from is specified as a .yml file!", "Skipping loading of menu: " + menuName);
+            return null;
         }
 
         File f = new File(menuDirectory.getPath(), fileName);
@@ -360,12 +381,12 @@ public class DeluxeMenusConfig {
                 f.createNewFile();
                 if (!saveResourceToFile("default_menu.yml", f)) {
                     plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Failed to create a default menu file for menu: " + menuName, "Skipping loading menu: " + menuName);
-                    return false;
+                    return null;
                 }
                 plugin.debug(DebugLevel.HIGHEST, Level.INFO, f.getName() + " created! Add your menu options to this file and use /dm reload to load it!");
             } catch (IOException e) {
                 plugin.debug(DebugLevel.HIGHEST, Level.SEVERE, "Could not create menu file: plugins" + separator + "DeluxeMenus" + separator + "gui_menus" + separator + fileName);
-                return false;
+                return null;
             }
         }
 
@@ -373,21 +394,78 @@ public class DeluxeMenusConfig {
 
         if (cfg == null) {
             plugin.debug(DebugLevel.HIGHEST, Level.WARNING, "Menu: " + menuName + " in file: " + fileName + " not loaded.");
-            return false;
+            return null;
         }
 
         if (cfg.getKeys(false).isEmpty()) {
             plugin.debug(DebugLevel.HIGH, Level.INFO, "Menu config: " + f.getName() + " is empty! Creating default config example...");
             saveResourceToFile("default_menu.yml", f);
-            return false;
+            return null;
         }
 
         final Path guiMenusPath = menuDirectory.toPath();
         final Path menuPath = f.toPath();
         final Path relativePath = guiMenusPath.relativize(menuPath);
 
-        loadMenu(cfg, menuName, false, relativePath.toString());
-        return Menu.getMenuByName(menuName).isPresent();
+        return new ParsedMenu(menuName, cfg, false, relativePath.toString());
+    }
+
+    /**
+     * Does the slow part of a full reload: reads and parses config.yml and every menu file it lists.
+     * <p>
+     * This method only does file I/O and YAML parsing. It does not touch any Bukkit or plugin state, so it is safe to
+     * call from an async thread. Pass the result to {@link #applyMenus(List)} on the main thread.
+     *
+     * @return the parsed configuration, or null if config.yml could not be loaded
+     */
+    public @Nullable PreparedReload prepareReload() {
+        final FileConfiguration mainConfig = checkConfig(null, "config.yml", false);
+
+        if (mainConfig == null) {
+            return null;
+        }
+
+        // The old reload saved config.yml straight after reading it. Keep doing that.
+        final File configFile = new File(plugin.getDataFolder(), "config.yml");
+        try {
+            mainConfig.save(configFile);
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, e);
+        }
+
+        final List<ParsedMenu> parsedMenus = new ArrayList<>();
+        final ConfigurationSection menusSection = mainConfig.getConfigurationSection("gui_menus");
+
+        if (menusSection == null) {
+            return new PreparedReload(mainConfig, parsedMenus);
+        }
+
+        for (String key : menusSection.getKeys(false)) {
+            if (mainConfig.contains("gui_menus." + key + ".file")) {
+                final ParsedMenu parsedMenu = parseMenuFile(key, mainConfig.getString("gui_menus." + key + ".file"));
+                if (parsedMenu != null) {
+                    parsedMenus.add(parsedMenu);
+                }
+            } else {
+                parsedMenus.add(new ParsedMenu(key, mainConfig, true, "config"));
+            }
+        }
+
+        return new PreparedReload(mainConfig, parsedMenus);
+    }
+
+    /**
+     * Builds and registers menus from configurations that were already parsed by {@link #prepareReload()} or
+     * {@link #parseMenuFile(String, String)}. Must be called on the main thread.
+     *
+     * @param parsedMenus the parsed menus, in the order they should be loaded
+     * @return the amount of menus that are loaded after this call
+     */
+    public int applyMenus(final @NotNull List<ParsedMenu> parsedMenus) {
+        for (ParsedMenu parsedMenu : parsedMenus) {
+            loadMenu(parsedMenu.config(), parsedMenu.name(), parsedMenu.mainConfig(), parsedMenu.path());
+        }
+        return Menu.getLoadedMenuSize();
     }
 
     public void loadMenu(FileConfiguration c, String key, boolean mainConfig, final @NotNull String path) {
@@ -958,9 +1036,9 @@ public class DeluxeMenusConfig {
                     }
 
                     if (c.contains(rPath + ".name_ignorecase")) {
-                        wrapper.setNameContains(c.getBoolean(rPath + ".name_ignorecase"));
+                        wrapper.setNameIgnoreCase(c.getBoolean(rPath + ".name_ignorecase"));
                     } else {
-                        wrapper.setNameContains(c.getBoolean(rPath + ".name-ignorecase", false));
+                        wrapper.setNameIgnoreCase(c.getBoolean(rPath + ".name-ignorecase", false));
                     }
 
                     if (c.contains(rPath + ".lore_contains")) {
@@ -970,9 +1048,9 @@ public class DeluxeMenusConfig {
                     }
 
                     if (c.contains(rPath + ".lore_ignorecase")) {
-                        wrapper.setLoreContains(c.getBoolean(rPath + ".lore_ignorecase"));
+                        wrapper.setLoreIgnoreCase(c.getBoolean(rPath + ".lore_ignorecase"));
                     } else {
-                        wrapper.setLoreContains(c.getBoolean(rPath + ".lore-ignorecase", false));
+                        wrapper.setLoreIgnoreCase(c.getBoolean(rPath + ".lore-ignorecase", false));
                     }
 
                     invert = type == RequirementType.DOES_NOT_HAVE_ITEM;
@@ -1212,9 +1290,10 @@ public class DeluxeMenusConfig {
 
             if (type == null) {
                 continue;
-            } else {
-                command = command.replaceFirst(Pattern.quote(type.getIdentifier()), "");
             }
+
+            // getByStart() matched on the prefix, so the identifier is always at the start.
+            command = command.substring(type.getIdentifier().length());
 
             if (command.startsWith(" ")) {
                 command = command.trim();
@@ -1226,14 +1305,14 @@ public class DeluxeMenusConfig {
 
             if (d.find()) {
                 action.setDelay(d.group(1));
-                command = command.replaceFirst(Pattern.quote(d.group()), "");
+                command = command.substring(0, d.start()) + command.substring(d.end());
             }
 
             Matcher ch = CHANCE_MATCHER.matcher(command);
 
             if (ch.find()) {
                 action.setChance(ch.group(1));
-                command = command.replaceFirst(Pattern.quote(ch.group()), "");
+                command = command.substring(0, ch.start()) + command.substring(ch.end());
             }
 
             action.setExecutable(command);
@@ -1411,5 +1490,25 @@ public class DeluxeMenusConfig {
         }
 
         builder.damage(parts.length == 1 ? parts[0] : parts[1]);
+    }
+
+    /**
+     * A menu configuration that has been read from disk but not built yet.
+     *
+     * @param name       the name of the menu
+     * @param config     the parsed configuration that holds the menu
+     * @param mainConfig true if the menu is stored inside config.yml
+     * @param path       the path of the menu, relative to the gui_menus directory, or "config" for config.yml
+     */
+    public record ParsedMenu(@NotNull String name, @NotNull FileConfiguration config, boolean mainConfig, @NotNull String path) {
+    }
+
+    /**
+     * The result of {@link #prepareReload()}.
+     *
+     * @param mainConfig the freshly parsed config.yml
+     * @param menus      every menu that was parsed successfully, in config.yml order
+     */
+    public record PreparedReload(@NotNull FileConfiguration mainConfig, @NotNull List<ParsedMenu> menus) {
     }
 }

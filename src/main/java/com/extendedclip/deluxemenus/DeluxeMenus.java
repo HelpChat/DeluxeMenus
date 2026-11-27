@@ -27,13 +27,17 @@ import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -55,6 +59,10 @@ public class DeluxeMenus extends JavaPlugin {
 
     private final GeneralConfig generalConfig = new GeneralConfig(this);
     private DeluxeMenusConfig menuConfig;
+
+    // Our own copy of config.yml so that a reload can parse it on an async thread and swap it in on the main thread.
+    private FileConfiguration config;
+    private final AtomicBoolean reloading = new AtomicBoolean(false);
 
     @Override
     public void onEnable() {
@@ -191,6 +199,41 @@ public class DeluxeMenus extends JavaPlugin {
 
     public void reload() {
         this.generalConfig.reload();
+    }
+
+    @Override
+    public @NotNull FileConfiguration getConfig() {
+        if (this.config == null) {
+            reloadConfig();
+        }
+        return this.config;
+    }
+
+    @Override
+    public void reloadConfig() {
+        // Same as JavaPlugin#reloadConfig(). The jar has no config.yml, so there are no defaults to copy from it.
+        this.config = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
+    }
+
+    /**
+     * Replaces the in-memory config.yml with one that was already loaded, for example on an async thread.
+     * Must be called on the main thread.
+     */
+    public void replaceConfig(final @NotNull FileConfiguration config) {
+        this.config = config;
+    }
+
+    /**
+     * Marks the start of a reload.
+     *
+     * @return false if another reload is still running
+     */
+    public boolean tryStartReload() {
+        return this.reloading.compareAndSet(false, true);
+    }
+
+    public void finishReload() {
+        this.reloading.set(false);
     }
 
     public GeneralConfig getGeneralConfig() {
